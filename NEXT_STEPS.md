@@ -1947,7 +1947,7 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.9.0: `447 passed, 4 skipped` (see §8.3 for the exact
+Expected at v0.10.0: `462 passed, 4 skipped` (see §8.3 for the exact
 expectation and how to treat drift). Earlier releases had different
 counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
 v0.5.0 = 341, v0.5.1 = 365, v0.6.0 = 390, v0.7.0 = 421, v0.8.0 = 437.
@@ -2009,7 +2009,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`447 passed, 4 skipped` at v0.9.0; see §8.3
+prints the current expected count (`462 passed, 4 skipped` at v0.10.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2069,10 +2069,10 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.9.0): **`447 passed, 4 skipped`** (4 skips are
-PDF-backend tests on hosts without weasyprint/pdfkit). Earlier counts: 173
-(v0.1.0) → 184 (v0.1.1) → 254 (v0.3.0) → ~280 (v0.4.0) → 341
-(v0.5.0). Then run the end-to-end smoke:
+Expected today (v0.10.0): **`462 passed, 4 skipped`** (+15 new §9 tests
+added in v0.10.0; 4 skips are PDF-backend tests on hosts without
+weasyprint/pdfkit). Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
+254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0). Then run the end-to-end smoke:
 
 ```bash
 openpharmastability analyze examples/assay_3batch.csv \
@@ -2101,8 +2101,8 @@ values.
 |---|---|---|
 | HTML timestamp makes byte output non-identical run-to-run (numbers identical) | **known-open** (Fix 1.1) | Not a blocker. Numeric determinism holds. |
 | `schema._infer_direction_from_spec` false-positive warning when both specs present AND direction declared consistently | **known-open** (Fix 1.2) | Cosmetic; warning noise only. |
-| `regen_expected.py` uses statsmodels for COMMON_SLOPE fit (not pure numpy) | **known-open** (Fix 1.3) | Reduces independence claim; not a correctness bug. |
-| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. |
+| `regen_expected.py` uses statsmodels for COMMON_SLOPE fit (not pure numpy) | **resolved** (Fix 1.3) | `test_script_does_not_import_statsmodels` locks this. |
+| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v0.10.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
 | `pytest` not green / `regen --check` nonzero | **BLOCKER** | Stop and fix before new work. |
 | `apply_extrapolation_caps` drops a new `StabilityResult` field | **BLOCKER if introduced** | See Preamble + §9.9 test. |
 

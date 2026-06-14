@@ -331,6 +331,12 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         "product_type": result.product_type,
         "crossing_status": result.crossing.status.value,
         "governing_batch": result.crossing.governing_batch,
+        # v0.10.0: which spec limit governed a bidirectional
+        # (two-sided) crossing. "lower" / "upper" for a
+        # BIDIRECTIONAL analysis; None for the one-sided paths.
+        # ``getattr`` keeps the record forward-compatible with
+        # hand-built CrossingResult fixtures predating the field.
+        "governing_side": getattr(result.crossing, "governing_side", None),
         "diagnostics": diagnostics_summary,
         "metadata": _as_python(metadata),
         # v0.3.0 BQL + transforms: the per-attribute BQL summary and

@@ -286,3 +286,44 @@ def test_extrapolation_no_allowance_preserves_v031():
     assert any(
         "exceeds the q1e extrapolation cap" in w.lower() for w in new.warnings
     )
+
+
+# ---------------------------------------------------------------------------
+# §9.9  apply_extrapolation_caps preserves all StabilityResult fields
+# ---------------------------------------------------------------------------
+
+
+def test_extrapolation_caps_preserves_all_result_fields():
+    """apply_extrapolation_caps must copy every field of StabilityResult.
+
+    This is the regression guard for the copy-block hazard described in
+    NEXT_STEPS §9.9 / Preamble: if a new field is added to StabilityResult
+    and the manual copy inside apply_extrapolation_caps is not updated, the
+    field silently vanishes from the returned result.  The test builds a
+    result, caps it, and asserts field-by-field equality for every field
+    that apply_extrapolation_caps is *not* allowed to change.
+    """
+    import dataclasses
+    result = _make_result(shelf_life=30, observed=12.0)
+
+    # Fields that apply_extrapolation_caps is allowed to change.
+    MUTABLE = {
+        "supported_shelf_life_months",
+        "extrapolation_flag",
+        "warnings",
+        "extrapolation_allowed",
+        "extrapolation_rationale",
+    }
+
+    new = apply_extrapolation_caps(result)
+
+    for f in dataclasses.fields(result):
+        if f.name in MUTABLE:
+            continue
+        original = getattr(result, f.name)
+        updated = getattr(new, f.name)
+        assert original == updated, (
+            f"Field {f.name!r} changed unexpectedly: "
+            f"{original!r} -> {updated!r}. "
+            "Update apply_extrapolation_caps to forward this field."
+        )

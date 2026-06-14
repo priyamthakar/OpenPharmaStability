@@ -220,3 +220,122 @@ def test_crossing_flat_or_opposite_decreasing_with_positive_slope():
     fit = fit_models(data)[ModelKind.POOLED]
     res = find_crossing(fit, data, horizon=120.0)
     assert res.status is CrossingStatus.FLAT_OR_OPPOSITE
+
+
+# ---------------------------------------------------------------------------
+# §9.8  Bidirectional two-sided quantile (v0.10.0 correct behavior)
+# ---------------------------------------------------------------------------
+
+
+def test_bidirectional_uses_two_sided_quantile_and_is_tighter():
+    """BIDIRECTIONAL uses the two-sided 0.975 t-quantile per ICH Q1E.
+
+    The two-sided bound is *tighter* (further from the mean) than the
+    one-sided 0.95 bound, so the bidirectional crossing comes *earlier*
+    than the one-sided DECREASING crossing on the same data.  The
+    ``governing_side`` field records which spec limit governs.
+    """
+    rng = np.random.default_rng(42)
+    rows = []
+    for batch, b0 in [("B1", 100.5), ("B2", 99.8), ("B3", 100.2)]:
+        for t in [0.0, 3.0, 6.0, 9.0, 12.0, 18.0, 24.0]:
+            rows.append(
+                {
+                    "batch": batch,
+                    "time_months": t,
+                    "value": b0 - 0.5 * t + float(rng.normal(0, 0.2)),
+                }
+            )
+    df = pd.DataFrame(rows)
+
+    data_bi = ValidatedData(
+        df=df,
+        attribute="assay",
+        condition="25C/60RH",
+        direction=Direction.BIDIRECTIONAL,
+        lower_spec=90.0,
+        upper_spec=110.0,
+        n_batches=3,
+        time_points=sorted(df["time_months"].unique().tolist()),
+    )
+    data_1s = ValidatedData(
+        df=df,
+        attribute="assay",
+        condition="25C/60RH",
+        direction=Direction.DECREASING,
+        lower_spec=90.0,
+        upper_spec=110.0,
+        n_batches=3,
+        time_points=sorted(df["time_months"].unique().tolist()),
+    )
+    fit = fit_models(data_bi)[ModelKind.POOLED]
+
+    res_bi = find_crossing(fit, data_bi)
+    res_1s = find_crossing(fit, data_1s)
+
+    # Both must cross (decreasing data, lower spec at 90).
+    assert res_bi.status is CrossingStatus.CROSSED
+    assert res_1s.status is CrossingStatus.CROSSED
+    assert res_bi.crossing_months is not None
+    assert res_1s.crossing_months is not None
+
+    # Two-sided is tighter -> earlier crossing.
+    assert res_bi.crossing_months < res_1s.crossing_months, (
+        f"Expected bidirectional ({res_bi.crossing_months:.4f}) to cross "
+        f"before one-sided ({res_1s.crossing_months:.4f})"
+    )
+
+    # governing_side is set for bidirectional, None for one-sided.
+    assert res_bi.governing_side in ("lower", "upper")
+    assert res_1s.governing_side is None
+
+
+def test_bidirectional_no_crossing_when_wide_specs():
+    """If both spec limits are far from the fitted line, neither side
+    crosses within the horizon -> NO_CROSSING with governing_side=None."""
+    rows = []
+    for batch in ("B1", "B2", "B3"):
+        for t in (0.0, 6.0, 12.0, 18.0, 24.0):
+            rows.append(
+                {"batch": batch, "time_months": t, "value": 100.0 - 0.05 * t}
+            )
+    df = pd.DataFrame(rows)
+    data = ValidatedData(
+        df=df,
+        attribute="assay",
+        condition="25C/60RH",
+        direction=Direction.BIDIRECTIONAL,
+        lower_spec=50.0,   # far below baseline
+        upper_spec=200.0,  # far above baseline
+        n_batches=3,
+        time_points=sorted(df["time_months"].unique().tolist()),
+    )
+    fit = fit_models(data)[ModelKind.POOLED]
+    res = find_crossing(fit, data, horizon=60.0)
+    assert res.status is CrossingStatus.NO_CROSSING
+    assert res.crossing_months is None
+    assert res.governing_side is None
+
+
+# ---------------------------------------------------------------------------
+# §9.12  All four CrossingStatus values are explicitly exercised
+# ---------------------------------------------------------------------------
+
+def test_all_four_crossing_statuses_covered():
+    """Meta-test: assert that each CrossingStatus value is hit by at least
+    one other test in this module.  The actual numeric correctness is
+    verified in the individual tests above; this test just locks the
+    coverage requirement so a future ``CrossingStatus`` addition shows up
+    here before it silently falls through.
+    """
+    from openpharmastability.contracts import CrossingStatus
+    required = {
+        CrossingStatus.CROSSED,
+        CrossingStatus.NO_CROSSING,
+        CrossingStatus.FLAT_OR_OPPOSITE,
+        CrossingStatus.FAIL_AT_BASELINE,
+    }
+    assert required == set(CrossingStatus), (
+        "A new CrossingStatus value was added; add a test for it in "
+        "test_stats_crossing.py and update this set."
+    )

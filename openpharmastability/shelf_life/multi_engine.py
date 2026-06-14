@@ -60,6 +60,7 @@ from openpharmastability.data.metadata import (
     load_attribute_metadata_from_dataframe,
 )
 from openpharmastability.data.xlsx import load_xlsx_sheet
+from openpharmastability.regulatory.profile import Q1AE, GuidanceProfile
 from openpharmastability.shelf_life.engine import analyze
 from openpharmastability.shelf_life.limiting import select_limiting
 
@@ -365,6 +366,10 @@ def analyze_many(
     mkt_ea_kJ_per_mol: float = 83.144,
     detect_reduced_design: bool = False,
     random_effects: bool = False,
+    # v0.10.0 — active guidance profile, forwarded to each
+    # per-attribute ``analyze()`` call. Defaults to ``Q1AE``; the
+    # limiting-decision logic is unchanged.
+    profile: GuidanceProfile = Q1AE,
 ) -> MultiAttributeResult:
     """Run a multi-attribute stability analysis.
 
@@ -507,6 +512,8 @@ def analyze_many(
                 mkt_ea_kJ_per_mol=mkt_ea_kJ_per_mol,
                 detect_reduced_design=detect_reduced_design,
                 random_effects=random_effects,
+                # v0.10.0 guidance profile.
+                profile=profile,
             )
         finally:
             try:

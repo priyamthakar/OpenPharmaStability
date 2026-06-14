@@ -934,3 +934,64 @@ def test_html_v070_no_sensitivity_section_by_default(tmp_path):
     # The gated section header is NOT present.
     assert "Sensitivity analysis (leave-one-out" not in body
     assert "Influential row" not in body
+
+
+# ---------------------------------------------------------------------------
+# §9.2  JSON record determinism
+# ---------------------------------------------------------------------------
+
+
+def test_json_record_deterministic_with_fixed_epoch():
+    """to_decision_record() must produce byte-identical JSON on two calls.
+
+    The timestamp is embedded in the metadata fixture (ISO_TIMESTAMP), so
+    there is no wall-clock non-determinism.  Two consecutive calls on the
+    same StabilityResult must return identical dicts whose JSON
+    serialisation is byte-equal.
+    """
+    result = _make_stability_result()
+    rec1 = to_decision_record(result)
+    rec2 = to_decision_record(result)
+    assert rec1 == rec2, "to_decision_record() is not deterministic"
+    assert json.dumps(rec1, sort_keys=True) == json.dumps(rec2, sort_keys=True)
+
+
+# ---------------------------------------------------------------------------
+# §9.3  Disclaimer verbatim in HTML  (supplements existing render test)
+# §9.4  Disclaimer verbatim in JSON record
+# ---------------------------------------------------------------------------
+
+
+def test_disclaimer_verbatim_in_json():
+    """The decision record must carry the verbatim DISCLAIMER string.
+
+    This is a machine-readable compliance requirement: consumers parsing
+    the JSON programmatically must see the regulatory-scope disclaimer
+    without having to render the HTML report.
+    """
+    from openpharmastability.contracts import DISCLAIMER
+    result = _make_stability_result()
+    rec = to_decision_record(result)
+    assert "disclaimer" in rec, "key 'disclaimer' missing from decision record"
+    assert rec["disclaimer"] == DISCLAIMER, (
+        "Decision record disclaimer does not match contracts.DISCLAIMER verbatim"
+    )
+    # Must survive a JSON round-trip without mutation.
+    assert json.loads(json.dumps(rec))["disclaimer"] == DISCLAIMER
+
+
+def test_disclaimer_verbatim_in_html(tmp_path):
+    """The rendered HTML must contain contracts.DISCLAIMER verbatim.
+
+    This test is the §9.3 companion to test_render_html_contains_disclaimer;
+    it additionally verifies the *exact* string (not just a substring) to
+    prevent truncation.
+    """
+    from openpharmastability.contracts import DISCLAIMER
+    result = _make_stability_result()
+    out = tmp_path / "report_disclaimer.html"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    body = out.read_text(encoding="utf-8")
+    assert DISCLAIMER in body, (
+        "HTML report does not contain contracts.DISCLAIMER verbatim"
+    )

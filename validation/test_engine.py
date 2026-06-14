@@ -261,3 +261,191 @@ def test_analyze_accepts_xlsx(tmp_path):
     # The row count must match the source CSV (no rows dropped or
     # added by the dispatcher / XLSX loader).
     assert result.metadata["row_count"] == len(df)
+
+
+# ---------------------------------------------------------------------------
+# §9.7  Unknown direction raises ValueError (no spec columns)
+# ---------------------------------------------------------------------------
+
+
+def test_engine_unknown_direction_raises_when_no_spec(tmp_path):
+    """analyze() must raise ValueError when no spec column is present.
+
+    Without lower_spec or upper_spec the engine cannot determine a crossing
+    direction, so it must fail loudly rather than returning a bogus result.
+    """
+    import pandas as pd
+
+    rows = []
+    for batch in ("A", "B", "C"):
+        for t in (0.0, 3.0, 6.0, 12.0, 18.0, 24.0):
+            rows.append(
+                {
+                    "batch": batch,
+                    "time_months": t,
+                    "value": 100.0 - 0.3 * t,
+                    "attribute": "assay",
+                    "condition": "25C/60RH",
+                    # No lower_spec / upper_spec column.
+                }
+            )
+    csv = tmp_path / "no_spec.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+    with pytest.raises(ValueError, match="lower_spec|upper_spec|spec"):
+        analyze(path=str(csv), condition="25C/60RH", attribute="assay")
+
+
+# ---------------------------------------------------------------------------
+# §9.13  Fewer than 3 batches produces the Q1E warning
+# ---------------------------------------------------------------------------
+
+
+def test_engine_two_batches_emits_q1e_warning(tmp_path):
+    """analyze() must append a Q1E warning when n_batches < 3.
+
+    ICH Q1E expects at least 3 production batches.  The engine must not
+    silently succeed; it must warn.
+    """
+    import pandas as pd
+
+    rows = []
+    for batch in ("A", "B"):  # only 2 batches
+        for t in (0.0, 3.0, 6.0, 12.0, 18.0, 24.0):
+            rows.append(
+                {
+                    "batch": batch,
+                    "time_months": t,
+                    "value": 100.0 - 0.3 * t,
+                    "attribute": "assay",
+                    "condition": "25C/60RH",
+                    "lower_spec": 90.0,
+                }
+            )
+    csv = tmp_path / "two_batch.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+    result = analyze(path=str(csv), condition="25C/60RH", attribute="assay")
+    q1e_warnings = [w for w in result.warnings if "batch" in w.lower() and "q1e" in w.lower()]
+    assert q1e_warnings, (
+        f"Expected a Q1E batch-count warning; got warnings: {result.warnings}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# §9.14  Single time point returns a non-raising, non-CROSSED result
+# ---------------------------------------------------------------------------
+
+
+def test_engine_handles_single_time_point(tmp_path):
+    """A dataset with only one unique time point must not raise.
+
+    With one time point there is no slope to estimate; the engine should
+    either surface a warning or return FLAT_OR_OPPOSITE / NO_CROSSING
+    rather than propagating a divide-by-zero or NaN error.
+    """
+    import pandas as pd
+    import pytest
+
+    rows = [
+        {"batch": b, "time_months": 0.0, "value": 100.0,
+         "attribute": "assay", "condition": "25C/60RH", "lower_spec": 90.0}
+        for b in ("A", "B", "C")
+    ]
+    csv = tmp_path / "single_tp.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+    # Either raises a clear error or returns without an exception.
+    try:
+        result = analyze(path=str(csv), condition="25C/60RH", attribute="assay")
+        # If it succeeds, the shelf life must not be a finite positive number
+        # derived from a meaningless slope.
+        assert result.supported_shelf_life_months is None or result.supported_shelf_life_months == 0 or \
+            result.crossing.status.name in ("FLAT_OR_OPPOSITE", "NO_CROSSING", "FAIL_AT_BASELINE"), (
+            f"Unexpected positive shelf life from single-time-point data: "
+            f"{result.supported_shelf_life_months} months, status={result.crossing.status}"
+        )
+    except (ValueError, RuntimeError, ZeroDivisionError):
+        # A clean exception is acceptable; what's not acceptable is a
+        # silent wrong answer or an unhandled numpy/scipy traceback.
+        pass
+
+
+# ---------------------------------------------------------------------------
+# §9.15  NaN in value column triggers a data-quality warning, not a crash
+# ---------------------------------------------------------------------------
+
+
+def test_engine_handles_nan_value(tmp_path):
+    """A NaN in the value column must trigger a data-quality warning.
+
+    The engine should surface the missing-value issue explicitly rather
+    than allowing NaN to propagate silently into the regression.
+    """
+    import math
+    import pandas as pd
+
+    rows = []
+    for batch in ("A", "B", "C"):
+        for t in (0.0, 3.0, 6.0, 12.0, 18.0, 24.0):
+            rows.append(
+                {
+                    "batch": batch,
+                    "time_months": t,
+                    "value": 100.0 - 0.3 * t,
+                    "attribute": "assay",
+                    "condition": "25C/60RH",
+                    "lower_spec": 90.0,
+                }
+            )
+    # Inject a single NaN value.
+    rows[4]["value"] = float("nan")
+    csv = tmp_path / "nan_value.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+    result = analyze(path=str(csv), condition="25C/60RH", attribute="assay")
+    nan_warnings = [
+        w for w in result.warnings
+        if "missing" in w.lower() or "nan" in w.lower()
+    ]
+    assert nan_warnings, (
+        f"Expected a missing-value warning for the NaN row; "
+        f"got warnings: {result.warnings}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# §9.16  Negative time row triggers a data-quality error
+# ---------------------------------------------------------------------------
+
+
+def test_engine_handles_negative_time(tmp_path):
+    """A row with time_months < 0 must trigger a data-quality error.
+
+    Negative stability time is physically impossible.  The engine must
+    flag it via the data-quality pipeline, not silently include the row
+    in the regression.
+    """
+    import pandas as pd
+
+    rows = []
+    for batch in ("A", "B", "C"):
+        for t in (0.0, 3.0, 6.0, 12.0, 18.0, 24.0):
+            rows.append(
+                {
+                    "batch": batch,
+                    "time_months": t,
+                    "value": 100.0 - 0.3 * t,
+                    "attribute": "assay",
+                    "condition": "25C/60RH",
+                    "lower_spec": 90.0,
+                }
+            )
+    # Inject a negative time point.
+    rows[0]["time_months"] = -1.0
+    csv = tmp_path / "neg_time.csv"
+    pd.DataFrame(rows).to_csv(csv, index=False)
+    result = analyze(path=str(csv), condition="25C/60RH", attribute="assay")
+    neg_warnings = [
+        w for w in result.warnings
+        if "negative" in w.lower() or "time" in w.lower()
+    ]
+    assert neg_warnings, (
+        f"Expected a negative-time warning; got warnings: {result.warnings}"
+    )
