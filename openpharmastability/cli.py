@@ -422,11 +422,39 @@ def _build_parser() -> argparse.ArgumentParser:
              "silent no-op in multi-attribute mode.",
     )
     a.add_argument(
+        "--sensitivity-mode", default="row", choices=["row", "batch"],
+        help="Sensitivity drop mode (default: row). 'row' does "
+             "leave-one-out over Cook's-distance influential "
+             "points; 'batch' does leave-one-batch-out. Only "
+             "meaningful when --sensitivity is set.",
+    )
+    a.add_argument(
         "--acceptance-csv", default=None, dest="acceptance_csv",
         help="Write a flat acceptance-criteria CSV to PATH. One "
              "row per analyzed attribute (single-attribute mode: "
              "1 row; multi-attribute mode: 1 row per attribute "
              "with the per-attribute metadata spec).",
+    )
+
+    # ---- v0.8.0 Arrhenius-driven shelf-life flag ----
+    a.add_argument(
+        "--arrhenius-shelf-life", action="store_true", default=False,
+        help="Run the Arrhenius-driven shelf-life prediction "
+             "(exploratory; does not change the official Q1E "
+             "shelf-life decision). Attaches an "
+             "ArrheniusShelfLife to the result on the "
+             "arrhenius_shelf_life field, and surfaces it in "
+             "the JSON record and HTML report. Single-attribute "
+             "mode only; the flag is a silent no-op in "
+             "multi-attribute mode.",
+    )
+    a.add_argument(
+        "--arrhenius-shelf-life-storage-temp", type=float, default=25.0,
+        dest="arrhenius_shelf_life_storage_temp",
+        help="Storage temperature for the Arrhenius-driven "
+             "shelf-life prediction (default: 25.0 °C). The fit "
+             "itself is on the stress temperatures in the data; "
+             "this is the T_storage used for the predicted rate.",
     )
 
     return p
@@ -487,6 +515,25 @@ def _engine_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         # pops this kwarg out before forwarding. The flag is a
         # silent no-op in multi-attribute mode.
         run_sensitivity=bool(args.sensitivity),
+        # v0.8.0: sensitivity drop mode. Only meaningful when
+        # ``run_sensitivity=True``; defaults to ``"row"`` so
+        # v0.7.0 callers that opt into the flag see
+        # byte-equivalent output. Like ``run_sensitivity``, this
+        # kwarg is popped out of the multi-mode forward dict
+        # because ``analyze_many`` does not accept it.
+        sensitivity_mode=str(args.sensitivity_mode),
+        # v0.8.0: Arrhenius-driven shelf-life prediction. The
+        # single-attribute ``analyze()`` path accepts both kwargs
+        # and attaches the ``ArrheniusShelfLife`` to the result;
+        # the multi-attribute ``analyze_many()`` does NOT (its
+        # signature is owned by a parallel build stream and is
+        # out of scope for v0.8.0), so the multi-mode runner
+        # pops these kwargs out before forwarding. The flag is a
+        # silent no-op in multi-attribute mode.
+        run_arrhenius_shelf_life=bool(args.arrhenius_shelf_life),
+        arrhenius_shelf_life_storage_temp_C=float(
+            args.arrhenius_shelf_life_storage_temp
+        ),
     )
 
 
@@ -786,8 +833,16 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     # out of scope for v0.7.0). Pop the kwarg out of the forwarded
     # dict so the call does not raise a TypeError on the unknown
     # keyword. The flag is a silent no-op in multi-attribute mode.
+    # v0.8.0: same treatment for the Arrhenius-driven shelf-life
+    # prediction flags — ``analyze_many`` does not accept them
+    # (its signature is owned by a parallel build stream and is
+    # out of scope for v0.8.0). The flag is a silent no-op in
+    # multi-attribute mode.
     multi_kwargs = _engine_kwargs(args)
     multi_kwargs.pop("run_sensitivity", None)
+    multi_kwargs.pop("sensitivity_mode", None)
+    multi_kwargs.pop("run_arrhenius_shelf_life", None)
+    multi_kwargs.pop("arrhenius_shelf_life_storage_temp_C", None)
     result = analyze_many(
         path=args.path,
         condition=args.condition,

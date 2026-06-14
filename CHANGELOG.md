@@ -4,6 +4,80 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.8.0] — 2026-06-13 — Backend Features (no UI)
+
+### Theme
+More backend features, no UI. Per the user's "features first,
+website last" reshape: the Cloudflare Pages + Claude Design
+UI pass is deferred to v0.9.0+ / v1.0. Python remains the
+authoritative stats engine. This release ships Arrhenius-driven
+shelf-life prediction (a genuine new analysis path), a
+leave-one-batch-out sensitivity variant, and a cross-platform
+Makefile.
+
+### Added
+- **Arrhenius-driven shelf-life prediction** (`--arrhenius-shelf-life`).
+  New `openpharmastability.stats.arrhenius_shelf_life.predict_arrhenius_shelf_life`
+  fits the v0.5.0 Arrhenius module on multi-temperature rate
+  data and predicts the long-term rate at the storage
+  temperature, then runs the standard crossing logic against the
+  spec to produce a model-based statistical crossing and
+  supported shelf life. New `StabilityResult.arrhenius_shelf_life:
+  Optional[ArrheniusShelfLife]` field (additive, default None).
+  New `ArrheniusShelfLife` dataclass. New CLI flag
+  `--arrhenius-shelf-life` (and `--arrhenius-shelf-life-storage-temp FLOAT`,
+  default 25.0 °C, the same default as the v0.5.0 Arrhenius
+  module). The Arrhenius-shelf-life is "exploratory": the report
+  says so, and the official shelf-life decision is unchanged.
+- **Leave-one-batch-out sensitivity** (`--sensitivity-mode {row,batch}`,
+  default `row`). The v0.7.0 sensitivity analysis removed
+  individual Cook's-distance outliers; v0.8.0 adds a batch-level
+  variant that answers "is any single batch driving the shelf-life
+  number?" — a common Q1E concern. The same `compute_sensitivity`
+  helper now accepts `mode: str = "row" | "batch"`. New
+  `SensitivityRow.mode` and `SensitivityRow.drop_key` fields;
+  `SensitivityReport.mode` field; all additive. New tests cover
+  the batch-level path on the v0.5.x multi-batch fixtures.
+- **Cross-platform Makefile.** New `Makefile` at the repo root
+  with three targets:
+  - `make fresh` — delete `__pycache__` / `.pyc` / `.pytest_cache`
+    outside `.venv`, recompile source, reinstall, run tests.
+  - `make test` — `pytest -q` (the canonical suite run).
+  - `make regen-check` — `python tools/regen_expected.py --check`.
+  Documented in the README dev section. Works on Linux / macOS /
+  WSL / git-bash on Windows. The PowerShell script in
+  `NEXT_STEPS.md` §7.1 still works for native PowerShell on
+  Windows; the Makefile is the cross-platform complement.
+
+### Tests
+- `validation/test_arrhenius_shelf_life.py` (new, ~6 tests):
+  the new module recovers a known `Ea` on synthetic data, handles
+  the <2-temperatures skip, and produces a defensible
+  predicted shelf life on a 3-temperature dataset.
+- `validation/test_sensitivity.py` extended: 2-batch and
+  3-batch leave-one-batch-out tests on the v0.5.x
+  significant-change fixtures; max-delta summary
+  correctness; `mode` field is recorded on the result and the
+  per-row `drop_key` matches the batch name.
+- `validation/test_engine_v050.py` extended: regression for
+  the v0.8.0 engine wiring (new flag `run_arrhenius_shelf_life`
+  + the new `sensitivity_mode` kwarg).
+- Total: ~445 tests passing (was 421 at v0.7.0; +24 new across
+  Arrhenius shelf-life, batch sensitivity, engine regression,
+  and the Makefile's "no leftover stale state" guard).
+
+### Backward compatibility
+- All v0.7.0 single-attribute and multi-attribute golden paths
+  still pass. The default analyze path is byte-equivalent
+  (`--arrhenius-shelf-life` and `--sensitivity-mode` default to
+  off / `row`, matching v0.7.0 behavior).
+- v0.7.0 callers that don't import the new
+  `stats.arrhenius_shelf_life` module or the new
+  `ArrheniusShelfLife` dataclass are unaffected; all new fields
+  are additive with permissive defaults.
+- The `Makefile` is purely additive. Repos that prefer the
+  PowerShell script in `NEXT_STEPS.md` §7.1 can ignore it.
+
 ## [0.7.0] — 2026-06-13 — Backend Features (no UI)
 
 ### Theme

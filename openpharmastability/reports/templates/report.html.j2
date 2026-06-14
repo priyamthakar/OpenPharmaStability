@@ -624,7 +624,7 @@
     {% if sensitivity_present %}
     <h2>Sensitivity analysis (leave-one-out over Cook's-distance outliers)</h2>
     <div class="card">
-      <p><em>{{ sensitivity_report.summary }}</em></p>
+      <p><em>{{ sensitivity_report.summary }}</em> ({{ "row-level" if sensitivity_mode == "row" else "batch-level" }})</p>
       <table class="summary">
         <tr>
           <th>Influential row</th>
@@ -648,6 +648,54 @@
         {% for n in sensitivity_report.notes %}<br>&middot; {{ n }}{% endfor %}
       </p>
       {% endif %}
+    </div>
+    {% endif %}
+
+    {% if arrhenius_shelf_life_present %}
+    <h2>Arrhenius-driven shelf-life prediction (exploratory)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Storage temperature</th>
+          <td>{{ arrhenius_shelf_life.storage_temp_C }} &deg;C</td>
+        </tr>
+        <tr>
+          <th>Temperatures used</th>
+          <td>{{ arrhenius_shelf_life.n_temps }} ({{ arrhenius_shelf_life.temperatures_used|join(', ') }})</td>
+        </tr>
+        <tr>
+          <th>Predicted rate at storage</th>
+          <td>{{ "%.4g"|format(arrhenius_shelf_life.predicted_k_at_storage) }} 1/month</td>
+        </tr>
+        <tr>
+          <th>Predicted statistical crossing</th>
+          <td>
+            {% if arrhenius_shelf_life.predicted_statistical_crossing_months is not none %}
+              {{ "%.2f"|format(arrhenius_shelf_life.predicted_statistical_crossing_months) }} mo
+            {% else %}
+              &mdash;
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Predicted supported shelf life</th>
+          <td>
+            {% if arrhenius_shelf_life.predicted_shelf_life_months is not none %}
+              {{ arrhenius_shelf_life.predicted_shelf_life_months }} mo
+            {% else %}
+              &mdash;
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+      {% if arrhenius_shelf_life.notes %}
+      <p class="muted">Notes:
+        {% for n in arrhenius_shelf_life.notes %}<br>&middot; {{ n }}{% endfor %}
+      </p>
+      {% endif %}
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
+        Exploratory model-based prediction; the official {{ deliverable_term }} decision above is unchanged.
+      </p>
     </div>
     {% endif %}
 

@@ -46,7 +46,7 @@ openpharmastability analyze examples/assay_3batch.csv \
     --output build/report.html
 ```
 
-## v0.7.0 quick start
+## v0.8.0 quick start
 
 ### Single-attribute (v0.1 back-compat)
 
@@ -211,6 +211,21 @@ openpharmastability analyze stability.csv \
 openpharmastability analyze stability.csv \
     --condition "25C/60RH" --attribute assay \
     --acceptance-csv build/acceptance.csv
+
+# v0.8.0: leave-one-batch-out sensitivity (answers "is any single
+# batch driving the shelf life?")
+openpharmastability analyze stability.csv \
+    --condition "25C/60RH" --attribute assay \
+    --sensitivity --sensitivity-mode batch \
+    --output build/report.html
+
+# v0.8.0: Arrhenius-driven shelf-life prediction (model-based
+# estimate from multi-temperature rate data; exploratory).
+openpharmastability analyze multi_temp.csv \
+    --condition "25C/60RH" --attribute assay \
+    --arrhenius-shelf-life \
+    --arrhenius-shelf-life-storage-temp 25.0 \
+    --output build/report.html
 ```
 
 ### Python API (v0.6.0, programmatic surface)
@@ -259,24 +274,22 @@ and an INFO entry for a row whose `condition` doesn't match the
 requested one. The engine still runs (the audit reports, it does
 not gate).
 
-## What v0.7.0 adds over v0.6.0
+## What v0.8.0 adds over v0.7.0
 
-| Area | v0.6.0 | v0.7.0 (backend features) |
+| Area | v0.7.0 | v0.8.0 (more backend features) |
 |---|---|---|
-| Engine input | CSV only (XLSX reloaded separately for the plot). | `engine.analyze()` now calls a new `load_table` dispatcher in `data/io.py`; accepts `.csv`, `.xlsx`, `.xlsm` directly. |
-| Multi-attribute metadata override | `lower_spec` / `upper_spec` recorded on `AttributeMetadata` but NOT applied to the per-attribute decision (v0.2.1 CHANGELOG claim was a lie). | Override is now applied to the per-attribute temp CSV before `analyze()` runs; the per-attribute result reflects the override. New `StabilityResult.lower_spec` / `upper_spec` fields record the engine-used value. |
-| Sensitivity analysis | Diagnostics flagged Cook's-distance outliers but the report only mentioned them. | New `stats.sensitivity.compute_sensitivity` re-runs the analysis with each influential point removed and reports the new supported shelf life. `--sensitivity` flag attaches a `SensitivityReport`. New `StabilityResult.sensitivity_report` field. |
-| Acceptance criteria | The JSON record was the only machine-readable artifact. | New `--acceptance-csv PATH` flag emits a flat 15-column CSV (one row per analyzed attribute) for LIMS / regulatory-tracking ingestion. New `AcceptanceCriteriaRow` dataclass + `to_acceptance_criteria` helper. |
-| Regen validator | Used statsmodels for COMMON_SLOPE — shared an OLS backend with the engine (v0.1.1 known-open). | `tools/regen_expected.py` is now pure-numpy: hand-built design matrix + `np.linalg.lstsq` + `np.linalg.inv` for the covariance. The validator is fully independent of the engine. |
-| Documentation | — | README / HANDOVER / NEXT_STEPS / CHANGELOG all synced to v0.7.0. |
-| Tests | 390 → ~410 at v0.6.0. | 390 → **421** at v0.7.0; new tests for regen purity, `load_table` dispatch, metadata spec override, sensitivity, acceptance-criteria CSV, and reporting. |
+| Arrhenius-driven shelf-life | v0.5.0 Arrhenius fit is exploratory only (fits `ln(k) = ln(A) − Ea/(R·T)` from per-temp rate data; no model-based shelf life). | New `stats.arrhenius_shelf_life.predict_arrhenius_shelf_life` reuses the v0.5.0 fit to predict the long-term rate at the storage temperature and runs the standard crossing logic. New `--arrhenius-shelf-life` flag attaches an `ArrheniusShelfLife` to the result. New `StabilityResult.arrhenius_shelf_life` field. |
+| Sensitivity mode | `--sensitivity` is row-level only (leave-one-out per Cook's-distance outlier). | New `--sensitivity-mode {row,batch}` flag (default `row`). Batch mode answers "is any single batch driving the shelf-life number?" — a common Q1E concern. `compute_sensitivity` dispatches on the mode. New `SensitivityRow.mode` and `drop_key` fields; `SensitivityReport.mode` field. |
+| Build | No Makefile; the PowerShell script in `NEXT_STEPS.md` §7.1 works on Windows. | New cross-platform `Makefile` at the repo root with `make fresh` (canonical reset), `make test`, `make regen-check`. Works on Linux / macOS / WSL / git-bash. The PowerShell script remains the Windows-native complement. |
+| Documentation | — | README "Development" section (Makefile, PowerShell script, PYTHONDONTWRITEBYTECODE, conftest hard-require philosophy); HANDOVER / NEXT_STEPS / CHANGELOG all synced to v0.8.0. |
+| Tests | 421 at v0.7.0. | 421 → **437** at v0.8.0; new tests for Arrhenius shelf-life, batch sensitivity, engine regression, and Makefile smoke. |
 
-The v0.6.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
+The v0.7.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
 batch, alpha = 0.25, one-sided 95% t-quantile, floor rounding, worst-case
 earliest crossing, Q1A significant-change gating, PDF + artifact
-export). v0.7.0 layers opt-in sensitivity / acceptance-criteria on top
-plus bug-fixes (regen purity, XLSX dispatch, metadata override); the
-default path produces the same numbers as v0.6.0.
+export, pure-numpy regen). v0.8.0 layers opt-in Arrhenius-driven
+shelf-life + batch-out sensitivity on top; the default path
+produces the same numbers as v0.7.0.
 
 See `CHANGELOG.md` for the full per-release entries. Future work and
 known limitations are tracked in `NEXT_STEPS.md`.
@@ -287,7 +300,7 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The full suite is **421 passing** (plus 4 PDF-backend tests that
+The full suite is **437 passing** (plus 4 PDF-backend tests that
 skip cleanly on hosts without weasyprint/pdfkit). The golden-file
 test in `validation/test_golden.py` locks slope, intercept,
 residual SE, one-sided 95% bound, statistical crossing, and rounded
@@ -326,7 +339,7 @@ validation/            # pytest suites (conftest + 421 tests)
 
 ## Limitations / out of scope (current and future)
 
-v0.7.0 is the current release. The stats engine remains in Python
+v0.8.0 is the current release. The stats engine remains in Python
 and ICH Q1E-style fixed-effect by default; the opt-in advanced
 features (Arrhenius, MKT, reduced designs, random effects,
 sensitivity, acceptance-criteria CSV) are clearly labelled
@@ -342,8 +355,96 @@ multi-condition shelf-life selection (the engine reports per
 long-term condition, not the limiting one), and any GxP / 21 CFR
 Part 11 validation claim.
 
+## Development
+
+The repo ships with a small cross-platform build tool — a GNU
+`Makefile` at the repo root. It is the canonical entry point for
+contributors on Linux / macOS / WSL / git-bash on Windows and
+wraps the four operations the project does most often: clear
+stale `__pycache__` directories, byte-compile sources, reinstall
+the package, and run the test suite.
+
+### Targets
+
+```text
+make help         # show the help text + variable defaults
+make fresh        # clean + recompile + install + test (canonical reset)
+make clean        # remove __pycache__/, .pyc, .pytest_cache outside .venv
+make recompile    # byte-compile all sources with -f
+make install      # pip install -e .[dev]
+make test         # run pytest -q
+make regen-check  # run tools/regen_expected.py --check
+```
+
+The `make fresh` target is the canonical "I don't trust my
+environment" command: it deletes every `__pycache__/` and stray
+`.pyc` / `.pyo` outside `.venv`, removes `.pytest_cache`, force
+recompiles `openpharmastability/`, `tools/`, and `validation/`,
+reinstalls the package in editable mode with the `[dev]` extra,
+and then runs the full pytest suite. Run it after a fresh
+checkout, after pulling across machines, or any time a test
+fails in a way that looks like a stale `.pyc` masking the real
+source.
+
+All variables use `?=`, so they can be overridden on the command
+line, e.g. `make test PYTEST_OPTS='-k test_engine'` (when
+pytest is invoked with extra args) or `make test PYTHON=python3.11`.
+
+### Windows native PowerShell: the pycache integrity script
+
+The Makefile is POSIX (`find` / `xargs` / `rm -rf`) and works
+under git-bash, WSL, and native Linux / macOS. On a stock
+Windows host without git-bash, the same operations are still
+available as a PowerShell block in `NEXT_STEPS.md` §7.1 — that
+is the Windows-native complement to the Makefile. Both delete
+every `__pycache__/` directory and stray `.pyc` / `.pyo` file
+outside `.venv` and clear `.pytest_cache`; the PowerShell
+version uses `Get-ChildItem ... | Remove-Item -Recurse -Force`,
+the Makefile version uses `find ... -print0 | xargs -0 rm -rf`.
+The two are equivalent; pick whichever shell you are already in.
+
+### Tip: run Python without writing bytecode
+
+For day-to-day development, you can sidestep the entire class
+of stale-`__pycache__` problems by telling Python not to write
+`.pyc` files in the first place. Either set the env var
+
+```bash
+export PYTHONDONTWRITEBYTECODE=1
+```
+
+or pass `-B` on the command line:
+
+```bash
+python -B -m pytest -q
+python -B tools/regen_expected.py --check
+```
+
+This is the same flag used by the project's pre-commit hook
+(see `NEXT_STEPS.md` §7.4) and is a strict superset of the
+`make clean` target — it never writes the cache, so there is
+nothing to clean.
+
+### A note on the v0.5.1 conftest hard-require philosophy
+
+`validation/conftest.py` is intentionally unforgiving: at
+pytest collection time it imports each v0.5+ module
+(`stats.arrhenius`, `stats.mkt`,
+`regulatory.reduced_design`, `regulatory.significant_change`)
+and, if any is missing, calls `pytest.exit(..., returncode=2)`.
+The whole test run then aborts before a single test function
+executes — there is no skip-if-missing fallback. This is
+deliberate: a "skipped" report looks healthy, hides a real
+regression, and is exactly the kind of green-bar lie the
+hard-require guard exists to prevent. Contributors adding a
+new v0.5+ module must register it in
+`validation/conftest.py::_REQUIRED_V050_MODULES` in the same
+commit that adds the module, or collection will fail.
+
 ## Reproducibility metadata
 
 Every report embeds the input file SHA-256, row/column counts, library
 versions, tool version, ISO-8601 timestamp, and (if applicable) the random
-seed used.
+seed used. Two CLI runs with the same `--source-epoch` (or the same
+`SOURCE_DATE_EPOCH` env var) produce byte-identical JSON — see
+"Reproducible reports" above for the full command.

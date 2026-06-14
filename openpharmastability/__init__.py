@@ -6,6 +6,7 @@ from .contracts import (
     DISCLAIMER,
     POOLABILITY_ALPHA,
     REQUIRED_COLUMNS,
+    ArrheniusShelfLife,
     AttributeMetadata,
     AttributeResult,
     AttributeRole,
@@ -34,9 +35,10 @@ from .api import (
     analyze_xlsx,
     compute_sensitivity_for,
     make_artifact,
+    predict_arrhenius_shelf_life_for,
 )
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 __all__ = [
     "BQLSummary",
@@ -44,6 +46,7 @@ __all__ = [
     "DISCLAIMER",
     "POOLABILITY_ALPHA",
     "REQUIRED_COLUMNS",
+    "ArrheniusShelfLife",
     "AttributeMetadata",
     "AttributeResult",
     "AttributeRole",
@@ -71,5 +74,7 @@ __all__ = [
     "make_artifact",
     "analyze_and_artifact",
     "compute_sensitivity_for",
+    # v0.8.0 thin programmatic API
+    "predict_arrhenius_shelf_life_for",
     "__version__",
 ]

@@ -300,3 +300,199 @@ def test_sensitivity_handles_out_of_range_index() -> None:
     assert "out of range" in (row.note or "").lower(), (
         f"expected an 'out of range' note, got {row.note!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# v0.8.0 — leave-one-batch-out sensitivity mode
+# ---------------------------------------------------------------------------
+
+
+def test_compute_sensitivity_batch_mode_on_three_batches() -> None:
+    """On the v0.5.x ``assay_long_term.csv`` (3 batches, 5 time
+    points), ``compute_sensitivity(..., mode="batch")`` returns a
+    report with one row per batch, every row tagged
+    ``mode="batch"`` and a ``drop_key`` that is one of the
+    three batch identifiers. The summary carries the
+    batch-mode wording."""
+    from openpharmastability.data.schema import validate_and_select
+
+    long_term_csv = ROOT / "examples" / "assay_long_term.csv"
+    data = validate_and_select(
+        pd.read_csv(long_term_csv),
+        attribute="assay",
+        condition="25C/60RH",
+    )
+    result = analyze(
+        path=str(long_term_csv),
+        condition="25C/60RH",
+        attribute="assay",
+    )
+    report = compute_sensitivity(result, data, mode="batch")
+    assert report.mode == "batch"
+    assert len(report.rows) == 3
+    expected_batches = {"B1", "B2", "B3"}
+    seen = set()
+    for row in report.rows:
+        assert row.mode == "batch"
+        assert row.drop_key in expected_batches, (
+            f"unexpected drop_key {row.drop_key!r} for batch-mode row"
+        )
+        seen.add(row.drop_key)
+    assert seen == expected_batches, (
+        f"expected one row per batch {expected_batches!r}, got {seen!r}"
+    )
+    # Summary text uses the batch-mode wording.
+    s = report.summary.lower()
+    assert (
+        "dropping any single batch" in s
+        or "a single batch drives" in s
+    ), f"expected batch-flavored summary, got {report.summary!r}"
+
+
+def test_compute_sensitivity_batch_mode_max_delta_correctness() -> None:
+    """For a hand-crafted frame where the batch-mode diffs are
+    known, ``report.summary``'s max-delta is the max of
+    ``abs(row.diff_supported_shelf_life_months)`` across rows."""
+    from openpharmastability.data.schema import validate_and_select
+
+    # 3 batches, 5 time points. Engineered so the baseline shelf
+    # is well-defined and the per-batch re-fits produce
+    # diffs of (0, 2, 1) months (3 batches -> 3 rows).
+    rows = []
+    for batch, b0 in (("B1", 100.0), ("B2", 99.0), ("B3", 101.0)):
+        for t in (0.0, 3.0, 6.0, 9.0, 12.0):
+            v = b0 - 0.5 * t
+            rows.append({
+                "batch": batch, "condition": "25C/60RH",
+                "time_months": t, "attribute": "assay",
+                "value": round(v, 4),
+                "lower_spec": 90.0, "upper_spec": 110.0,
+                "direction": "decreasing",
+            })
+    df = pd.DataFrame(rows)
+    data = validate_and_select(
+        df, attribute="assay", condition="25C/60RH",
+    )
+    tmp = ROOT / "build" / "_batch_mode_max_delta.csv"
+    tmp.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(tmp, index=False)
+    try:
+        result = analyze(
+            path=str(tmp), condition="25C/60RH", attribute="assay",
+        )
+        report = compute_sensitivity(result, data, mode="batch")
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+    assert len(report.rows) == 3
+    diffs = [abs(int(r.diff_supported_shelf_life_months)) for r in report.rows]
+    expected_max = max(diffs)
+    # The summary's "max delta N mo" must match the per-row max.
+    s = report.summary
+    assert (
+        f"max delta {expected_max} mo" in s
+    ), f"summary {s!r} does not contain 'max delta {expected_max} mo'"
+
+
+def test_compute_sensitivity_batch_mode_robust_when_max_delta_zero() -> None:
+    """On a hand-crafted frame where dropping any single batch
+    does NOT change the supported shelf life, the summary is
+    the documented "robust to dropping any single batch" line."""
+    from openpharmastability.data.schema import validate_and_select
+
+    # Three perfectly identical batches (same values at every
+    # time point). The COMMON_SLOPE/POOLED fit is identical
+    # with or without any one batch, so the supported shelf
+    # life does not change -> max delta = 0 -> robust summary.
+    base = [
+        (0.0, 100.0), (3.0, 99.0), (6.0, 98.0),
+        (9.0, 97.0), (12.0, 96.0),
+    ]
+    rows = []
+    for batch in ("B1", "B2", "B3"):
+        for t, v in base:
+            rows.append({
+                "batch": batch, "condition": "25C/60RH",
+                "time_months": t, "attribute": "assay",
+                "value": v,
+                "lower_spec": 90.0, "upper_spec": 110.0,
+                "direction": "decreasing",
+            })
+    df = pd.DataFrame(rows)
+    data = validate_and_select(
+        df, attribute="assay", condition="25C/60RH",
+    )
+    tmp = ROOT / "build" / "_batch_mode_robust.csv"
+    tmp.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(tmp, index=False)
+    try:
+        result = analyze(
+            path=str(tmp), condition="25C/60RH", attribute="assay",
+        )
+        report = compute_sensitivity(result, data, mode="batch")
+    finally:
+        try:
+            tmp.unlink()
+        except OSError:
+            pass
+    # The summary must be the documented robust sentence.
+    assert report.summary == (
+        "max delta 0 mo; shelf life robust to dropping any single batch"
+    ), f"unexpected summary: {report.summary!r}"
+
+
+def test_compute_sensitivity_batch_mode_too_few_batches() -> None:
+    """On a frame with only one batch, ``compute_sensitivity(..., mode="batch")``
+    returns an empty report with the documented
+    "need >= 2 distinct batches" note. It does NOT raise."""
+    from openpharmastability.data.schema import validate_and_select
+
+    rows = [
+        {
+            "batch": "B1", "condition": "25C/60RH",
+            "time_months": t, "attribute": "assay",
+            "value": v, "lower_spec": 90.0, "upper_spec": 110.0,
+            "direction": "decreasing",
+        }
+        for t, v in ((0.0, 100.0), (3.0, 99.0), (6.0, 98.0))
+    ]
+    df = pd.DataFrame(rows)
+    data = validate_and_select(
+        df, attribute="assay", condition="25C/60RH",
+    )
+    # Use the existing tiny result + data fixtures so we can
+    # exercise the same "build report directly" path the row
+    # mode tests use. The data here is a 1-batch frame and
+    # the result has no influential points; we just want the
+    # branch to fire on ``data.df["batch"]`` having < 2
+    # unique values.
+    result = _build_tiny_result(influential_points=[])
+    # Override data with the 1-batch frame.
+    one_batch_data = ValidatedData(
+        df=df, attribute="assay", condition="25C/60RH",
+        direction=Direction.DECREASING,
+        lower_spec=90.0, upper_spec=110.0,
+        n_batches=1, time_points=[0.0, 3.0, 6.0],
+    )
+    report = compute_sensitivity(result, one_batch_data, mode="batch")
+    assert report.mode == "batch"
+    assert report.rows == []
+    assert "need >= 2 distinct batches" in report.summary.lower()
+    assert any(">= 2" in n for n in report.notes), (
+        f"expected a 'need >= 2' note, got {report.notes!r}"
+    )
+
+
+def test_sensitivity_row_mode_default_unchanged() -> None:
+    """``compute_sensitivity(result, data)`` (no ``mode`` kwarg)
+    returns a row-mode report (``report.mode == "row"``).
+    Regression test against an accidental default flip in
+    v0.8.0."""
+    result = _build_tiny_result(influential_points=[])
+    data = _build_tiny_validated_data()
+    report = compute_sensitivity(result, data)
+    assert report.mode == "row"
+    # And the existing no-op summary text is unchanged.
+    assert "no influential points" in report.summary.lower()

@@ -173,6 +173,27 @@ def analyze(
     # at its v0.6 default (None) so v0.6.x callers and hand-built
     # fixtures keep working unchanged.
     run_sensitivity: bool = False,
+    # v0.8.0 — sensitivity drop mode. ``"row"`` (the v0.7.0
+    # default, byte-equivalent) does leave-one-out over Cook's-
+    # distance influential points; ``"batch"`` does
+    # leave-one-batch-out over the distinct batches in the data
+    # used for the fit. The default ``"row"`` keeps the v0.7.0
+    # output byte-for-byte for callers that do not opt in.
+    sensitivity_mode: str = "row",
+    # v0.8.0 — Arrhenius-driven shelf-life prediction. Opt-in;
+    # when True the engine calls
+    # :func:`openpharmastability.stats.arrhenius_shelf_life.predict_arrhenius_shelf_life`
+    # on the validated data and attaches the resulting
+    # :class:`ArrheniusShelfLife` to the result on the
+    # `arrhenius_shelf_life` field. Exploratory only; the
+    # official Q1E shelf-life decision is unchanged. When the
+    # Arrhenius fit is skipped (e.g. < 2 distinct temperatures
+    # in the data) the field is still populated — the value is
+    # an `ArrheniusShelfLife` whose predictive fields are None
+    # and whose `notes` describe the skip. Default False; the
+    # field stays at its v0.7.0 default (None).
+    run_arrhenius_shelf_life: bool = False,
+    arrhenius_shelf_life_storage_temp_C: float = 25.0,
 ) -> StabilityResult:
     """Run the end-to-end v0.1 stability analysis on a CSV.
 
@@ -577,17 +598,47 @@ def analyze(
     # it is empty the helper returns a no-op report with an
     # explanatory summary. Any exception in the helper is captured
     # as a warning and the field stays at the v0.6 default (None).
+    #
+    # v0.8.0 — additive ``sensitivity_mode`` kwarg: ``"row"`` (the
+    # v0.7.0 default, preserved byte-equivalent for callers that
+    # do not opt in) does leave-one-out over Cook's-distance
+    # influential points; ``"batch"`` does leave-one-batch-out over
+    # the distinct batches in the data used for the fit. The
+    # default ``"row"`` keeps v0.7.0 output byte-for-byte.
     if run_sensitivity:
         try:
             from openpharmastability.stats.sensitivity import (
                 compute_sensitivity as _compute_sensitivity,
             )
-            v070_sens = _compute_sensitivity(result, data)
+            v070_sens = _compute_sensitivity(
+                result, data, mode=sensitivity_mode,
+            )
         except Exception as exc:  # defensive
             warnings.append(f"sensitivity analysis failed: {exc!r}")
             v070_sens = None
         else:
             result = dataclasses.replace(result, sensitivity_report=v070_sens)
+
+    # v0.8.0 — Arrhenius-driven shelf-life prediction. Model-based
+    # exploratory prediction: reuse the v0.5.0 / v0.7.0 Arrhenius
+    # fit, then run the closed-form crossing math against the data-
+    # derived spec on top of the extrapolated rate. The official
+    # Q1E shelf-life decision above is unchanged; this only
+    # populates `result.arrhenius_shelf_life`. Fail-soft: any
+    # exception in the helper is captured as a warning and the
+    # field stays at the v0.7.0 default (None).
+    v080_arrhenius_shelf_life = None
+    if run_arrhenius_shelf_life:
+        try:
+            from openpharmastability.stats.arrhenius_shelf_life import (
+                predict_arrhenius_shelf_life as _v080_predict,
+            )
+            v080_arrhenius_shelf_life = _v080_predict(
+                data, storage_temp_C=float(arrhenius_shelf_life_storage_temp_C),
+            )
+        except Exception as exc:  # defensive
+            warnings.append(f"Arrhenius-driven shelf-life prediction failed: {exc!r}")
+            v080_arrhenius_shelf_life = None
 
     # v0.5.0 — final ``dataclasses.replace`` that sets all four
     # advanced-statistics fields in one shot. Doing it in a single
@@ -604,6 +655,11 @@ def analyze(
     # message). The ``.get("convergence", default)`` keeps the engine
     # robust against hand-built FitResult fixtures that predate the
     # v0.5.1 sub-block.
+    # v0.8.0 — also set the v0.8.0 ``arrhenius_shelf_life`` field in
+    # the same replace so all advanced-statistics fields are set
+    # together. Default ``None`` so v0.7.x callers and hand-built
+    # fixtures that predate the v0.8.0 field continue to work
+    # unchanged.
     result = dataclasses.replace(
         result,
         arrhenius_result=v050_arrhenius_result,
@@ -614,6 +670,7 @@ def analyze(
             "convergence",
             {"converged": True, "boundary": False, "message": ""},
         ),
+        arrhenius_shelf_life=v080_arrhenius_shelf_life,
     )
 
     return result

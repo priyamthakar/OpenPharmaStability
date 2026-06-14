@@ -91,6 +91,22 @@ def _as_python(value: Any) -> Any:
     return str(value)
 
 
+def _sensitivity_mode(result: StabilityResult) -> str:
+    """Return the v0.8.0 sensitivity mode (``"row"`` / ``"batch"``).
+
+    Reads the mode from ``result.sensitivity_report.mode``; falls
+    back to ``"row"`` when the report is ``None`` (the v0.7.0
+    default) or when the field is missing for any reason
+    (forward-compat against hand-built fixtures).
+    """
+    sr = getattr(result, "sensitivity_report", None)
+    if sr is None:
+        return "row"
+    if isinstance(sr, dict):
+        return str(sr.get("mode", "row") or "row")
+    return str(getattr(sr, "mode", "row") or "row")
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -326,6 +342,27 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         # fixtures that predate the v0.7.0 field.
         "sensitivity_report": _as_python(
             getattr(result, "sensitivity_report", None)
+        ),
+        # v0.8.0: top-level convenience key carrying the
+        # sensitivity drop mode (``"row"`` / ``"batch"``). The
+        # same value is also embedded under
+        # ``sensitivity_report.mode`` (because the
+        # ``SensitivityReport`` dataclass carries it), but
+        # surfacing it at the top level means downstream tooling
+        # can branch on the mode without descending into the
+        # nested report. Defaults to ``"row"`` when no report is
+        # attached.
+        "sensitivity_mode": _sensitivity_mode(result),
+        # v0.8.0: Arrhenius-driven shelf-life prediction. ``None``
+        # when ``--arrhenius-shelf-life`` is not requested; a
+        # populated ``ArrheniusShelfLife`` (carrying the predicted
+        # rate, statistical crossing, and rounded supported shelf
+        # life) when it is. ``getattr(..., default)`` keeps the
+        # record forward-compatible with hand-built fixtures that
+        # predate the v0.8.0 field. Exploratory only; the official
+        # Q1E shelf-life decision above is unchanged.
+        "arrhenius_shelf_life": _as_python(
+            getattr(result, "arrhenius_shelf_life", None)
         ),
         # v0.7.0: one-row acceptance-criteria summary for the
         # single-attribute path. ``to_acceptance_criteria`` is the

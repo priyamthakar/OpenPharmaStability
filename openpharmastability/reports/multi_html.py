@@ -108,10 +108,39 @@ def _per_attr_block(idx: int, ar, plot_relpath: str | None) -> str:
     # that predate the v0.7.0 field.
     sr = getattr(r, "sensitivity_report", None)
     if sr is not None:
+        # v0.8.0: surface the drop mode inline so the multi-attribute
+        # report tells the reader whether the row-level or
+        # batch-level variant produced the per-attribute rows.
+        # Defaults to ``"row"`` when the field is missing
+        # (forward-compat against hand-built fixtures).
+        sr_mode = str(getattr(sr, "mode", "row") or "row")
+        mode_label = "batch-level" if sr_mode == "batch" else "row-level"
         v5_bits += (
             f'<p><strong>Sensitivity:</strong> '
-            f'<em>{_esc(getattr(sr, "summary", ""))}</em></p>'
+            f'<em>{_esc(getattr(sr, "summary", ""))}</em> '
+            f'({_esc(mode_label)})</p>'
         )
+    # v0.8.0: per-attribute Arrhenius-driven shelf-life
+    # prediction. Mirrors the single-attribute "Arrhenius-driven
+    # shelf-life prediction" section in the multi-attribute
+    # compact summary. Gated on `getattr(..., default)` so the
+    # multi-HTML renderer stays forward-compatible with
+    # hand-built fixtures that predate the v0.8.0 field.
+    # Exploratory only; the official Q1E shelf-life decision on
+    # the per-attribute result above is unchanged.
+    asl = getattr(r, "arrhenius_shelf_life", None)
+    if asl is not None:
+        asl_shelf = getattr(asl, "predicted_shelf_life_months", None)
+        asl_cross = getattr(
+            asl, "predicted_statistical_crossing_months", None
+        )
+        v8_bits = (
+            f'<p><strong>Arrhenius shelf-life:</strong> '
+            f'predicted={_esc(asl_shelf if asl_shelf is not None else "n/a")} mo '
+            f'at { _esc(getattr(asl, "storage_temp_C", "?")) } &deg;C '
+            f'(crossing={_esc(f"{asl_cross:.2f} mo" if asl_cross is not None else "n/a")})</p>'
+        )
+        v5_bits += v8_bits
     if mkt_present:
         v5_bits += (
             f'<p><strong>MKT:</strong> '

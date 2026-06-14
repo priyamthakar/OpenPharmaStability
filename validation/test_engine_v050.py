@@ -559,3 +559,135 @@ def test_golden_v070_sensitivity_attaches_report() -> None:
         result.sensitivity_report.baseline_supported_shelf_life
         == result.supported_shelf_life_months
     )
+
+
+# ---------------------------------------------------------------------------
+# 14. v0.8.0 — sensitivity_mode defaults to row (v0.7.0 byte-equivalent)
+# ---------------------------------------------------------------------------
+
+
+def test_golden_v080_sensitivity_mode_default_row() -> None:
+    """``analyze(..., run_sensitivity=True)`` with no
+    ``sensitivity_mode`` kwarg produces a row-mode
+    :class:`SensitivityReport` (``report.mode == "row"``).
+    Regression test for the v0.7.0 → v0.8.0 default."""
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        run_sensitivity=True,
+    )
+    assert result.sensitivity_report is not None
+    assert result.sensitivity_report.mode == "row"
+    # And the row-mode summary text does NOT use the batch-mode
+    # wording (the precise row-mode text depends on the per-row
+    # diffs: "outliers" / "1 point changes" / "a single point
+    # drives"). The negative check is enough to catch an
+    # accidental mode flip.
+    s = result.sensitivity_report.summary.lower()
+    assert "batch" not in s, (
+        f"row-mode summary should not mention 'batch', got "
+        f"{result.sensitivity_report.summary!r}"
+    )
+
+
+def test_golden_v080_sensitivity_mode_batch_attaches_batch_report() -> None:
+    """``analyze(..., run_sensitivity=True, sensitivity_mode="batch")``
+    on the 3-batch golden fixture attaches a batch-mode report
+    with 3 rows (one per batch). The mode is "batch", every row
+    carries the batch identifier in ``drop_key``, and the
+    summary uses the batch-flavored wording."""
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        run_sensitivity=True,
+        sensitivity_mode="batch",
+    )
+    assert result.sensitivity_report is not None
+    assert result.sensitivity_report.mode == "batch"
+    assert len(result.sensitivity_report.rows) == 3
+    # Every row is tagged mode="batch" and drop_key is one of
+    # the three batch identifiers in the golden fixture.
+    expected_batches = {"B1", "B2", "B3"}
+    seen = set()
+    for row in result.sensitivity_report.rows:
+        assert row.mode == "batch"
+        assert row.drop_key in expected_batches, (
+            f"unexpected drop_key {row.drop_key!r}"
+        )
+        seen.add(row.drop_key)
+    assert seen == expected_batches
+    # The summary uses the batch-mode wording.
+    s = result.sensitivity_report.summary.lower()
+    assert (
+        "dropping any single batch" in s
+        or "a single batch drives" in s
+    ), f"unexpected batch-mode summary: {result.sensitivity_report.summary!r}"
+
+
+# ---------------------------------------------------------------------------
+# 14. v0.8.0 — Arrhenius-driven shelf-life prediction (additive)
+# ---------------------------------------------------------------------------
+
+
+def test_golden_v080_arrhenius_shelf_life_attaches_field() -> None:
+    """``run_arrhenius_shelf_life=True`` attaches a populated
+    :class:`~openpharmastability.contracts.ArrheniusShelfLife`
+    to the result on the ``arrhenius_shelf_life`` field. The
+    golden fixture has only one temperature (25 °C, parsed from
+    the condition string) so the underlying Arrhenius fit is
+    skipped; the prediction layer mirrors that with all
+    predictive fields ``None`` and a note about < 2 temps."""
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        run_arrhenius_shelf_life=True,
+    )
+    # The field is attached (NOT left at the v0.7.0 default of
+    # None); the prediction layer always returns an
+    # ArrheniusShelfLife, with predictive fields None on the skip
+    # path.
+    assert result.arrhenius_shelf_life is not None
+    assert result.arrhenius_shelf_life.predicted_shelf_life_months is None
+    assert result.arrhenius_shelf_life.predicted_statistical_crossing_months is None
+    # The note explicitly mentions < 2 distinct temperatures.
+    notes = list(result.arrhenius_shelf_life.notes or [])
+    assert any(
+        "2 distinct temperatures" in n or "< 2" in n or ">= 2" in n
+        for n in notes
+    ), f"expected a <2-temp note in {notes!r}"
+    # The official Q1E shelf-life decision is unchanged.
+    assert result.supported_shelf_life_months == 17
+
+
+def test_golden_v080_default_unchanged() -> None:
+    """Default path (no ``run_arrhenius_shelf_life`` flag) leaves
+    the new ``arrhenius_shelf_life`` field at ``None`` so v0.7.x
+    callers and hand-built fixtures continue to work unchanged."""
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+    )
+    assert result.arrhenius_shelf_life is None
+    # And the v0.7.0 default shelf life is preserved byte-for-byte.
+    assert result.supported_shelf_life_months == 17
+    assert result.model_effects == "fixed"
+
+
+def test_golden_v080_arrhenius_shelf_life_storage_temp_override() -> None:
+    """The ``arrhenius_shelf_life_storage_temp_C`` kwarg is honored.
+    With a different storage temperature the returned
+    :class:`ArrheniusShelfLife` echoes the user-supplied value on
+    the ``storage_temp_C`` field."""
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        run_arrhenius_shelf_life=True,
+        arrhenius_shelf_life_storage_temp_C=30.0,
+    )
+    assert result.arrhenius_shelf_life is not None
+    assert result.arrhenius_shelf_life.storage_temp_C == 30.0

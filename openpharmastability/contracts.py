@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.7.0"
+TOOL_VERSION: str = "0.8.0"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -261,6 +261,10 @@ class StabilityResult:
     # supported shelf life that results from removing that point
     # and re-running the analysis end-to-end.
     sensitivity_report: Optional["SensitivityReport"] = None
+    # v0.8.0: Arrhenius-driven shelf-life prediction. None when
+    # `--arrhenius-shelf-life` is not requested; an
+    # `ArrheniusShelfLife` dataclass otherwise. Always additive.
+    arrhenius_shelf_life: Optional["ArrheniusShelfLife"] = None
 
 
 # ---------------------------------------------------------------------------
@@ -553,9 +557,13 @@ class SensitivityRow:
 
     Records the supported shelf life that results from removing a
     single flagged influential point (a Cook's-distance outlier
-    identified by the diagnostics layer) and re-running the
+    identified by the diagnostics layer) or an entire batch
+    (v0.8.0 leave-one-batch-out mode) and re-running the
     analysis end-to-end. The diff columns are the absolute change
     versus the baseline (all-points) supported shelf life.
+
+    `drop_key` is the row index for `mode == "row"`, or the batch
+    identifier for `mode == "batch"`.
     """
     influential_row_index: int
     baseline_supported_shelf_life: int
@@ -563,23 +571,31 @@ class SensitivityRow:
     leave_one_out_statistical_crossing_months: Optional[float]
     diff_supported_shelf_life_months: int
     note: str = ""
+    # v0.8.0: identify what was dropped. For row-level sensitivity
+    # this is the same as `influential_row_index` (kept for
+    # backward compat). For batch-level sensitivity this is the
+    # batch identifier; `influential_row_index` is the FIRST row
+    # index of that batch in the data (informational only).
+    mode: str = "row"   # "row" | "batch"
+    drop_key: str = ""  # row index as str (row mode) or batch name (batch mode)
 
 
 @dataclass
 class SensitivityReport:
-    """Result of the v0.7.0 sensitivity analysis.
+    """Result of the v0.7.0 (row-level) and v0.8.0 (batch-level)
+    sensitivity analysis.
 
-    `rows` is one :class:`SensitivityRow` per Cook's-distance
-    influential point flagged by the diagnostics layer. `summary`
-    is a short human-readable string (e.g. "max delta 2 mo; shelf
-    life robust to outliers" or "max delta 5 mo; a single point
-    drives the shelf-life decision — sensitivity analysis
-    recommended"). `baseline_supported_shelf_life` echoes the
-    all-points number for convenience.
+    `rows` is one :class:`SensitivityRow` per drop target:
+      - `mode == "row"`: per Cook's-distance influential point.
+      - `mode == "batch"`: per batch (leave-one-batch-out).
+    `summary` is a short human-readable string; `mode` records
+    which variant produced the report. `baseline_supported_shelf_life`
+    echoes the all-points number for convenience.
     """
     rows: list[SensitivityRow] = field(default_factory=list)
     summary: str = ""
     baseline_supported_shelf_life: Optional[int] = None
+    mode: str = "row"   # "row" | "batch"
     notes: list[str] = field(default_factory=list)
 
 
@@ -608,6 +624,44 @@ class AcceptanceCriteriaRow:
     exclusion_reason: str = ""
     unit: Optional[str] = None
     governing_batch: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# v0.8.0 Arrhenius-shelf-life + sensitivity-mode contracts (additive)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ArrheniusShelfLife:
+    """Result of the v0.8.0 Arrhenius-driven shelf-life prediction.
+
+    Built by :func:`openpharmastability.stats.arrhenius_shelf_life.predict_arrhenius_shelf_life`.
+    The procedure:
+      1. Group the input by `temp_c` and fit a log-linear OLS per
+         temperature to get a per-temperature rate (k(T) per month).
+      2. Fit `ln(k) = ln(A) − Ea / (R · T)` to the per-temperature
+         rates (>= 2 temperatures required; < 2 -> skip with note).
+      3. Predict `k(storage_temp_C)` and run the standard crossing
+         logic against the spec to get a model-based statistical
+         crossing and supported shelf life.
+
+    `predicted_k_at_storage` is the Arrhenius-extrapolated rate at
+    the storage temperature (1/month). `predicted_shelf_life_months`
+    is the rounded-DOWN supported shelf life from the same model.
+    `temperatures_used` and `rates_per_temp` echo the per-temp
+    inputs (helpful in the report). `source_arrhenius` is the
+    underlying :class:`ArrheniusResult` (for the JSON record /
+    HTML report cross-link).
+    """
+    predicted_k_at_storage: float
+    predicted_statistical_crossing_months: Optional[float]
+    predicted_shelf_life_months: Optional[int]
+    storage_temp_C: float
+    temperatures_used: list[float] = field(default_factory=list)
+    rates_per_temp: dict[str, float] = field(default_factory=dict)
+    n_temps: int = 0
+    source_arrhenius: Optional["ArrheniusResult"] = None
+    notes: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -710,4 +764,6 @@ __all__ = [
     "SensitivityRow",
     "SensitivityReport",
     "AcceptanceCriteriaRow",
+    # v0.8.0 Arrhenius-shelf-life
+    "ArrheniusShelfLife",
 ]

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from openpharmastability.contracts import (
+    ArrheniusShelfLife,
     MultiAttributeResult,
     ReportArtifact,
     SensitivityReport,
@@ -414,16 +415,54 @@ def compute_sensitivity_for(
     data: ValidatedData,
     *,
     horizon: float = 60.0,
+    mode: str = "row",
 ) -> SensitivityReport:
     """Thin wrapper around :func:`openpharmastability.stats.sensitivity.compute_sensitivity`.
 
     Convenience helper that re-exports the v0.7.0 leave-one-out
-    sensitivity analysis at the top-level API. The trigger set is
-    ``result.diagnostics.influential_points`` (a list of row indices
-    in the data used for the fit, populated by the diagnostics
-    layer). See the sensitivity module for the full contract.
+    sensitivity analysis (and its v0.8.0 leave-one-batch-out
+    variant) at the top-level API. The trigger set depends on
+    ``mode``:
+
+    * ``mode="row"`` (v0.7.0 default) — leave-one-out over
+      ``result.diagnostics.influential_points`` (a list of row
+      indices in the data used for the fit, populated by the
+      diagnostics layer).
+    * ``mode="batch"`` (v0.8.0) — leave-one-batch-out over the
+      distinct batches in the data used for the fit.
+
+    See the sensitivity module for the full contract.
     """
-    return compute_sensitivity(result, data, horizon=horizon)
+    return compute_sensitivity(result, data, horizon=horizon, mode=mode)
+
+
+# ---------------------------------------------------------------------------
+# Public API: v0.8.0 Arrhenius-shelf-life wrapper
+# ---------------------------------------------------------------------------
+
+
+def predict_arrhenius_shelf_life_for(
+    data: ValidatedData,
+    storage_temp_C: float = 25.0,
+    horizon: float = 60.0,
+) -> ArrheniusShelfLife:
+    """Thin wrapper around
+    :func:`openpharmastability.stats.arrhenius_shelf_life.predict_arrhenius_shelf_life`.
+
+    Returns an :class:`ArrheniusShelfLife` carrying the model-based
+    predicted rate at the storage temperature, the predicted
+    statistical crossing time, and the rounded-DOWN supported
+    shelf life. When the underlying Arrhenius fit is skipped
+    (e.g. < 2 distinct temperatures or BIDIRECTIONAL/UNKNOWN
+    direction), the predictive fields are ``None`` and the
+    ``notes`` describe the skip. Exploratory only; the official
+    Q1E shelf-life decision on :class:`StabilityResult` is
+    unchanged.
+    """
+    from openpharmastability.stats.arrhenius_shelf_life import (
+        predict_arrhenius_shelf_life as _impl,
+    )
+    return _impl(data, storage_temp_C=storage_temp_C, horizon=horizon)
 
 
 __all__ = [
@@ -434,4 +473,5 @@ __all__ = [
     "make_artifact",
     "analyze_and_artifact",
     "compute_sensitivity_for",
+    "predict_arrhenius_shelf_life_for",
 ]

@@ -170,6 +170,24 @@ def _required_columns_status(result: StabilityResult) -> tuple[str, str]:
     return "All required columns present (assumed)", "ok"
 
 
+def _sensitivity_mode(result: StabilityResult) -> str:
+    """Return the v0.8.0 sensitivity drop mode (``"row"`` / ``"batch"``).
+
+    The mode lives on :class:`~openpharmastability.contracts.SensitivityReport`;
+    ``_as_python`` may have already turned it into a dict (in
+    tests/hand-built fixtures) or it may still be a dataclass
+    (in live engine output). Handle both shapes and fall back to
+    ``"row"`` when the report is missing entirely (the v0.7.0
+    default).
+    """
+    sr = getattr(result, "sensitivity_report", None)
+    if sr is None:
+        return "row"
+    if isinstance(sr, dict):
+        return str(sr.get("mode", "row") or "row")
+    return str(getattr(sr, "mode", "row") or "row")
+
+
 def _library_versions(result: StabilityResult) -> dict[str, str]:
     md = result.metadata or {}
     versions = md.get("library_versions") or {}
@@ -352,6 +370,27 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         ),
         "sensitivity_present": getattr(
             result, "sensitivity_report", None
+        ) is not None,
+        # v0.8.0: the drop mode (``"row"`` / ``"batch"``) on its own
+        # so the template can render the mode label inline. Read
+        # from the report dataclass / dict (whichever shape the
+        # caller produced); default ``"row"``.
+        "sensitivity_mode": _sensitivity_mode(result),
+        # v0.8.0: Arrhenius-driven shelf-life prediction. ``None``
+        # when ``--arrhenius-shelf-life`` is not requested; a
+        # populated ``ArrheniusShelfLife`` otherwise. The template
+        # branches on ``arrhenius_shelf_life_present`` (a pre-
+        # computed bool) so the Jinja template stays declarative.
+        # ``getattr(..., default)`` keeps the context builder
+        # forward-compatible with hand-built StabilityResult
+        # fixtures that predate the v0.8.0 field. Exploratory
+        # only; the official Q1E shelf-life decision above is
+        # unchanged.
+        "arrhenius_shelf_life": getattr(
+            result, "arrhenius_shelf_life", None
+        ),
+        "arrhenius_shelf_life_present": getattr(
+            result, "arrhenius_shelf_life", None
         ) is not None,
         # Reproducibility
         "tool_version": md.get("tool_version") or TOOL_VERSION or _PKG_VERSION,
