@@ -1,28 +1,35 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v0.5.1 SHIPPED (audit patch).** v0.5.0 shipped the
-> advanced-statistics layer — Arrhenius, MKT, reduced-design
-> detection, and the opt-in random-effects mixed model. v0.5.1
-> closed the v0.5.0 audit: Arrhenius hook now attribute-filtered
-> and direction-aware, mixed-model convergence / boundary status
-> surfaced at the top level, MKT-without-temp_c now warns
-> explicitly. The previous v0.3.0 SHIPPED banner is now a
-> footnote in the audit trail. Read `HANDOVER.md` and
-> `CHANGELOG.md` first.
+> **STATUS: v0.6.0 SHIPPED (Export + API foundation).** v0.6.0 added
+> PDF export (weasyprint primary, pdfkit fallback), a thin Python
+> API around the engine, self-contained `ReportArtifact` bundles
+> (HTML with the plot inlined as a base64 data URL + JSON + plots +
+> optional PDF) with SHA-256 digests, CLI polish (`--pdf`,
+> `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`), improved
+> error messages, and the multi-attribute HTML spec-display fix.
+> **No frontend in v0.6** — the UI pass (Cloudflare Pages + Claude
+> Design) is deferred until the feature surface stabilises.
+> v0.5.1 (audit patch on v0.5.0 advanced statistics) and earlier
+> releases are documented in `CHANGELOG.md` and `HANDOVER.md`.
 >
-> §§1–5 are now historical (all shipped). **§6 (Export + UI) is
-> the next focus** for v0.6.0 — PDF export plus a Cloudflare Pages
-> frontend that calls the existing Python engine. The stats engine
-> stays in Python; the UI is a thin client.
+> §§1–5 are now historical (all shipped). **§6 (Export + API
+> foundation) is shipped in v0.6.0.** The **next** focus is the UI
+> pass for v0.7.0+ or v1.0 (Cloudflare Pages + Claude Design). The
+> Python stats engine remains the authoritative implementation; the
+> UI is a thin client that posts CSV/XLSX to a thin API and renders
+> the HTML report inline. **Do not reimplement the statistical core
+> in JavaScript / TypeScript.**
 
-**Comprehensive expansion plan: v0.1.0 → v0.5.1 (shipped) → v0.6.0+ (next)**
+**Comprehensive expansion plan: v0.1.0 → v0.6.0 (shipped) → v0.7.0+ (next)**
 
 > **Audience:** the next engineer/agent, starting cold. You have never seen
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
-> before you touch any code. §6 is the v0.6.0 hot list. §§1–5 are
-> historical (shipped — kept as design notes / reference). §10 is the
-> ongoing regulatory watch + versioning strategy.
+> before you touch any code. §§1–5 are historical (shipped — kept as
+> design notes). §6 (Export + API foundation) is the v0.6.0 release
+> and is now in the past; the forward plan is the UI pass for
+> v0.7.0+ / v1.0. §10 is the ongoing regulatory watch + versioning
+> strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
 > behavior spec) > `AGENTS.md` (v0.1 execution plan) > this file (forward
@@ -40,37 +47,41 @@
 
 | § | Title | Ships as |
 |---|-------|----------|
-| 1 | **IMMEDIATE FIXES (v0.1.1 patch)** | v0.1.1 |
-| 2 | Multi-attribute + XLSX | v0.2.0 |
-| 3 | Data quality + transforms | v0.3.0 |
-| 4 | Regulatory decision tree (ICH Q1A) | v0.4.0 |
-| 5 | Advanced statistics | v0.5.0 |
-| 6 | Export + UI | v0.6.0 |
+| 1 | **IMMEDIATE FIXES (v0.1.1 patch)** | v0.1.1 (shipped) |
+| 2 | Multi-attribute + XLSX | v0.2.0 (shipped) |
+| 3 | Data quality + transforms | v0.3.0 (shipped) |
+| 4 | Regulatory decision tree (ICH Q1A) | v0.4.0 (shipped) |
+| 5 | Advanced statistics | v0.5.0 (shipped) |
+| 6 | Export + API foundation | v0.6.0 (shipped) |
 | 7 | **PYCACHE / ENV INTEGRITY FIX (pre-work, READ FIRST)** | pre-work |
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
-| 9 | Test coverage gaps to fill now | v0.1.1 |
+| 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
+| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v0.7.0+ / v1.0 (future) |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§10, but the *execution* order on a fresh checkout at v0.5.1 is):
-> **§7 → §8 → §6 → §10.** Sections 1–5 are historical design notes
-> for releases that have already shipped (kept for reference and for
-> any future patch on the relevant subsystem). The env setup and
-> handover protocol must happen before any code change; §6 is the
-> v0.6.0 hot list (PDF export + Cloudflare Pages UI).
+> §1–§11, but the *execution* order on a fresh checkout at v0.6.0 is):
+> **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
+> releases that have already shipped (kept for reference). The env
+> setup and handover protocol must happen before any code change;
+> §11 is the v0.7.0+ UI hot list (Cloudflare Pages + Claude Design;
+> do not reimplement the statistical core in JS/TS).
 
 ---
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `0.5.1` (declared in three places that must stay in
+**Current version:** `0.6.0` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v0.5.1 is the audit patch on top of v0.5.0
-(advanced statistics). The default analyze path is byte-equivalent
-to v0.4.0; v0.5.x added opt-in features only.
+`pyproject.toml`). v0.6.0 is the Export + API foundation release:
+PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin
+Python surface, CLI polish, and the multi-attribute HTML spec-display
+fix. **No frontend in v0.6** — the UI pass is deferred. The
+default analyze path is byte-equivalent to v0.5.1; v0.6.x added
+opt-in export / artifact / API features only.
 
 **Module map (what exists today at v0.5.1):**
 
@@ -1925,9 +1936,10 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.5.1: `360 passed` (see §8.3 for the exact expectation
+Expected at v0.6.0: `~390 passed` (see §8.3 for the exact expectation
 and how to treat drift). Earlier releases had different counts —
-v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280, v0.5.0 = 341.
+v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280, v0.5.0 = 341,
+v0.5.1 = 365.
 
 ### 7.4 Permanent guard — Makefile target + pre-commit hook
 
@@ -1986,7 +1998,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`360 passed` at v0.5.1; see §8.3
+prints the current expected count (`~390 passed` at v0.6.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2046,7 +2058,7 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.5.1): **`360 passed`**. Skips are NOT expected —
+Expected today (v0.6.0): **`~390 passed`**. Skips are NOT expected —
 `validation/conftest.py` hard-requires the v0.5 modules and exits with
 code 2 at collection time if any is missing. Earlier counts: 173
 (v0.1.0) → 184 (v0.1.1) → 254 (v0.3.0) → ~280 (v0.4.0) → 341
@@ -2324,7 +2336,8 @@ comparison/audit.
 | Add ICH Q1A significant-change gating (§4) — *shipped in v0.4.0* | MINOR → 0.4.0 |
 | Add Arrhenius, MKT, reduced designs, random effects opt-in (§5) — *shipped in v0.5.0* | MINOR → 0.5.0 |
 | Audit patch on v0.5.0 (Arrhenius hook filter + direction, mixed-model convergence surfacing, MKT-without-temp_c warning, docs sync, hard-require v0.5 modules) — *shipped in v0.5.1* | PATCH → 0.5.1 |
-| Add PDF, Streamlit/Cloudflare Pages UI, FastAPI (§6) | MINOR → 0.6.0 |
+| Add PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin surface, CLI polish, multi-attribute HTML spec display fix (§6) — *shipped in v0.6.0; no frontend in v0.6* | MINOR → 0.6.0 |
+| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 0.7.0+ / 1.0 |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 

@@ -483,3 +483,109 @@ def test_multi_html_v051_convergence_marker(tmp_path):
     # The NOT-converged label and the boundary tag are present.
     assert "NOT converged" in html
     assert "(boundary)" in html
+
+
+# ---------------------------------------------------------------------------
+# v0.6.0 — multi-attribute HTML spec display fix
+# ---------------------------------------------------------------------------
+
+
+def test_multi_html_spec_display_shows_metadata_specs(tmp_path):
+    """The v0.6.0 multi-HTML spec display must read the spec from
+    the per-attribute :class:`AttributeMetadata` (not the dead
+    ``r.fit.design`` / ``r.metadata.lower_spec`` branches that
+    silently produced "lower=None, upper=None" for every attribute).
+
+    Concretely: with the shipped ``multi_attribute_metadata.csv``
+    (``assay``: lower=90, upper=110; ``impurity_a``: lower=None,
+    upper=0.5) the per-attribute block for ``impurity_a`` must
+    display the upper spec literal — and neither block may
+    contain the bug literal "lower=None, upper=None".
+    """
+    result = analyze_many(
+        str(CSV), condition="25C/60RH", all_attributes=True,
+        source_epoch=1700000000,
+        metadata_path=str(META),
+    )
+    out_html = tmp_path / "report_spec_fix.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+
+    # The bug literal must NOT appear anywhere in the report.
+    assert "lower=None, upper=None" not in html, (
+        "spec display still shows 'lower=None, upper=None'; the "
+        "AttributeMetadata-based read is not in place"
+    )
+    # And the "None" spec values must not be rendered as the string
+    # "None" anywhere in the Spec lines.
+    import re
+    spec_lines = re.findall(r"Spec:.*?</p>", html, flags=re.DOTALL)
+    assert spec_lines, "no per-attribute Spec: lines were rendered"
+    for line in spec_lines:
+        # The only "None" that should ever appear in a Spec line is
+        # the em-dash placeholder "—" used for a missing limit.
+        assert "=None" not in line, f"raw None leaked into spec line: {line!r}"
+
+    # The impurity_a block must surface its upper spec (0.5).
+    # The block is the <section id="attr-N"> ... </section> whose
+    # <h2> mentions "impurity_a". We slice to the next <section> to
+    # isolate the block.
+    imp_start = html.find('id="attr-')
+    while imp_start != -1:
+        # Find the heading inside this section.
+        section_end = html.find("</section>", imp_start)
+        section = html[imp_start:section_end]
+        if "impurity_a" in section.split("<h2>", 1)[1].split("</h2>", 1)[0]:
+            break
+        imp_start = html.find('id="attr-', section_end)
+    assert imp_start != -1, "impurity_a section not found in HTML"
+    section_end = html.find("</section>", imp_start)
+    section = html[imp_start:section_end]
+    # The spec literal in this block must include the upper value
+    # (0.5). The renderer formats the float as "0.5".
+    assert "upper=0.5" in section, (
+        f"upper spec 0.5 not displayed for impurity_a; section was:\n{section!r}"
+    )
+    # And the missing lower must render as the em-dash placeholder.
+    assert "lower=—" in section, (
+        f"missing lower spec for impurity_a must show em-dash; section was:\n{section!r}"
+    )
+
+
+def test_multi_html_overview_table_no_none_spec_cells(tmp_path):
+    """The overview table must not contain literal 'None' in the
+    spec display. The spec is not currently rendered as a column
+    in the overview table; this regression test simply guards
+    against a future change that introduces a spec column with
+    raw ``None`` values. ``analyze_many`` with the shipped
+    metadata CSV is the smallest realistic input."""
+    result = analyze_many(
+        str(CSV), condition="25C/60RH", all_attributes=True,
+        source_epoch=1700000000,
+        metadata_path=str(META),
+    )
+    out_html = tmp_path / "report_overview.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+
+    # Slice out the overview <table> directly under the
+    # "Overall decision" heading. The decision record's structure
+    # is documented in AGENTS.md / OpenPharmaStability.md; the
+    # table has the column headers in a fixed order.
+    import re
+    overview_match = re.search(
+        r"Overall decision.*?</table>", html, flags=re.DOTALL,
+    )
+    assert overview_match, "Overall decision table not found"
+    overview = overview_match.group(0)
+    # No "None" in any cell. The table cells render missing
+    # values as "n/a" (documented in the existing test for the
+    # statistical / supported columns) so any raw "None" leak is
+    # a regression.
+    assert "None" not in overview, (
+        f"raw 'None' leaked into overview table:\n{overview!r}"
+    )

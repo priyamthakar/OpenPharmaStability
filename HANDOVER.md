@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v0.5.1 on a fresh machine.**
+> **You are picking up OpenPharmaStability v0.6.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,15 +9,18 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v0.5.1** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v0.6.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
-report, and a machine-readable JSON decision record. The v0.1
-baseline (one attribute, one long-term condition) has been extended
-through v0.2 (multi-attribute + XLSX), v0.3 (data quality + BQL +
-transform evidence), v0.4 (ICH Q1A significant-change gating), and
-v0.5 (Arrhenius / MKT / reduced designs / random-effects opt-in,
-plus the v0.5.1 audit patch). It is a **decision-support /
+report, a machine-readable JSON decision record, an optional PDF
+copy, and a self-contained `ReportArtifact` bundle (HTML with the
+plot inlined as a base64 data URL, JSON, plots, optional PDF). The
+v0.1 baseline (one attribute, one long-term condition) has been
+extended through v0.2 (multi-attribute + XLSX), v0.3 (data quality +
+BQL + transform evidence), v0.4 (ICH Q1A significant-change
+gating), v0.5 (Arrhenius / MKT / reduced designs / random-effects
+opt-in, plus the v0.5.1 audit patch), and v0.6 (export + API
+foundation). It is a **decision-support /
 educational** tool: not a regulatory submission tool, not
 submission-ready, and **not** a validated GxP / 21 CFR Part 11
 system. The mandatory disclaimer lives at
@@ -31,28 +34,27 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `0.5.1` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `0.6.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
+| Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
 | CLI entry point | `openpharmastability` (console script) |
-| CLI invocation | `openpharmastability analyze <csv> --condition "25C/60RH" --attribute assay --output report.html` |
+| CLI invocation | `openpharmastability analyze <csv> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle]` |
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (independent numpy + scipy.stats.t + brentq; no project imports) |
-| Test count | **360** pytest tests across the files in `validation/` (count via `pytest --collect-only`) |
+| Test count | **~390** pytest tests across the files in `validation/` (count via `pytest --collect-only`) |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
-| Multi-attribute fixture | `examples/multi_attribute.csv` (48 rows, 2 attributes) + `examples/multi_attribute_metadata.csv` — limiting impurity_a at 7 months |
-| BQL fixture | `examples/bql_attribute.csv` (30 rows, 1 BQL row with loq=88.0) — supports `exclude` / `flag` / `substitute_loq` / `substitute_half_loq` / `manual_review` |
-| Data quality fixture | `examples/data_quality_messy.csv` (16 rows; 1 ERROR no-spec + 2 WARNINGS + 1 INFO) |
-| Significant-change fixtures (v0.4) | `examples/assay_long_term.csv` + `assay_accelerated_change_lt_3mo.csv` + `assay_accelerated_change_3_6mo.csv` + `assay_intermediate_no_change.csv` + `assay_intermediate_change.csv` |
-| v0.5 modules | `stats/arrhenius.py`, `stats/mkt.py`, `regulatory/reduced_design.py`, `regulatory/significant_change.py` — hard-required by `validation/conftest.py` |
+| Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact` (re-exported from the top-level package) |
+| Report artifact | `contracts.ReportArtifact` — self-contained bundle (HTML with inlined plot, JSON, plots, optional PDF) with SHA-256 digests and byte sizes |
 
 ### Recent releases
 
 | Version | Theme | What it added |
 |---|---|---|
-| `0.5.1` (current) | Audit patch on v0.5.0 | Arrhenius hook filtered to selected attribute + direction-aware; mixed-model convergence / boundary status surfaced at `StabilityResult.model_convergence` + warnings + HTML; explicit "no temp_c" warning when `--mkt` is requested without temperature data; docs synced; v0.5 tests now hard-require the v0.5 modules. |
+| `0.6.0` (current) | Export + API foundation | `reports/pdf.py` (weasyprint primary, pdfkit fallback); `reports/artifacts.py` (`make_report_artifact` with inlined plot); `api.py` thin programmatic surface; new CLI flags `--pdf`, `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`; improved error messages + non-zero exit codes; multi-attribute HTML spec display fix. **No frontend** — UI pass deferred to a later release. |
+| `0.5.1` | Audit patch on v0.5.0 | Arrhenius hook filtered to selected attribute + direction-aware; mixed-model convergence / boundary status surfaced at `StabilityResult.model_convergence` + warnings + HTML; explicit "no temp_c" warning when `--mkt` is requested without temperature data; docs synced; v0.5 tests now hard-require the v0.5 modules. |
 | `0.5.0` | Advanced statistics | Arrhenius (`stats/arrhenius.py`), MKT (`stats/mkt.py`), reduced-design detection (`regulatory/reduced_design.py`), opt-in random-effects mixed model. All opt-in; default path unchanged. |
 | `0.4.0` | ICH Q1A significant-change gating | `regulatory/significant_change.py`; Q1E extrapolation decision tree; new `StabilityResult` fields for accelerated/intermediate flags + rationale; `--accelerated-condition`, `--intermediate-condition`, `--no-significant-change-gate` CLI flags. |
 | `0.3.0` | Data quality + BQL + transform evidence | `data/quality.py` 16-check audit; real BQL policies (`substitute_loq`, `substitute_half_loq`, `manual_review`); `stats/transforms.py` exploratory transform-candidate evidence. |
@@ -109,7 +111,7 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-360 passed in <Xs>
+~390 passed in <Xs>
 ```
 
 Pass criteria:
@@ -251,9 +253,18 @@ code review check. Do not relax any of them.
 
 ---
 
-## 6. Open warnings (v0.5.1 status)
+## 6. Open warnings (v0.6.0 status)
 
-All three v0.1.1 known-open items are now **resolved**:
+All v0.1.1, v0.3.1, and v0.5.1 known-open items are now **resolved**
+(documented below under "Recent releases" history).
+
+There are currently **no open known warnings**. The v0.6.0 release
+introduced a new `ReportArtifact` bundle (HTML with inlined plot,
+JSON, plots, optional PDF) which is the recommended format for
+archival / hand-off / audit trails — see §2 and the
+`openpharmastability.api` module for the programmatic surface.
+
+### 6.1 v0.1.1 known-open items (all resolved)
 
 - HTML timestamp determinism — fixed in v0.1.1 via `--source-epoch` /
   `SOURCE_DATE_EPOCH`. Two runs with the same epoch produce byte-
@@ -265,54 +276,33 @@ All three v0.1.1 known-open items are now **resolved**:
   script is pure numpy + scipy.stats.t + pandas + brentq with no
   statsmodels or project imports.
 
-The v0.5.1 release closed the three v0.5.0 audit items below.
-There are currently **no open known warnings**.
+### 6.2 v0.3.0 / v0.3.1 cleanup (all resolved)
 
-### 6.1 Arrhenius hook now attribute-filtered and direction-aware (resolved in v0.5.1)
+- `bql_summary` was a hack via `object.__setattr__` on the result; v0.3.1
+  made it a proper `StabilityResult` field and refactored
+  `apply_extrapolation_caps` to `dataclasses.replace`.
+- Single-attribute JSON record omitted the disclaimer; v0.3.1 added
+  it (matches the multi-attribute record).
+- `audit_data_quality` existed but was not wired in; v0.3.1 calls it
+  from `engine.analyze()` and surfaces findings via warnings + JSON
+  `metadata.data_quality`.
+- `plots/confidence_plot.py` drew misleading per-batch bands and
+  hard-coded "lower" regardless of `Direction.INCREASING`; v0.3.1
+  draws a single worst-case band and respects direction.
+- `data/quality.py` condition check normalized via `parse_condition`
+  in v0.3.1; `data/metadata.py` accepts `transform="log"` in v0.3.1.
 
-**What it was.** The v0.5.0 `_compute_arrhenius` helper in the
-engine read the raw DataFrame to derive per-temperature rates and
-implicitly assumed a decreasing degradation (`rate = -slope`). On
-a mixed-attribute file the rates were contaminated by rows from
-other attributes, and on an increasing degradant the sign of the
-rate was wrong. The Arrhenius parameters silently flipped.
+### 6.3 v0.5.0 / v0.5.1 audit items (all resolved)
 
-**Resolution in v0.5.1.** The helper now accepts the
-`ValidatedData` (which knows the active attribute and the declared
-direction) and computes `rate = sign(direction) * (-slope)` per
-temperature on the per-attribute, per-direction-filtered rows.
-The exploration-only caveat in the report is unchanged; the fix
-prevents the silent contamination. Covered by new direction tests
-in `validation/test_arrhenius.py` and `validation/test_engine_v050.py`.
-
-### 6.2 Mixed-model convergence / boundary status now surfaced (resolved in v0.5.1)
-
-**What it was.** The v0.5.0 `random_effects=True` path stored a
-`convergence` sub-block inside `fit.design`. Nothing in the JSON
-record, the HTML report, or the warnings list mentioned it, so a
-mixed-model run that hit a boundary (random-effect variance → 0)
-or failed to converge looked indistinguishable from a healthy one.
-
-**Resolution in v0.5.1.** The `StabilityResult.model_convergence`
-field is now a top-level dict (default
-`{"converged": true, "boundary": false, "message": ""}` — populated
-on every result for both OLS and mixed paths). A warning is appended
-when the mixed model hits a boundary or fails to converge, and the
-single-attribute HTML report renders a status line. Covered by
-tests in `validation/test_reporting.py`,
-`validation/test_multi_reporting.py`, and
-`validation/test_stats_regression.py`.
-
-### 6.3 MKT-without-temp_c now warns (resolved in v0.5.1)
-
-**What it was.** Requesting `--mkt` on an input with no `temp_c`
-column silently set `mkt_celsius = None` with no surface signal in
-the warnings list.
-
-**Resolution in v0.5.1.** The engine now appends
-`"MKT requested but no temp_c column in the input; mkt_celsius is None."`
-to the warnings list so the report is honest about why MKT is
-missing. Covered by a new test in `validation/test_engine_v050.py`.
+- Arrhenius engine hook now filters to the selected attribute and
+  respects the declared direction (was reading the raw DataFrame and
+  assuming decreasing degradation via `rate = -slope`). Resolved in
+  v0.5.1.
+- Mixed-model convergence / boundary status now surfaced at
+  `StabilityResult.model_convergence` + warnings + HTML (was only
+  inside `fit.design`). Resolved in v0.5.1.
+- MKT-without-`temp_c` now emits an explicit warning. Resolved in
+  v0.5.1.
 
 ---
 
@@ -332,8 +322,14 @@ new `StabilityResult` fields + CLI flags. v0.5.0 — Arrhenius, MKT,
 reduced-design detection, opt-in random-effects mixed model.
 v0.5.1 — Arrhenius hook filter + direction, mixed-model
 convergence surfacing, MKT-without-temp_c warning, docs sync,
-hard-require v0.5 modules. The three v0.1 audit fixes that
-mattered most:
+hard-require v0.5 modules. v0.6.0 — PDF export, report artifacts
+(self-contained HTML bundle with inlined plot), Python API, CLI
+polish (--pdf, --no-html, --json-only, --artifact-dir, --quiet),
+multi-attribute HTML spec display fix. **No frontend in v0.6** —
+the UI pass (Cloudflare Pages + Claude Design) is deferred until
+the feature surface stabilises (planned v0.7.0+ or v1.0).
+
+The three v0.1 audit fixes that mattered most:
 
 1. **COMMON_SLOPE c-vector bug** in `stats/regression.py` — a single
    shared per-batch linear-combination vector with `1.0` in every
@@ -367,11 +363,13 @@ question.
 1. **`HANDOVER.md`** (this file) — orientation, env setup, healthy
    state, hard rules, open warnings.
 2. **`CHANGELOG.md`** — every release entry from v0.1.0 through
-   v0.5.1; what each minor/patch added; backward-compatibility notes.
-3. **`NEXT_STEPS.md`** — the forward plan. §6 (PDF export + UI) is
-   the next focus for v0.6.0; §§1–5 are now historical (shipped).
-   Read §7 (pycache/env integrity) and §8 (agent handover protocol)
-   first, before touching any code.
+   v0.6.0; what each minor/patch added; backward-compatibility notes.
+3. **`NEXT_STEPS.md`** — the forward plan. v0.6.0 is the current
+   release; the **next** focus is the UI pass (Cloudflare Pages +
+   Claude Design) for v0.7.0+ or v1.0, plus a possible v0.6.x
+   hotfix if the audit surfaces anything. Read §7 (pycache/env
+   integrity) and §8 (agent handover protocol) first, before
+   touching any code.
 4. **`AGENTS.md`** — the v0.1 build plan, wave structure, and the
    authoritative math in §5. Read-only reference now.
 5. **`OpenPharmaStability.md`** — the product spec / source of truth
@@ -381,7 +379,10 @@ question.
    every module imports from. Do not edit unilaterally; additive
    only.
 
-If you are picking up **v0.6.0 work** (PDF export + Cloudflare Pages
-UI), read `NEXT_STEPS.md` §6 in full and the v0.5.1 entry in
-`CHANGELOG.md` before opening an editor. The Python stats engine
-is the authoritative implementation; the UI is a thin client.
+If you are picking up **v0.7.0 / v1.0 UI work** (Cloudflare Pages +
+Claude Design), read `NEXT_STEPS.md` §6 in full and the v0.6.0
+entry in `CHANGELOG.md` before opening an editor. The Python stats
+engine is the authoritative implementation; the UI is a thin
+client that posts CSV/XLSX to a thin API and renders the HTML
+report inline. Do not reimplement the statistical core in
+JavaScript / TypeScript.

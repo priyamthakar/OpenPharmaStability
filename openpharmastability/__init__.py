@@ -26,8 +26,16 @@ from .contracts import (
     TransformCandidate,
     ValidatedData,
 )
+from .api import (
+    analyze_and_artifact,
+    analyze_csv,
+    analyze_multi,
+    analyze_path,
+    analyze_xlsx,
+    make_artifact,
+)
 
-__version__ = "0.5.1"
+__version__ = "0.6.0"
 
 __all__ = [
     "BQLSummary",
@@ -54,5 +62,12 @@ __all__ = [
     "TransformAssessment",
     "TransformCandidate",
     "ValidatedData",
+    # v0.6.0 thin programmatic API
+    "analyze_csv",
+    "analyze_xlsx",
+    "analyze_path",
+    "analyze_multi",
+    "make_artifact",
+    "analyze_and_artifact",
     "__version__",
 ]

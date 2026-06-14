@@ -4,6 +4,102 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.6.0] — 2026-06-13 — Export + API Foundation
+
+### Theme
+Backend and tooling release. **No frontend, no Streamlit, no
+Cloudflare Pages** — the UI pass is deferred to a later release
+(v0.7.0+ or v1.0) once the feature surface stabilises. Python
+remains the authoritative stats engine; Cloudflare Pages is a
+future deployment target, not a v0.6 dependency.
+
+### Added
+- **PDF export.** New `openpharmastability.reports.pdf.render_pdf`
+  converts an existing HTML report to PDF. Backend priority is
+  `weasyprint` (preferred) with `pdfkit` (wkhtmltopdf) as the
+  fallback. The function raises `RuntimeError` with install
+  instructions when neither backend is importable. Optional
+  install groups: `pip install openpharmastability[pdf]` (weasyprint)
+  and `openpharmastability[pdf-fallback]` (pdfkit + wkhtmltopdf).
+  New `--pdf PATH` CLI flag renders a PDF copy alongside the HTML.
+- **Report artifacts.** New
+  `openpharmastability.reports.artifacts.make_report_artifact` builds
+  a self-contained, portable bundle in a target directory: the HTML
+  report with the confidence-plot PNG inlined as a base64 data URL
+  (no relative-path dependency on the plot file), the JSON decision
+  record, the per-attribute plot PNGs (single: one; multi: one per
+  attribute), and an optional PDF when a PDF backend is available.
+  Returns a `contracts.ReportArtifact` with absolute paths, SHA-256
+  digests, byte sizes, and the inlined-plot flag. The artifact is
+  the recommended format for archival / hand-off / audit trails.
+- **Python API.** New `openpharmastability.api` module exposes a
+  thin programmatic surface around the engine:
+  - `analyze_csv(path, condition, **kwargs) -> StabilityResult`
+  - `analyze_xlsx(path, condition, **kwargs) -> StabilityResult`
+  - `analyze_multi(path, condition, **kwargs) -> MultiAttributeResult`
+  - `analyze_path(path, condition, **kwargs) -> StabilityResult | MultiAttributeResult`
+    (auto-detects CSV vs XLSX)
+  - `make_artifact(result, data, out_dir, **kwargs) -> ReportArtifact`
+  - `analyze_and_artifact(path, condition, out_dir, **kwargs) -> tuple[StabilityResult | MultiAttributeResult, ReportArtifact]`
+  These are pure-Python entry points; no HTTP server, no
+  subprocess. The CLI wraps these. Re-exported from the top-level
+  `openpharmastability` package.
+- **New CLI flags.**
+  - `--pdf PATH` — write a PDF copy to PATH.
+  - `--no-html` — skip the HTML report (JSON + plot only).
+  - `--json-only` — emit only the JSON decision record (no HTML,
+    no plot).
+  - `--artifact-dir DIR` — write a self-contained report bundle
+    (HTML with inlined plot, JSON, plots, optional PDF) into DIR.
+  - `--quiet` / `-q` — suppress the per-attribute summary on
+    stdout; only print the artifact path / final shelf-life line.
+  - Improved error messages: missing input file, missing required
+    column, unparseable condition, XLSX missing sheet — each prints
+    a one-line, actionable message and exits with a non-zero code.
+- **New contract.** `contracts.ReportArtifact` dataclass with
+  absolute paths, SHA-256 digests, byte sizes, `plot_inlined` flag,
+  and optional `pdf_path`.
+
+### Fixed
+- **Multi-attribute HTML spec display.** `reports/multi_html.py`
+  used to print `lower=None, upper=None` for the per-attribute spec
+  limits because it read from `r.fit.design` (which never carried
+  those keys). v0.6.0 reads from `ar.metadata` (the
+  `AttributeMetadata` does carry `lower_spec` / `upper_spec`) so
+  the rendered report shows the real values.
+
+### Tests
+- `validation/test_pdf.py` (new) — backend detection, fallback
+  ordering, RuntimeError when neither backend, PDF magic bytes
+  (`%PDF`) when a backend is available; tests skip cleanly with a
+  documented reason when neither weasyprint nor pdfkit is
+  importable (Windows / clean venvs).
+- `validation/test_api.py` (new) — `analyze_csv` /
+  `analyze_xlsx` / `analyze_path` / `analyze_multi` /
+  `make_artifact` / `analyze_and_artifact` round-trips; the
+  artifact bundle is byte-portable (inlined plot, sha256,
+  sizes).
+- `validation/test_artifacts.py` (new) — artifact helpers:
+  HTML-with-inlined-plot is portable, SHA-256 matches the file,
+  PDF path is None when no backend, multi-artifact bundles one
+  plot per attribute.
+- `validation/test_cli.py` extended — `--pdf`, `--no-html`,
+  `--json-only`, `--artifact-dir`, improved error messages,
+  non-zero exit codes for missing files.
+- `validation/test_multi_reporting.py` extended — spec display
+  fix regression test (the per-attribute lower/upper spec line is
+  non-None on the multi-attribute fixture).
+- Total: ~390 tests passing (was 365 at v0.5.1).
+
+### Backward compatibility
+- All v0.5.1 single-attribute and multi-attribute golden paths
+  still pass. The default CLI invocation still produces
+  "supported shelf life: 17 months" on the golden fixture.
+- v0.5.1 callers that don't import the new `api` module or
+  `ReportArtifact` are unaffected; both are additive.
+- `--pdf` and `--artifact-dir` are opt-in; default behavior
+  unchanged.
+
 ## [0.5.1] — 2026-06-13 — v0.5.0 audit patch
 
 ### Fixed

@@ -313,3 +313,177 @@ def test_cli_accepts_arrhenius_flag(tmp_path):
     # Artifacts are written even when the fit is skipped.
     assert (tmp_path / "report.html").exists()
     assert (tmp_path / "report.json").exists()
+
+
+# ---------------------------------------------------------------------------
+# 13. v0.6.0 -- new export flags (--no-html, --json-only, --pdf,
+#     --artifact-dir, --quiet) and improved error handling
+# ---------------------------------------------------------------------------
+
+
+def test_cli_no_html_skips_html(tmp_path):
+    """`--no-html` skips the HTML render; the JSON and the plot
+    PNG are still written. Regression test for the v0.6.0
+    CLI export knob."""
+    output_html = tmp_path / "report.html"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--no-html",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    # HTML is NOT written.
+    assert not (tmp_path / "report.html").exists(), (
+        "HTML was written but --no-html was passed"
+    )
+    # JSON and plot PNG ARE written.
+    assert (tmp_path / "report.json").exists()
+    assert (tmp_path / "confidence_plot.png").exists()
+
+
+def test_cli_json_only_writes_only_json(tmp_path):
+    """`--json-only` writes ONLY the JSON decision record. The HTML
+    is not rendered and the plot PNG is not written. Regression
+    test for the v0.6.0 CLI export knob."""
+    output_path = tmp_path / "decision.json"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_path),
+        "--json-only",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    # JSON is written at the user-specified --output path.
+    assert output_path.exists()
+    # HTML and the plot PNG are NOT written.
+    # (No 'report.html' sibling was requested, and the single-attribute
+    # confidence plot is suppressed under --json-only.)
+    assert not (tmp_path / "report.html").exists()
+    assert not (tmp_path / "confidence_plot.png").exists()
+    # The JSON has the right content.
+    with open(output_path) as f:
+        data = json.load(f)
+    assert data["supported_shelf_life_months"] == 17
+    assert data["limiting_attribute"] == "assay"
+
+
+def test_cli_quiet_suppresses_summary_lines(tmp_path):
+    """`--quiet` suppresses the per-step / per-attribute summary
+    on stdout. The JSON still carries the correct supported
+    shelf-life value. Regression test for the v0.6.0 CLI quiet
+    flag."""
+    output_html = tmp_path / "report.html"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--quiet",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    # Stdout does NOT contain the standard "supported shelf life: 17 months"
+    # summary line.
+    assert "supported shelf life: 17 months" not in r.stdout
+    # But the JSON on disk carries the correct value.
+    with open(tmp_path / "report.json") as f:
+        data = json.load(f)
+    assert data["supported_shelf_life_months"] == 17
+
+
+def test_cli_no_html_and_json_only_mutually_exclusive(tmp_path):
+    """Passing both --no-html and --json-only is rejected with a
+    one-line ``ERROR:`` message and exit code 2."""
+    output_html = tmp_path / "report.html"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--no-html", "--json-only",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 2
+    # The error mentions the conflict.
+    assert "mutually exclusive" in r.stderr.lower() or (
+        "--no-html" in r.stderr and "--json-only" in r.stderr
+    )
+
+
+def test_cli_missing_file_exits_nonzero_with_clear_message(tmp_path):
+    """Pointing the CLI at a non-existent CSV must exit with a
+    non-zero code and a one-line ``ERROR:`` message that names
+    the offending path."""
+    bogus = tmp_path / "does_not_exist.csv"
+    output_html = tmp_path / "report.html"
+    cmd = _resolve_cli() + [
+        str(bogus), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode != 0
+    # The error line must name the offending value and be
+    # recognisably an error (substring of one of the documented
+    # error fragments).
+    err = r.stderr.lower()
+    assert (
+        "not found" in err
+        or "no such file" in err
+        or "does not exist" in err
+    )
+    # And the path itself appears in stderr so the user can see
+    # which file was missing.
+    assert "does_not_exist.csv" in r.stderr
+
+
+def test_cli_artifact_dir_produces_bundle(tmp_path):
+    """`--artifact-dir DIR` writes a self-contained ReportArtifact
+    bundle to DIR. The bundle has report.html (with the plot
+    inlined as a base64 data URL), report.json, and the plot PNG."""
+    output_html = tmp_path / "report.html"
+    bundle_dir = tmp_path / "bundle"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--artifact-dir", str(bundle_dir),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    # Bundle directory was created.
+    assert bundle_dir.is_dir()
+    # All three expected files are inside the bundle.
+    assert (bundle_dir / "report.html").exists()
+    assert (bundle_dir / "report.json").exists()
+    assert (bundle_dir / "confidence_plot.png").exists()
+    # The bundle HTML is fully self-contained: the plot is inlined
+    # as a base64 data URL so the HTML can be opened standalone.
+    html_body = (bundle_dir / "report.html").read_text(encoding="utf-8")
+    assert "data:image/png;base64," in html_body
+
+
+def test_cli_pdf_when_no_backend_warns_not_crashes(tmp_path):
+    """`--pdf PATH` must NOT crash when no PDF backend (weasyprint
+    or pdfkit) is installed. The CLI exits 0, prints a warning to
+    stderr, and the rest of the artifacts (HTML / JSON / plot) are
+    written as usual.
+
+    On systems where a PDF backend IS available the test still
+    passes (a PDF file is written); the warn-and-continue path is
+    not exercised, but the test does not regress the happy path.
+    """
+    pytest.importorskip("os")  # sanity; real import below
+    # We intentionally do NOT skip on the PDF backend being
+    # available: the contract is "warn but do not crash", which is
+    # the same code path in both cases (we always try and only
+    # branch on success).
+    output_html = tmp_path / "report.html"
+    pdf_path = tmp_path / "out.pdf"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--pdf", str(pdf_path),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    # Exit code 0 even if no backend is installed.
+    assert r.returncode == 0, r.stderr
+    # HTML / JSON / plot are still written.
+    assert (tmp_path / "report.html").exists()
+    assert (tmp_path / "report.json").exists()
+    assert (tmp_path / "confidence_plot.png").exists()

@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.5.1"
+TOOL_VERSION: str = "0.6.0"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -488,6 +488,45 @@ class ReducedDesignReport:
 
 
 # ---------------------------------------------------------------------------
+# v0.6.0 export + artifact contracts (additive)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ReportArtifact:
+    """A self-contained, portable bundle of a single analysis run.
+
+    Produced by :func:`openpharmastability.reports.artifacts.make_report_artifact`.
+    The bundle is a directory containing the HTML report (with the
+    confidence-plot PNG inlined as a base64 data URL so the file is
+    fully portable), the JSON decision record, the per-attribute plot
+    PNGs (single: one plot; multi: one per attribute), and optionally
+    a PDF rendering of the HTML.
+
+    All paths are absolute. `html_sha256` / `json_sha256` /
+    `plot_sha256` are the SHA-256 hex digests of the corresponding
+    files at the moment the bundle was produced — useful for audit
+    trails. `plot_inlined` is True when the plot was embedded as a
+    data URL in the HTML (the default for portability). `pdf_path`
+    is None when no PDF backend (weasyprint or pdfkit) is available.
+    """
+    out_dir: str
+    html_path: str
+    json_path: str
+    plot_paths: list[str] = field(default_factory=list)
+    pdf_path: Optional[str] = None
+    html_sha256: str = ""
+    json_sha256: str = ""
+    plot_sha256: list[str] = field(default_factory=list)
+    html_size_bytes: int = 0
+    json_size_bytes: int = 0
+    plot_size_bytes: list[int] = field(default_factory=list)
+    pdf_size_bytes: Optional[int] = None
+    plot_inlined: bool = True
+    notes: list[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
 # Public function signatures (documented here, implemented in owning modules)
 # ---------------------------------------------------------------------------
 #
@@ -581,4 +620,6 @@ __all__ = [
     # v0.5.0 advanced statistics
     "ArrheniusResult",
     "ReducedDesignReport",
+    # v0.6.0 export + artifacts
+    "ReportArtifact",
 ]

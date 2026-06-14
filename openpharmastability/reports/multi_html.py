@@ -112,14 +112,27 @@ def _per_attr_block(idx: int, ar, plot_relpath: str | None) -> str:
             f'matrixed={_esc("yes" if rd.is_matrixed else "no")}, '
             f'missing_cells={_esc(len(rd.missing_cells))}</p>'
         )
+    # v0.6.0: read the per-attribute spec from the AttributeMetadata
+    # (which is the authoritative per-attribute spec context, populated
+    # from the metadata CSV/XLSX or the per-row data). Reading from
+    # ``r.fit.design`` (always empty for the per-attribute StabilityResult)
+    # or ``r.metadata.lower_spec`` (a non-existent attribute on
+    # StabilityResult — its ``metadata`` is a dict, not a dataclass with
+    # ``.lower_spec``) silently produced "lower=None, upper=None" for
+    # every attribute. Use ``ar.metadata`` and render missing values as
+    # the em-dash placeholder so the report reads correctly.
+    lower_spec = ar.metadata.lower_spec
+    upper_spec = ar.metadata.upper_spec
+    lower_disp = _esc(f"{lower_spec:g}" if lower_spec is not None else "—")
+    upper_disp = _esc(f"{upper_spec:g}" if upper_spec is not None else "—")
     return f"""
 <section class="attribute" id="attr-{idx}">
   <h2>Attribute: {_esc(meta.attribute)}{' (' + _esc(meta.unit) + ')' if meta.unit else ''}</h2>
   <p><strong>Role:</strong> {_esc(role)} &middot;
      <strong>Direction:</strong> {_esc(r.direction.value)} &middot;
      <strong>Spec:</strong>
-     lower={_esc(r.fit.design.get('lower_spec')) if r.fit else _esc(r.metadata.lower_spec if hasattr(r, 'metadata') else 'n/a')},
-     upper={_esc(r.fit.design.get('upper_spec')) if r.fit else _esc(r.metadata.upper_spec if hasattr(r, 'metadata') else 'n/a')}</p>
+     lower={lower_disp},
+     upper={upper_disp}</p>
   <p><strong>Model:</strong> {_esc(r.model.value)} &middot;
      <strong>Poolability:</strong> {_esc(r.poolability.decision.value)}
      (p<sub>slopes</sub>={_esc(f'{r.poolability.p_slopes:.3g}')},

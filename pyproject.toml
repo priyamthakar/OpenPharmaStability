@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openpharmastability"
-version = "0.5.1"
+version = "0.6.0"
 description = "ICH Q1E-inspired stability analysis and shelf-life reporting toolkit (decision-support / educational; not a validated GxP system)."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -33,6 +33,8 @@ dependencies = [
 dev = [
     "pytest>=7.4",
 ]
+pdf = ["weasyprint>=60"]
+pdf-fallback = ["pdfkit>=1.0"]
 
 [project.scripts]
 openpharmastability = "openpharmastability.cli:main"
