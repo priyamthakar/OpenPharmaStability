@@ -1,0 +1,3 @@
+attribute,unit,direction,lower_spec,upper_spec,spec_type,transform,attribute_role,report_order
+assay,%LC,decreasing,90,110,shelf_life,none,primary,1
+impurity_a,%area,increasing,,0.50,shelf_life,none,primary,2

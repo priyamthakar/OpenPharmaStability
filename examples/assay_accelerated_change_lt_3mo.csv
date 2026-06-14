@@ -1,0 +1,10 @@
+batch,condition,temp_c,rh,time_months,attribute,value,lower_spec,upper_spec
+B1,40C/75RH,40,75,0.0,assay,100.31,90,110
+B1,40C/75RH,40,75,1.0,assay,94.18,90,110
+B1,40C/75RH,40,75,3.0,assay,93.85,90,110
+B2,40C/75RH,40,75,0.0,assay,99.74,90,110
+B2,40C/75RH,40,75,1.0,assay,93.95,90,110
+B2,40C/75RH,40,75,3.0,assay,93.62,90,110
+B3,40C/75RH,40,75,0.0,assay,100.58,90,110
+B3,40C/75RH,40,75,1.0,assay,94.21,90,110
+B3,40C/75RH,40,75,3.0,assay,93.88,90,110

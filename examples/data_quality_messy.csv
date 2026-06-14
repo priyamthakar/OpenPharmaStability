@@ -1,0 +1,17 @@
+batch,condition,time_months,attribute,value,lower_spec,upper_spec,direction
+B1,25C/60RH,3.0,assay,99.0,,,decreasing
+B1,25C/60RH,6.0,assay,97.0,80.0,110.0,decreasing
+B1,25C/60RH,9.0,assay,95.5,95.0,110.0,increasing
+B1,25C/60RH,0.0,assay,100.07780419999077,90.0,110.0,decreasing
+B1,25C/60RH,12.0,assay,93.92624090757072,90.0,110.0,decreasing
+B1,25C/60RH,18.0,assay,91.13899483509506,90.0,110.0,decreasing
+B1,25C/60RH,24.0,assay,88.03476739486058,90.0,110.0,decreasing
+B2,25C/60RH,0.0,assay,98.94530839846055,90.0,110.0,decreasing
+B2,25C/60RH,12.0,assay,92.84686140678845,90.0,110.0,decreasing
+B2,25C/60RH,18.0,assay,90.60205660492886,90.0,110.0,decreasing
+B2,25C/60RH,24.0,assay,87.30286839569808,90.0,110.0,decreasing
+B3,25C/60RH,0.0,assay,100.73519526337094,90.0,110.0,decreasing
+B3,25C/60RH,12.0,assay,94.78725644546017,90.0,110.0,decreasing
+B3,25C/60RH,18.0,assay,92.69283386942007,90.0,110.0,decreasing
+B3,25C/60RH,24.0,assay,89.26479395048129,90.0,110.0,decreasing
+B2,40C/75RH,3.0,assay,95.0,90.0,110.0,decreasing

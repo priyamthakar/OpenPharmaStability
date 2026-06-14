@@ -1,0 +1,242 @@
+"""JSON decision record for OpenPharmaStability v0.1.
+
+Turns a :class:`StabilityResult` into a JSON-serializable ``dict`` that
+captures the key decisions (shelf life, model, poolability, bound, warnings)
+and the reproducibility metadata required by the spec
+(``OpenPharmaStability.md`` §"Decision Engine Outputs").
+
+This module is *read* by ``reports/html.py`` (the HTML report embeds the
+record's fields) and by downstream tooling that wants a machine-readable
+audit trail.
+
+Only depends on :mod:`openpharmastability.contracts`.
+"""
+from __future__ import annotations
+
+from dataclasses import asdict, is_dataclass
+from typing import Any
+
+from openpharmastability import __version__ as _PKG_VERSION
+from openpharmastability.contracts import (
+    CONFIDENCE,
+    DISCLAIMER,
+    POOLABILITY_ALPHA,
+    TOOL_VERSION,
+    Direction,
+    StabilityResult,
+)
+
+
+# ---------------------------------------------------------------------------
+# Small label helpers
+# ---------------------------------------------------------------------------
+
+
+def _confidence_bound_label(direction: Direction) -> str:
+    """Return a stable, machine-friendly confidence-bound identifier.
+
+    Mirrors the spec example: ``lower_one_sided_95_mean``,
+    ``upper_one_sided_95_mean``, ``two_sided_95_mean``.
+    """
+    if direction == Direction.DECREASING:
+        return "lower_one_sided_95_mean"
+    if direction == Direction.INCREASING:
+        return "upper_one_sided_95_mean"
+    # Bidirectional / unknown: stricter, two-sided.
+    return "two_sided_95_mean"
+
+
+def _extrapolation_status(flag: bool) -> str:
+    """Map the boolean extrapolation flag to a stable string for the record.
+
+    Matches the spec example: ``"flag_required"`` vs ``"none"``.
+    """
+    return "flag_required" if bool(flag) else "none"
+
+
+def _as_python(value: Any) -> Any:
+    """Coerce numpy / pandas scalars to native Python so json.dumps is happy."""
+    # Avoid importing numpy/pandas here unless needed: isinstance checks are
+    # cheap and the import-free path is more robust for tooling.
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float, str)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): _as_python(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_as_python(v) for v in value]
+    # Dataclasses (e.g. ``ArrheniusResult``, ``ReducedDesignReport``,
+    # ``BQLSummary``) need to be flattened into JSON-serializable
+    # dicts rather than stringified via their repr. ``asdict``
+    # recurses into nested dataclasses too, so the helper stays
+    # simple. Additive v0.5.0 change: previously these values fell
+    # through to ``str(value)`` and were emitted as their repr
+    # string in the record, which is opaque to downstream tooling.
+    if is_dataclass(value):
+        return {str(k): _as_python(v) for k, v in asdict(value).items()}
+    # numpy / pandas scalar fallback
+    try:
+        item = value.item()  # numpy scalar -> python scalar
+        if isinstance(item, (int, float, str, bool)):
+            return item
+    except (AttributeError, ValueError, TypeError):
+        pass
+    # Last resort: stringify so the record is still JSON-serializable.
+    return str(value)
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+
+def to_decision_record(result: StabilityResult) -> dict[str, Any]:
+    """Build the machine-readable decision record for a stability result.
+
+    The returned dict is JSON-serializable (``json.dumps`` round-trips it
+    losslessly). Required keys per the spec:
+
+    - ``supported_shelf_life_months`` (int or None)
+    - ``statistical_crossing_months`` (float or None)
+    - ``limiting_attribute``
+    - ``condition``
+    - ``model``
+    - ``poolability``  (decision string: "full" / "partial" / "none")
+    - ``poolability_alpha``
+    - ``confidence_bound``
+    - ``observed_long_term_months``
+    - ``extrapolation`` (string: "none" / "flag_required")
+    - ``warnings``
+    - ``deliverable_term``
+    - ``product_type``
+    - ``metadata`` (flattened; includes ``library_versions``, ``file_sha256``,
+      ``tool_version``, ``timestamp``)
+    """
+    pool = result.poolability
+    md = dict(result.metadata or {})  # shallow copy
+
+    # Flatten / guarantee the reproducibility keys the spec requires.
+    metadata: dict[str, Any] = {
+        "file_sha256": md.get("file_sha256"),
+        "row_count": md.get("row_count"),
+        "column_count": md.get("column_count"),
+        "random_seed": md.get("random_seed"),
+        "library_versions": _as_python(md.get("library_versions", {})),
+        "tool_version": md.get("tool_version") or TOOL_VERSION or _PKG_VERSION,
+        "timestamp": md.get("timestamp"),
+        # Preserve any extra metadata fields the engine / caller added.
+        **{k: v for k, v in md.items() if k not in {
+            "file_sha256", "row_count", "column_count", "random_seed",
+            "library_versions", "tool_version", "timestamp",
+        }},
+    }
+
+    # Diagnostics summary (booleans + counts) so the record is self-describing
+    # without leaking numpy arrays / cov matrices.
+    diag = result.diagnostics
+    diagnostics_summary: dict[str, Any] = {
+        "linearity_ok": bool(diag.linearity_ok),
+        "homoscedastic_ok": bool(diag.homoscedastic_ok),
+        "normal_resid_ok": bool(diag.normal_resid_ok),
+        "n_influential_points": len(diag.influential_points or []),
+        "notes": list(diag.notes or []),
+    }
+
+    record: dict[str, Any] = {
+        # Core decision
+        "supported_shelf_life_months": (
+            int(result.supported_shelf_life_months)
+            if result.supported_shelf_life_months is not None
+            else None
+        ),
+        "statistical_crossing_months": (
+            float(result.statistical_crossing_months)
+            if result.statistical_crossing_months is not None
+            else None
+        ),
+        "limiting_attribute": result.attribute,
+        "condition": result.condition,
+        "direction": result.direction.value,
+        "model": result.model.value,
+        "poolability": pool.decision.value,
+        "poolability_alpha": float(pool.alpha),
+        "p_value_slopes": float(pool.p_slopes) if pool.p_slopes is not None else None,
+        "p_value_intercepts": (
+            float(pool.p_intercepts) if pool.p_intercepts is not None else None
+        ),
+        "confidence_bound": _confidence_bound_label(result.direction),
+        "confidence_level": float(CONFIDENCE),
+        "poolability_alpha_reference": float(POOLABILITY_ALPHA),
+        "observed_long_term_months": float(result.observed_data_months),
+        "extrapolation": _extrapolation_status(result.extrapolation_flag),
+        "warnings": [str(w) for w in (result.warnings or [])],
+        # v0.4.0: ICH Q1A significant-change gating of extrapolation.
+        # These five keys surface the gate's per-attribute verdict on the
+        # single-attribute JSON record. The rationale is a short
+        # identifier (e.g. "no accelerated sig change", "3-6mo
+        # accelerated change; intermediate OK"); the details dict
+        # carries per-criterion evidence for downstream tooling.
+        "significant_change_accelerated": _as_python(
+            getattr(result, "significant_change_accelerated", None)
+        ),
+        "significant_change_intermediate": _as_python(
+            getattr(result, "significant_change_intermediate", None)
+        ),
+        "extrapolation_allowed": bool(
+            getattr(result, "extrapolation_allowed", True)
+        ),
+        "extrapolation_rationale": str(
+            getattr(result, "extrapolation_rationale", "") or ""
+        ),
+        "significant_change_details": _as_python(
+            getattr(result, "significant_change_details", {}) or {}
+        ),
+        "deliverable_term": result.deliverable_term,
+        "product_type": result.product_type,
+        "crossing_status": result.crossing.status.value,
+        "governing_batch": result.crossing.governing_batch,
+        "diagnostics": diagnostics_summary,
+        "metadata": _as_python(metadata),
+        # v0.3.0 BQL + transforms: the per-attribute BQL summary and
+        # (when --assess-transforms is enabled) the transform
+        # candidate evidence. Both default to None when not set.
+        "bql_summary": _as_python(getattr(result, "bql_summary", None)),
+        "transform_assessment": _as_python(
+            getattr(result, "transform_assessment", None)
+        ),
+        # Mandatory regulatory-style disclaimer (verbatim from
+        # contracts.DISCLAIMER). The HTML report and the multi-attribute
+        # record already carry it; the single-attribute record did not,
+        # and the spec requires it on every record.
+        "disclaimer": DISCLAIMER,
+        # v0.5.0: advanced statistics opt-ins. All four default to
+        # None / None / None / "fixed" so a v0.4.x result that never
+        # ran the new modules looks identical in the record (no
+        # populated payload surfaces). ``getattr(..., default)`` keeps
+        # the record builder forward-compatible with hand-built
+        # StabilityResult fixtures that predate the new attributes.
+        "arrhenius": _as_python(getattr(result, "arrhenius_result", None)),
+        "mkt_celsius": _as_python(getattr(result, "mkt_celsius", None)),
+        "reduced_design": _as_python(getattr(result, "reduced_design_report", None)),
+        "model_effects": str(getattr(result, "model_effects", "fixed") or "fixed"),
+        # v0.5.1: mixed-model convergence / boundary status, lifted
+        # from the fit-level ``design["convergence"]`` sub-block to a
+        # top-level field on the StabilityResult. Always a dict with
+        # keys ``converged`` (bool), ``boundary`` (bool), ``message``
+        # (str). The OLS path defaults to ``{"converged": True,
+        # "boundary": False, "message": "OLS"}``; the random-effects
+        # path surfaces whatever the regression layer computed.
+        # ``getattr(..., default)`` keeps the record forward-compatible
+        # with hand-built fixtures that predate the v0.5.1 field.
+        "model_convergence": _as_python(
+            getattr(
+                result, "model_convergence",
+                {"converged": True, "boundary": False, "message": ""},
+            )
+        ),
+    }
+
+    return record

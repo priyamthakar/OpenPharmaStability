@@ -1,0 +1,86 @@
+{
+  "_comment": "Independent expected values for examples/assay_3batch.csv. Computed with plain numpy + scipy.stats.t + scipy.optimize.brentq. Regenerate with: python tools/regen_expected.py. Verify with:    python tools/regen_expected.py --check.",
+  "regen_seed": 20260113,
+  "n_observations": 42,
+  "n_batches": 3,
+  "time_points": [
+    0.0,
+    3.0,
+    6.0,
+    9.0,
+    12.0,
+    18.0,
+    24.0
+  ],
+  "condition": "25C/60RH",
+  "attribute": "assay",
+  "direction": "decreasing",
+  "lower_spec": 90.0,
+  "upper_spec": 110.0,
+  "poolability_alpha": 0.25,
+  "pooled_fit": {
+    "b0": 99.87098552894206,
+    "b1": -0.4888469727212235,
+    "s_resid": 0.8399129297838047,
+    "df_resid": 40,
+    "tbar": 10.285714285714286,
+    "Sxx": 2576.5714285714284,
+    "n": 42,
+    "t_multiplier_one_sided_95": 1.6838510133356523,
+    "yhat_at_tbar": 94.84284523809518,
+    "bound_at_tbar": 94.62461582517057,
+    "bound_at_t24": 87.6986204331031,
+    "crossing_lower_spec_90_months": 19.50298012377015,
+    "supported_shelf_life_rounded_down": 19
+  },
+  "common_slope_fit": {
+    "b1_common": -0.48884697272122224,
+    "s_resid": 0.33120584965929756,
+    "df_resid": 38,
+    "param_names": [
+      "Intercept",
+      "C(batch)[T.B2]",
+      "C(batch)[T.B3]",
+      "time_months"
+    ],
+    "per_batch": {
+      "B1": {
+        "b0": 99.86225457656116,
+        "b1_common": -0.48884697272122224,
+        "s_resid": 0.33120584965929756,
+        "df_resid": 38
+      },
+      "B2": {
+        "b0": 98.94860457656118,
+        "b1_common": -0.48884697272122224,
+        "s_resid": 0.33120584965929756,
+        "df_resid": 38
+      },
+      "B3": {
+        "b0": 100.80209743370403,
+        "b1_common": -0.48884697272122224,
+        "s_resid": 0.33120584965929756,
+        "df_resid": 38
+      }
+    },
+    "bound_at_t12": {
+      "B1": 93.84566596335048,
+      "B2": 92.93201596335051,
+      "B3": 94.78550882049336
+    },
+    "per_batch_crossings_lower_spec_90_months": {
+      "B1": 19.80162110789948,
+      "B2": 17.954842444120718,
+      "B3": 21.69815042819943
+    },
+    "worst_case_batch": "B2",
+    "worst_case_crossing_months": 17.954842444120718,
+    "supported_shelf_life_rounded_down": 17
+  },
+  "shelf_life": {
+    "statistical_crossing_months": 17.954842444120718,
+    "supported_shelf_life_months_rounded_down": 17,
+    "observed_data_months": 24.0,
+    "extrapolation_flag": false
+  }
+}

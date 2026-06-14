@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="OpenPharmaStability v{{ tool_version }}">
+  <title>{{ title }} &mdash; {{ attribute }} @ {{ condition }}</title>
+  <style>
+    :root {
+      --fg: #1a1a1a;
+      --muted: #666;
+      --accent: #1f5fbf;
+      --ok: #1b7d3a;
+      --warn: #a36100;
+      --fail: #b3261e;
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e2e2e2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      margin: 0;
+      line-height: 1.45;
+    }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+    header .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    h2 {
+      margin-top: 28px;
+      font-size: 1.15rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 8px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 10px 0 18px;
+    }
+    table.summary {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    table.summary th, table.summary td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+    table.summary th {
+      width: 38%;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge.ok    { background: #e6f4ea; color: var(--ok); }
+    .badge.fail  { background: #fde8e7; color: var(--fail); }
+    .badge.warn  { background: #fff3e0; color: var(--warn); }
+    .badge.info  { background: #e8f0fe; color: var(--accent); }
+    .decision-shelf-life { color: var(--accent); font-weight: 700; }
+    .plot {
+      text-align: center;
+      margin: 12px 0;
+    }
+    .plot img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+    }
+    .plot-caption {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+    ul.notes {
+      margin: 6px 0 0 18px;
+      padding: 0;
+    }
+    ul.notes li { margin: 2px 0; }
+    ul.warnings li {
+      color: var(--warn);
+    }
+    .disclaimer {
+      background: #f3f3f3;
+      border-left: 4px solid var(--muted);
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      color: #333;
+      margin-top: 32px;
+    }
+    .disclaimer strong { color: var(--fg); }
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <h1>Stability Analysis Report</h1>
+      <div class="subtitle">
+        Attribute <strong>{{ attribute }}</strong> &middot;
+        Condition <strong>{{ condition }}</strong> &middot;
+        Direction <strong>{{ direction }}</strong> &middot;
+        Deliverable term <strong>{{ deliverable_term }}</strong>
+        {% if product_type %} (product type: {{ product_type }}){% endif %}
+      </div>
+    </header>
+
+    <h2>Headline Result</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Supported {{ deliverable_term }}</th>
+          <td class="decision-shelf-life">{{ supported_shelf_life_text }}</td>
+        </tr>
+        <tr>
+          <th>Statistical crossing</th>
+          <td>{{ statistical_crossing_months }} months
+              (rounded down to the nearest whole month)</td>
+        </tr>
+        <tr>
+          <th>Observed long-term data</th>
+          <td>{{ observed_data_months }} months</td>
+        </tr>
+        <tr>
+          <th>Limiting attribute</th>
+          <td>{{ attribute }}</td>
+        </tr>
+        <tr>
+          <th>Condition</th>
+          <td>{{ condition }}</td>
+        </tr>
+        <tr>
+          <th>Model selected</th>
+          <td>{{ model_kind_human }} <span class="badge info">{{ model_kind_value }}</span></td>
+        </tr>
+        <tr>
+          <th>Poolability alpha</th>
+          <td>{{ poolability_alpha }}</td>
+        </tr>
+        <tr>
+          <th>Confidence bound</th>
+          <td>{{ confidence_bound_label }}
+              <span class="badge info">{{ confidence_bound_id }}</span></td>
+        </tr>
+        <tr>
+          <th>Extrapolation</th>
+          <td>{{ extrapolation_text }}</td>
+        </tr>
+        <tr>
+          <th>Governing batch</th>
+          <td>{{ governing_batch }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Dataset Summary</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Attribute</th>
+          <td>{{ attribute }}</td>
+        </tr>
+        <tr>
+          <th>Condition</th>
+          <td>{{ condition }}</td>
+        </tr>
+        <tr>
+          <th>Direction</th>
+          <td>{{ direction }}</td>
+        </tr>
+        <tr>
+          <th>Number of batches</th>
+          <td>
+            {% if n_batches is not none %}{{ n_batches }}
+            {% else %}Not recorded in metadata{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Time points (months)</th>
+          <td>
+            {% if time_points %}
+              <code class="mono">{{ time_points }}</code>
+            {% else %}
+              Not recorded in metadata
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Row count used in fit</th>
+          <td>
+            {% if row_count is not none %}{{ row_count }}
+            {% else %}Not recorded in metadata{% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Required-column validation</th>
+          <td>
+            <span class="badge {{ validation_status_css }}">{{ validation_status }}</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Model</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Model kind</th>
+          <td>{{ model_kind_human }}
+              <span class="badge info">{{ model_kind_value }}</span></td>
+        </tr>
+        <tr>
+          <th>Model formula</th>
+          <td><code class="mono">{{ model_formula }}</code></td>
+        </tr>
+        <tr>
+          <th>Estimated parameters</th>
+          <td>
+            <code class="mono">{{ fit_params }}</code>
+          </td>
+        </tr>
+        <tr>
+          <th>Residual df</th>
+          <td>{{ fit_df_resid }}</td>
+        </tr>
+        <tr>
+          <th>Residual standard error (s)</th>
+          <td>{{ "%.6g"|format(fit_s_resid) }}</td>
+        </tr>
+        <tr>
+          <th>Batches in fit</th>
+          <td>
+            {% if fit_batches %}
+              <code class="mono">{{ fit_batches }}</code>
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Poolability Test</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Decision</th>
+          <td>
+            {{ poolability_human }}
+            <span class="badge info">{{ poolability_decision }}</span>
+          </td>
+        </tr>
+        <tr>
+          <th>Alpha (significance level)</th>
+          <td>{{ poolability_alpha }}
+              (ICH Q1E reference alpha = {{ poolability_alpha_ref }})</td>
+        </tr>
+        <tr>
+          <th>Step 1 &mdash; p-value (slopes)</th>
+          <td>
+            <code class="mono">{{ p_value_slopes }}</code>
+            {% if p_value_slopes != "—" %}
+              {% if p_value_slopes|float < poolability_alpha %}
+                &lt; alpha &rarr; slopes differ &rarr; no pooling
+              {% else %}
+                &ge; alpha &rarr; proceed to intercept test
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Step 2 &mdash; p-value (intercepts)</th>
+          <td>
+            <code class="mono">{{ p_value_intercepts }}</code>
+            {% if p_value_intercepts != "—" %}
+              {% if p_value_intercepts|float < poolability_alpha %}
+                &lt; alpha &rarr; intercepts differ &rarr; common slope
+              {% else %}
+                &ge; alpha &rarr; nothing rejected &rarr; full pooling
+              {% endif %}
+            {% else %}
+              (not performed; slopes differ)
+            {% endif %}
+          </td>
+        </tr>
+        {% if poolability_notes %}
+        <tr>
+          <th>Poolability notes</th>
+          <td>
+            <ul class="notes">
+              {% for n in poolability_notes %}<li>{{ n }}</li>{% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endif %}
+      </table>
+    </div>
+
+    <h2>Shelf-Life Estimate</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Supported {{ deliverable_term }}</th>
+          <td class="decision-shelf-life">{{ supported_shelf_life_text }}</td>
+        </tr>
+        <tr>
+          <th>Statistical crossing (months)</th>
+          <td>{{ statistical_crossing_months }}</td>
+        </tr>
+        <tr>
+          <th>Observed long-term data (months)</th>
+          <td>{{ observed_data_months }}</td>
+        </tr>
+        <tr>
+          <th>Confidence bound used</th>
+          <td>{{ confidence_bound_label }}
+              <span class="badge info">{{ confidence_bound_id }}</span>
+              (level = {{ confidence_level }})</td>
+        </tr>
+        <tr>
+          <th>Crossing status</th>
+          <td>{{ crossing_status_human }}
+              <span class="badge info">{{ crossing_status_value }}</span></td>
+        </tr>
+        <tr>
+          <th>Governing batch</th>
+          <td>{{ governing_batch }}</td>
+        </tr>
+        <tr>
+          <th>Extrapolation</th>
+          <td>{{ extrapolation_text }}</td>
+        </tr>
+      </table>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
+        The supported {{ deliverable_term }} is rounded <em>down</em> to the
+        nearest whole month, per ICH Q1E.
+      </p>
+    </div>
+
+    <h2>Confidence-Bound Plot</h2>
+    <div class="card">
+      {% if plot_src %}
+        <div class="plot">
+          <img src="{{ plot_src }}" alt="Confidence-bound plot for {{ attribute }} at {{ condition }}">
+          <div class="plot-caption">
+            Observed data by batch, fitted regression, the
+            {{ confidence_bound_label|lower }}, and the relevant
+            specification limit. Crossing point and extrapolation region
+            are marked. Plot file: <code class="mono">{{ plot_src }}</code>.
+          </div>
+        </div>
+      {% else %}
+        <p><em>No plot was supplied. Re-run the analysis with a confidence-bound
+        PNG to embed it here.</em></p>
+      {% endif %}
+    </div>
+
+    <h2>Diagnostics &amp; Assumptions</h2>
+    <div class="card">
+      <div class="two-col">
+        <div>
+          <p>
+            Linearity:
+            {% if linearity_ok %}
+              <span class="badge ok">ok</span>
+            {% else %}
+              <span class="badge warn">flagged</span>
+            {% endif %}
+          </p>
+          <p>
+            Homoscedasticity:
+            {% if homoscedastic_ok %}
+              <span class="badge ok">ok</span>
+            {% else %}
+              <span class="badge warn">flagged</span>
+            {% endif %}
+          </p>
+          <p>
+            Normality of residuals:
+            {% if normal_resid_ok %}
+              <span class="badge ok">ok</span>
+            {% else %}
+              <span class="badge warn">flagged</span>
+            {% endif %}
+          </p>
+          <p>
+            Influential points (Cook's d):
+            <span class="badge {% if n_influential_points == 0 %}ok{% else %}warn{% endif %}">
+              {{ n_influential_points }}
+            </span>
+          </p>
+        </div>
+        <div>
+          {% if diagnostics_notes %}
+            <strong>Diagnostic notes</strong>
+            <ul class="notes">
+              {% for n in diagnostics_notes %}<li>{{ n }}</li>{% endfor %}
+            </ul>
+          {% else %}
+            <p><em>No diagnostic notes.</em></p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <h2>Warnings &amp; Limitations</h2>
+    <div class="card">
+      {% if warnings %}
+        <ul class="notes warnings">
+          {% for w in warnings %}<li>{{ w }}</li>{% endfor %}
+        </ul>
+      {% else %}
+        <p><em>No warnings.</em></p>
+      {% endif %}
+    </div>
+
+    {% if extrapolation_rationale or significant_change_details %}
+    <h2>Significant-change assessment (ICH Q1A)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Accelerated condition</th>
+          <td>{{ significant_change_accelerated or "&mdash;" }}</td>
+        </tr>
+        <tr>
+          <th>Intermediate condition</th>
+          <td>{{ significant_change_intermediate or "&mdash;" }}</td>
+        </tr>
+        <tr>
+          <th>Extrapolation allowed</th>
+          <td>
+            {% if extrapolation_allowed %}
+              <span class="badge ok">yes</span>
+            {% else %}
+              <span class="badge fail">NO</span>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Rationale</th>
+          <td><code class="mono">{{ extrapolation_rationale or "&mdash;" }}</code></td>
+        </tr>
+      </table>
+      {% if extrapolation_criterion_notes %}
+      <h3>Criteria fired</h3>
+      <table class="summary">
+        <tr>
+          <th>Criterion</th>
+          <th>First change (months)</th>
+          <th>Evidence</th>
+        </tr>
+        {% for row in extrapolation_criterion_notes %}
+        <tr>
+          <td>{{ row.criterion }}</td>
+          <td>
+            {% if row.first_t is not none %}
+              {{ "%.2f"|format(row.first_t) }}
+            {% else %}
+              &mdash;
+            {% endif %}
+          </td>
+          <td>{{ row.evidence }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <h2>Model effects</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Model</th>
+          <td><code class="mono">{{ model_effects }}</code>
+            {% if model_effects_is_random %}
+              <em>(random-effects / mixed model — not the ICH Q1E default; exploratory only)</em>
+            {% else %}
+              (Q1E default — fixed-effect batch)
+            {% endif %}
+          </td>
+        </tr>
+        {% if model_effects == "random" %}
+        <tr>
+          <th>Model convergence</th>
+          <td>
+            {% if model_convergence_converged %}converged{% else %}<strong>NOT converged</strong>{% endif %}
+            {% if model_convergence_boundary %} <em>(boundary)</em>{% endif %}
+            {% if model_convergence_message %}<br><code class="mono">{{ model_convergence_message }}</code>{% endif %}
+          </td>
+        </tr>
+        {% endif %}
+      </table>
+    </div>
+
+    {% if arrhenius_present %}
+    <h2>Arrhenius analysis (exploratory)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>n_temps</th>
+          <td>{{ arrhenius_result.n_temps }}</td>
+        </tr>
+        <tr>
+          <th>Ea</th>
+          <td>{{ "%.2f"|format(arrhenius_result.Ea_J_per_mol) }} J/mol</td>
+        </tr>
+        <tr>
+          <th>ln(A)</th>
+          <td>{{ "%.4f"|format(arrhenius_result.ln_A) }}</td>
+        </tr>
+        <tr>
+          <th>A</th>
+          <td>{{ "%.4g"|format(arrhenius_result.A) }}</td>
+        </tr>
+        <tr>
+          <th>R²</th>
+          <td>{{ "%.4f"|format(arrhenius_result.r_squared) }}</td>
+        </tr>
+        <tr>
+          <th>storage temp</th>
+          <td>{{ arrhenius_result.storage_temp_C }} °C</td>
+        </tr>
+        <tr>
+          <th>predicted k at storage</th>
+          <td>{{ "%.4g"|format(arrhenius_result.predicted_k_at_storage) }} 1/month</td>
+        </tr>
+      </table>
+      {% if arrhenius_result.notes %}
+      <p class="muted">Notes:
+        {% for n in arrhenius_result.notes %}<br>&middot; {{ n }}{% endfor %}
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if mkt_present %}
+    <h2>Mean kinetic temperature (USP &lt;1160&gt;)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>MKT</th>
+          <td>{{ "%.2f"|format(mkt_celsius) }} °C</td>
+        </tr>
+        <tr>
+          <th>model_effects</th>
+          <td><code class="mono">{{ model_effects }}</code></td>
+        </tr>
+      </table>
+    </div>
+    {% endif %}
+
+    {% if reduced_design_present %}
+    <h2>Reduced design (ICH Q1D)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Bracketed</th>
+          <td>{{ "yes" if reduced_design_report.is_bracketed else "no" }}</td>
+        </tr>
+        <tr>
+          <th>Matrixed</th>
+          <td>{{ "yes" if reduced_design_report.is_matrixed else "no" }}</td>
+        </tr>
+        <tr>
+          <th>Missing cells</th>
+          <td>{{ reduced_design_report.missing_cells|length }}</td>
+        </tr>
+        {% if reduced_design_report.note %}
+        <tr>
+          <th>Note</th>
+          <td>{{ reduced_design_report.note }}</td>
+        </tr>
+        {% endif %}
+      </table>
+    </div>
+    {% endif %}
+
+    <h2>Reproducibility</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Tool version</th>
+          <td><code class="mono">{{ tool_version }}</code></td>
+        </tr>
+        <tr>
+          <th>Analysis timestamp (ISO-8601)</th>
+          <td><code class="mono">{{ timestamp }}</code></td>
+        </tr>
+        <tr>
+          <th>Input file SHA-256</th>
+          <td>
+            {% if file_sha256 %}
+              <code class="mono">{{ file_sha256 }}</code>
+            {% else %}
+              <em>not recorded</em>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Random seed (if any)</th>
+          <td>
+            {% if random_seed is not none %}
+              <code class="mono">{{ random_seed }}</code>
+            {% else %}
+              <em>none / deterministic core</em>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>Library versions</th>
+          <td>
+            {% if library_versions %}
+              <code class="mono">{{ library_versions }}</code>
+            {% else %}
+              <em>not recorded</em>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer.</strong> {{ disclaimer }}
+    </div>
+
+    <footer>
+      Generated by OpenPharmaStability v{{ tool_version }} on
+      <code class="mono">{{ timestamp }}</code>.
+      This report is intended for educational, exploratory, and reproducible
+      decision-support use; it is not a substitute for qualified regulatory,
+      statistical, or quality review.
+    </footer>
+
+  </div>
+</body>
+</html>
