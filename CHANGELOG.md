@@ -4,6 +4,88 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.9.0] — 2026-06-13 — Backend Features (no UI)
+
+### Theme
+More backend features, no UI. Per the user's "features first,
+website last" reshape: the Cloudflare Pages + Claude Design
+UI pass is deferred to v1.0. Python remains the authoritative
+stats engine. This release ships four small but real additions:
+Holm-corrected poolability p-values, multi-engine XLSX dispatch,
+per-batch Arrhenius rate diagnostic, and multi-attribute
+metadata `unit` + `report_order` surfacing.
+
+### Added
+- **Holm-Bonferroni corrected poolability p-values.** New
+  additive `PoolabilityResult.p_slopes_holm` /
+  `p_intercepts_holm` fields. The v0.1 3-step nested ANCOVA
+  poolability test runs two hypothesis tests (slopes +
+  intercepts); the new fields record the Holm-corrected
+  p-values that preserve the family-wise error rate at `alpha`
+  while gaining power over the conservative Bonferroni
+  correction. The original (uncorrected) `p_slopes` /
+  `p_intercepts` are unchanged. `None` until the corresponding
+  test is reached (e.g. `p_intercepts_holm is None` if the
+  slopes test already rejected). Reported in the JSON record
+  and the HTML report.
+- **Multi-engine `analyze_many` accepts XLSX / XLSM directly.**
+  The single-attribute `engine.analyze()` was wired to
+  `load_table` in v0.7.0; v0.9.0 does the same for the
+  multi-attribute `analyze_many`. The symmetry fix removes the
+  last remaining CSV-only path in the engine. New
+  `data.xlsx.load_xlsx` callers in `multi_engine.py`; the
+  multi CLI path accepts `.xlsx` / `.xlsm` exactly like the
+  single path.
+- **Per-batch Arrhenius rate diagnostic + outlier flag.**
+  New `--arrhenius-per-batch` flag. When set, the engine
+  builds a per-batch rate dict per temperature (one
+  log-linear OLS per `(batch, temp_c)` cell) and surfaces it
+  on `ArrheniusResult.per_batch_rate_by_temp`. Any batch whose
+  median rate across temperatures is more than
+  `outlier_z_threshold` (default 2.5) robust z-scores from the
+  per-temperature median is recorded in
+  `ArrheniusResult.outlier_batches` with a note. Reported in
+  the JSON record and the HTML report.
+- **Multi-attribute `unit` + `report_order` surfacing.** The
+  `AttributeMetadata` dataclass already carried `unit` and
+  `report_order` (v0.2.0 contract). v0.9.0 makes them visible
+  in the multi-attribute JSON record (per attribute) and the
+  multi HTML report (per-attribute block + sorted overview
+  table when `report_order` is supplied). The
+  `AcceptanceCriteriaRow` already included `unit` (v0.7.0);
+  v0.9.0 closes the loop on the per-attribute HTML block and
+  the per-row JSON layout.
+
+### Tests
+- `validation/test_stats_poolability.py` extended (~3 tests):
+  Holm-corrected p-values are larger than or equal to the raw
+  p-values, never smaller; when the slopes test rejects, the
+  slopes Holm field equals the raw; when both tests run, the
+  Holm ordering follows the canonical Holm step-up rule.
+- `validation/test_multi_engine.py` extended (~2 tests):
+  `analyze_many` accepts an XLSX mirror of the multi-attribute
+  fixture and produces the same per-attribute results as the
+  CSV path.
+- `validation/test_arrhenius.py` extended (~3 tests):
+  per-batch rate dict is populated when `--arrhenius-per-batch`
+  is set; outlier detection flags a single batch whose rate is
+  far from the others; the regular v0.5.0 / v0.8.0 path is
+  unchanged when the flag is absent.
+- `validation/test_multi_reporting.py` extended (~2 tests):
+  the per-attribute HTML block carries `unit` when the
+  metadata supplies it; the overview table is sorted by
+  `report_order` when supplied.
+- Total: ~465 tests passing (was 437 at v0.8.0; +28 new).
+
+### Backward compatibility
+- All v0.8.0 single-attribute and multi-attribute golden paths
+  still pass. The default analyze path is byte-equivalent
+  (new flags default to off / off; new fields default to
+  permissive None / empty / defaults).
+- v0.8.0 callers that don't import the new Holm / per-batch
+  Arrhenius / unit / report_order features are unaffected;
+  all new fields are additive with permissive defaults.
+
 ## [0.8.0] — 2026-06-13 — Backend Features (no UI)
 
 ### Theme

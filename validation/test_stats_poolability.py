@@ -205,3 +205,108 @@ def test_poolability_requires_separate_and_common_slope_fits() -> None:
     assert incomplete  # sanity: the dict is non-empty
     with pytest.raises(ValueError, match="COMMON_SLOPE|SEPARATE"):
         run_poolability(incomplete, v)
+
+
+# ---------------------------------------------------------------------------
+# v0.9.0 Holm-Bonferroni corrected p-values
+# ---------------------------------------------------------------------------
+
+
+def test_holm_correction_monotonic_non_decreasing() -> None:
+    """The corrected p-values are always >= the raw p-values.
+
+    The smaller raw p-value (the slopes test) is multiplied by
+    ``m = 2`` (the rank-1 multiplier); the larger raw p-value (the
+    intercepts test) is multiplied by 1. The step-up enforcement
+    then keeps the corrected values monotonically non-decreasing
+    across the rank order, which means the intercepts_holm is
+    at least as large as slopes_holm.
+    """
+    from openpharmastability.stats.poolability import holm_bonferroni
+
+    raw = [0.04, 0.06]
+    corrected = holm_bonferroni(raw)
+    # Property: corrected >= raw for every entry.
+    for c, r in zip(corrected, raw):
+        assert c >= r
+    # slopes is the smaller raw p; rank-1 multiplier is m=2 -> 0.08.
+    assert corrected[0] == pytest.approx(0.08)
+    # intercepts is the larger raw p; rank-2 multiplier is 1 -> 0.06
+    # raw, then the step-up running max keeps it at >= 0.08.
+    assert corrected[1] == pytest.approx(0.08)
+    # Step-up monotonicity: intercepts_holm >= slopes_holm.
+    assert corrected[1] >= corrected[0]
+
+
+def test_holm_correction_capped_at_one() -> None:
+    """When ``p * (m - rank + 1) > 1.0`` the correction caps at 1.0.
+
+    With ``p_slopes = 0.6`` (the smaller, rank-1 raw p) the
+    multiplier is 2, so ``0.6 * 2 = 1.2`` is capped to 1.0. The
+    step-up then keeps the intercepts correction at 1.0 as well
+    because the running max cannot decrease.
+    """
+    from openpharmastability.stats.poolability import holm_bonferroni
+
+    raw = [0.6, 0.7]
+    corrected = holm_bonferroni(raw)
+    # All corrected values must be <= 1.0.
+    for c in corrected:
+        assert c <= 1.0
+    # slopes correction: 0.6 * 2 = 1.2 -> capped to 1.0.
+    assert corrected[0] == pytest.approx(1.0)
+    # intercepts correction: 0.7 * 1 = 0.7; step-up max(1.0, 0.7) = 1.0.
+    assert corrected[1] == pytest.approx(1.0)
+    # The cap is also visible in the property: corrected > raw
+    # when the cap triggers (1.0 > 0.6, 1.0 > 0.7).
+    assert all(c >= r for c, r in zip(corrected, raw))
+
+
+def test_holm_passes_through_none_for_unreached_test() -> None:
+    """When the slopes test rejects, the intercepts test is not
+    reached; the PoolabilityResult must carry ``p_intercepts_holm
+    is None`` (the helper passes None through unchanged), and the
+    slopes correction must be populated and >= the raw value.
+    """
+    v = _clearly_different_slopes()
+    fits = fit_models(v)
+    res = run_poolability(fits, v)
+    assert res.decision is Poolability.NONE
+    # The intercepts test was never run, so both raw and corrected
+    # intercepts are None.
+    assert res.p_intercepts is None
+    assert res.p_intercepts_holm is None
+    # The slopes test ran; the corrected value is populated and
+    # the helper property ``corrected >= raw`` must hold.
+    assert res.p_slopes_holm is not None
+    assert res.p_slopes_holm >= res.p_slopes
+    # And of course the correction is capped at 1.0.
+    assert res.p_slopes_holm <= 1.0
+
+
+def test_holm_step_up_monotonic() -> None:
+    """The Holm step-up enforces monotonicity across rank order.
+
+    With raw=[0.001, 0.5] the slopes correction is
+    ``0.001 * 2 = 0.002``; the intercepts correction is
+    ``max(0.002, 0.5) = 0.5`` because the running max cannot
+    decrease as the rank grows. The test pins the actual helper
+    values and asserts the cross-hypothesis monotonicity.
+    """
+    from openpharmastability.stats.poolability import holm_bonferroni
+
+    raw = [0.001, 0.5]
+    corrected = holm_bonferroni(raw)
+    # slopes: 0.001 * 2 = 0.002 (rank-1 multiplier).
+    assert corrected[0] == pytest.approx(0.002)
+    # intercepts: 0.5 * 1 = 0.5; step-up running max is 0.5.
+    assert corrected[1] == pytest.approx(0.5)
+    # Step-up monotonicity: the later-rank (larger raw p) correction
+    # is at least the earlier-rank (smaller raw p) correction.
+    assert corrected[1] >= corrected[0]
+    # And of course the property ``corrected >= raw`` holds.
+    for c, r in zip(corrected, raw):
+        assert c >= r
+    # Cap at 1.0 holds for every entry.
+    for c in corrected:
+        assert c <= 1.0

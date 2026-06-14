@@ -1,25 +1,26 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v0.8.0 SHIPPED (more backend features, no UI).** v0.8.0
-> added Arrhenius-driven shelf-life prediction (`--arrhenius-shelf-
-> life`), a leave-one-batch-out sensitivity variant
-> (`--sensitivity-mode {row,batch}`), and a cross-platform
-> `Makefile` (`make fresh / test / regen-check`). v0.7.0 closed
-> two long-open items (pure-numpy regen, multi-attribute
-> metadata spec override) and added sensitivity analysis and
-> acceptance-criteria CSV export. v0.6.0 added PDF export,
-> report artifacts, the Python API, and CLI polish. v0.5.0 +
-> v0.5.1 added advanced statistics and the v0.5.0 audit patch.
-> Read `HANDOVER.md` and `CHANGELOG.md` first.
+> **STATUS: v0.9.0 SHIPPED (more backend features, no UI).** v0.9.0
+> added Holm-Bonferroni corrected poolability p-values, multi-
+> engine XLSX dispatch, per-batch Arrhenius rate diagnostic with
+> outlier flagging, and multi-attribute `unit` + `report_order`
+> surfacing. v0.8.0 added Arrhenius-driven shelf-life prediction,
+> a leave-one-batch-out sensitivity variant, and a cross-platform
+> `Makefile`. v0.7.0 closed two long-open items and added
+> sensitivity analysis and acceptance-criteria CSV export.
+> v0.6.0 added PDF export, report artifacts, the Python API,
+> and CLI polish. v0.5.0 + v0.5.1 added advanced statistics and
+> the v0.5.0 audit patch. Read `HANDOVER.md` and `CHANGELOG.md`
+> first.
 >
 > §§1–6 are now historical (all shipped). **The next focus is
 > more backend features** (per the user's "features first, website
 > last" reshape). The UI pass (Cloudflare Pages + Claude Design)
-> remains deferred to a later release (v0.9.0+ or v1.0). The
-> Python stats engine stays authoritative; the UI is a thin client.
-> **Do not reimplement the statistical core in JS/TS.**
+> remains deferred to v1.0. The Python stats engine stays
+> authoritative; the UI is a thin client. **Do not reimplement
+> the statistical core in JS/TS.**
 
-**Comprehensive expansion plan: v0.1.0 → v0.8.0 (shipped) → v0.9.0+ (next)**
+**Comprehensive expansion plan: v0.1.0 → v0.9.0 (shipped) → v1.0 (next)**
 
 > **Audience:** the next engineer/agent, starting cold. You have never seen
 > the conversation that produced this file. Read **§7 (pycache / env
@@ -55,12 +56,12 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v0.9.0+ / v1.0 (future) |
+| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v1.0 (future) |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v0.8.0 is):
+> §1–§11, but the *execution* order on a fresh checkout at v0.9.0 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
 > releases that have already shipped. The env setup and handover
 > protocol must happen before any code change; §11 is the future
@@ -71,23 +72,29 @@
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `0.8.0` (declared in three places that must stay in
+**Current version:** `0.9.0` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v0.8.0 is the **more backend features** release:
-Arrhenius-driven shelf-life prediction, leave-one-batch-out
-sensitivity, and a cross-platform `Makefile`. **No frontend in
-v0.8** — the UI pass is deferred. The default analyze path is
-byte-equivalent to v0.7.0; v0.8.x added opt-in features only.
+`pyproject.toml`). v0.9.0 is the **more backend features** release:
+Holm-corrected poolability p-values, multi-engine XLSX dispatch,
+per-batch Arrhenius rate diagnostic with outlier flagging, and
+multi-attribute `unit` + `report_order` surfacing. **No frontend
+in v0.9** — the UI pass is deferred to v1.0. The default analyze
+path is byte-equivalent to v0.8.0; v0.9.x added opt-in features
+and small bug-fixes only.
 
-**Module map (what exists today at v0.5.1):**
+**Module map (what exists today at v0.9.0):**
 
 ```
 openpharmastability/
   __init__.py            # __version__, re-exports of contracts
   contracts.py           # FROZEN dataclasses, enums, constants, signatures
                          #   v0.5.1: model_convergence field on StabilityResult
+                         #   v0.9.0: p_value_slopes_holm / p_value_intercepts_holm
+                         #           arrhenius_per_batch / arrhenius_outlier_batches
+                         #           attribute unit + report_order on AttributeResult
   cli.py                 # argparse CLI: `analyze` subcommand only
+                         #   v0.9.0: --arrhenius-per-batch, --metadata-csv flags
   data/
     io.py                # load_csv() / load_table() — CSV + XLSX dispatch
     xlsx.py              # XLSX loader (v0.2.0)
@@ -101,10 +108,12 @@ openpharmastability/
     regression.py        # fit_models() -> {POOLED, COMMON_SLOPE, SEPARATE}
                          #   v0.5.0+: optional random-effects mixed model
     poolability.py       # decide_poolability() — 3-step ANCOVA at alpha=0.25
+                         #   v0.9.0: Holm-Bonferroni corrected p-values
     bounds.py            # confidence_bound(), find_crossing()
     diagnostics.py       # run_diagnostics()
     transforms.py        # assess_transforms() — exploratory (v0.3.0)
     arrhenius.py         # fit_arrhenius() — Ea / A from multi-temp (v0.5.0)
+                         #   v0.9.0: per-batch rate diagnostic + outlier flagging
     mkt.py               # mean_kinetic_temperature() — Haynes (v0.5.0)
     MATH_SPEC.md         # the locked math
   models/
@@ -113,7 +122,9 @@ openpharmastability/
     engine.py            # analyze() — public single-attribute entry
                          #   v0.5.1: model_convergence surfaced top-level;
                          #   Arrhenius hook now per-attribute + direction-aware
+                         #   v0.9.0: per-batch Arrhenius diagnostic opt-in
     multi_engine.py      # analyze_many() — multi-attribute orchestration
+                         #   v0.9.0: direct XLSX/XLSM dispatch via load_table()
     limiting.py          # select_limiting() — limiting-attribute selection
     extrapolation.py     # apply_extrapolation_caps() — via dataclasses.replace
   regulatory/
@@ -123,13 +134,16 @@ openpharmastability/
     confidence_plot.py   # make_confidence_plot()
   reports/
     html.py              # render_html() — single-attribute
+                         #   v0.9.0: Holm p-values + per-batch Arrhenius table
     multi_html.py        # render_multi_html() — multi-attribute
+                         #   v0.9.0: unit column + report_order sort
     record.py            # to_decision_record() — single
     multi_record.py      # to_multi_decision_record() — multi
+                         #   v0.9.0: attribute_order key; unit/report_order surfaced
     templates/report.html.j2 + multi_report.html.j2
 tools/
   regen_expected.py      # independent numpy/scipy validator (+ --check)
-validation/              # 355 pytest tests (testpaths = ["validation"])
+validation/              # 447 pytest tests (testpaths = ["validation"])
   conftest.py            # v0.5 module hard-require fail-fast (v0.5.1)
 examples/
   assay_3batch.csv             # golden input
@@ -1933,10 +1947,10 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.8.0: `437 passed` (see §8.3 for the exact expectation
-and how to treat drift). Earlier releases had different counts —
-v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280, v0.5.0 = 341,
-v0.5.1 = 365, v0.6.0 = 390, v0.7.0 = 421.
+Expected at v0.9.0: `447 passed, 4 skipped` (see §8.3 for the exact
+expectation and how to treat drift). Earlier releases had different
+counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
+v0.5.0 = 341, v0.5.1 = 365, v0.6.0 = 390, v0.7.0 = 421, v0.8.0 = 437.
 
 ### 7.4 Permanent guard — Makefile target + pre-commit hook
 
@@ -1995,7 +2009,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`437 passed` at v0.8.0; see §8.3
+prints the current expected count (`447 passed, 4 skipped` at v0.9.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2055,8 +2069,8 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.8.0): **`437 passed`** (plus 4 PDF-backend
-skips on hosts without weasyprint/pdfkit). Earlier counts: 173
+Expected today (v0.9.0): **`447 passed, 4 skipped`** (4 skips are
+PDF-backend tests on hosts without weasyprint/pdfkit). Earlier counts: 173
 (v0.1.0) → 184 (v0.1.1) → 254 (v0.3.0) → ~280 (v0.4.0) → 341
 (v0.5.0). Then run the end-to-end smoke:
 
@@ -2335,7 +2349,8 @@ comparison/audit.
 | Add PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin surface, CLI polish, multi-attribute HTML spec display fix (§6) — *shipped in v0.6.0; no frontend in v0.6* | MINOR → 0.6.0 |
 | Add sensitivity analysis, acceptance-criteria CSV, multi-attribute metadata spec override, `engine.analyze()` direct XLSX, pure-numpy regen (close v0.1.1 known-open) — *shipped in v0.7.0; backend features only, no UI* | MINOR → 0.7.0 |
 | Add Arrhenius-driven shelf-life prediction, leave-one-batch-out sensitivity (`--sensitivity-mode batch`), cross-platform `Makefile` — *shipped in v0.8.0; more backend features, no UI* | MINOR → 0.8.0 |
-| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 0.9.0+ / 1.0 |
+| Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped in v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
+| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 1.0 |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 

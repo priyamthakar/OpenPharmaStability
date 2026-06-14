@@ -206,6 +206,13 @@
           <td>{{ attribute }}</td>
         </tr>
         <tr>
+          <th>Unit</th>
+          <td>
+            {% if unit is not none and unit != "—" %}{{ unit }}
+            {% else %}&mdash;{% endif %}
+          </td>
+        </tr>
+        <tr>
           <th>Condition</th>
           <td>{{ condition }}</td>
         </tr>
@@ -695,6 +702,45 @@
       {% endif %}
       <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
         Exploratory model-based prediction; the official {{ deliverable_term }} decision above is unchanged.
+      </p>
+    </div>
+    {% endif %}
+
+    {% if arrhenius_per_batch_present %}
+    <h2>Per-batch Arrhenius rate diagnostic (v0.9.0)</h2>
+    <div class="card">
+      <p>Per-batch first-order rate estimates from the per-(batch, temperature) log-linear fit.
+         Outlier flagging uses a robust z-score (MAD-scaled) over the per-temperature batches;
+         batches with |z| &gt; 2.5 in at least one temperature are listed below.</p>
+      <table class="summary">
+        <tr>
+          <th>Batch</th>
+          <th>Per-temperature rates (1/month)</th>
+        </tr>
+        {% for batch, rates in arrhenius_per_batch.items() %}
+        <tr>
+          <td>
+            <code class="mono">{{ batch }}</code>
+            {% if batch in arrhenius_outlier_batches %}
+              <span class="badge warn">outlier</span>
+            {% endif %}
+          </td>
+          <td>
+            <code class="mono">{% for t, k in rates.items() %}{{ t }}&deg;C: {{ "%.4g"|format(k) }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</code>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% if arrhenius_outlier_batches %}
+      <p class="muted">
+        Outlier batches (robust z-score &gt; 2.5 in at least one temperature):
+        <strong>{{ arrhenius_outlier_batches|join(", ") }}</strong>
+      </p>
+      {% else %}
+      <p class="muted">No outlier batches detected (robust z-score &le; 2.5 for all batches).</p>
+      {% endif %}
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
+        Exploratory per-batch diagnostic; the official {{ deliverable_term }} decision above is unchanged.
       </p>
     </div>
     {% endif %}

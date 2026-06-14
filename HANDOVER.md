@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v0.8.0 on a fresh machine.**
+> **You are picking up OpenPharmaStability v0.9.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,23 +9,28 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v0.8.0** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v0.9.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
 copy, a self-contained `ReportArtifact` bundle, an optional
 sensitivity report (row-level or batch-level leave-one-out), an
-optional acceptance-criteria CSV, and an optional Arrhenius-driven
-shelf-life prediction. The v0.1 baseline has been extended through
-v0.2 (multi-attribute + XLSX), v0.3 (data quality + BQL + transform
+optional acceptance-criteria CSV, an optional Arrhenius-driven
+shelf-life prediction, and (v0.9.0) optional per-batch Arrhenius
+rate diagnostics with outlier flagging + Holm-corrected poolability
+p-values. The v0.1 baseline has been extended through v0.2
+(multi-attribute + XLSX), v0.3 (data quality + BQL + transform
 evidence), v0.4 (ICH Q1A significant-change gating), v0.5
 (Arrhenius / MKT / reduced designs / random-effects opt-in, plus
 the v0.5.1 audit patch), v0.6 (export + API foundation), v0.7
-(backend features only: pure-numpy regen, multi-attribute metadata
+(backend features: pure-numpy regen, multi-attribute metadata
 spec override honored, sensitivity analysis, acceptance-criteria
-CSV, direct XLSX support), and v0.8 (more backend features:
-Arrhenius-driven shelf-life prediction, leave-one-batch-out
-sensitivity, cross-platform `Makefile`). It is a **decision-support /
+CSV, direct XLSX support), v0.8 (more backend features: Arrhenius-
+driven shelf-life prediction, leave-one-batch-out sensitivity,
+cross-platform `Makefile`), and v0.9 (more backend features:
+Holm-corrected poolability p-values, multi-engine XLSX dispatch,
+per-batch Arrhenius rate diagnostic with outlier flagging, multi-
+attribute `unit` + `report_order` surfacing). It is a **decision-support /
 educational** tool: not a regulatory submission tool, not
 submission-ready, and **not** a validated GxP / 21 CFR Part 11
 system. The mandatory disclaimer lives at
@@ -39,17 +44,17 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `0.8.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `0.9.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
 | Build (cross-platform) | `make fresh` (Linux / macOS / WSL / git-bash) or the PowerShell script in `NEXT_STEPS.md` §7.1 (native Windows) |
 | CLI entry point | `openpharmastability` (console script) |
-| CLI invocation | `openpharmastability analyze <csv-or-xlsx> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle] [--sensitivity --sensitivity-mode {row,batch}] [--acceptance-csv acceptance.csv] [--arrhenius-shelf-life] [--quiet]` |
+| CLI invocation | `openpharmastability analyze <csv-or-xlsx> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle] [--sensitivity --sensitivity-mode {row,batch}] [--acceptance-csv acceptance.csv] [--arrhenius-shelf-life] [--arrhenius-per-batch] [--quiet]` |
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
-| Test count | **437** pytest tests across the files in `validation/` (count via `pytest --collect-only`); 4 PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
+| Test count | **451** pytest tests across the files in `validation/` (count via `pytest --collect-only`); 4 PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
 | Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for` (re-exported from the top-level package) |
@@ -57,12 +62,15 @@ verbatim in every HTML report.
 | Sensitivity report | `contracts.SensitivityReport` — leave-one-out (row-level or batch-level, via `--sensitivity-mode`) over Cook's-distance outliers, attached when `--sensitivity` is set |
 | Acceptance-criteria CSV | `--acceptance-csv PATH` flag emits a flat CSV (one row per analyzed attribute) for LIMS / regulatory-tracking ingestion |
 | Arrhenius-driven shelf-life | `--arrhenius-shelf-life` flag fits Arrhenius on multi-temperature rate data and predicts the long-term shelf life; attached as `StabilityResult.arrhenius_shelf_life` |
+| Per-batch Arrhenius rate | `--arrhenius-per-batch` flag fits per-(batch × temperature) rates and flags outlier batches via robust z-score; attached as `ArrheniusResult.per_batch_rate_by_temp` and `ArrheniusResult.outlier_batches` |
+| Poolability | `PoolabilityResult` carries the raw `p_slopes` / `p_intercepts` and the v0.9.0 Holm-corrected `p_slopes_holm` / `p_intercepts_holm` |
 
 ### Recent releases
 
 | Version | Theme | What it added |
 |---|---|---|
-| `0.8.0` (current) | Backend features (no UI) | `stats.arrhenius_shelf_life.predict_arrhenius_shelf_life` (Arrhenius-driven shelf-life prediction; `--arrhenius-shelf-life` flag); `compute_sensitivity` now accepts `mode={row,batch}` for leave-one-batch-out (`--sensitivity-mode {row,batch}` flag); cross-platform `Makefile` (`make fresh / test / regen-check`). **No frontend** — UI pass remains deferred. |
+| `0.9.0` (current) | Backend features (no UI) | `PoolabilityResult.p_slopes_holm` / `p_intercepts_holm` (Holm-Bonferroni corrected p-values for the two-step poolability test); `analyze_many` now accepts XLSX / XLSM directly via the v0.7.0 `load_table` dispatcher (symmetry with the single-attribute path); `--arrhenius-per-batch` flag + per-batch Arrhenius rate dict + outlier-batches list with robust z-score detection; multi-attribute `unit` + `report_order` surfaced in the per-attribute HTML block, the overview table, and a new top-level `attribute_order` key in the multi JSON record. **No frontend** — UI pass remains deferred. |
+| `0.8.0` | Backend features (no UI) | `stats.arrhenius_shelf_life.predict_arrhenius_shelf_life` (Arrhenius-driven shelf-life prediction; `--arrhenius-shelf-life` flag); `compute_sensitivity` now accepts `mode={row,batch}` for leave-one-batch-out (`--sensitivity-mode {row,batch}` flag); cross-platform `Makefile` (`make fresh / test / regen-check`). |
 | `0.7.0` | Backend features (no UI) | `stats.sensitivity.compute_sensitivity` (leave-one-out over Cook's-distance outliers, `--sensitivity` flag); `to_acceptance_criteria` + `--acceptance-csv PATH` (LIMS-friendly flat CSV); `StabilityResult.lower_spec` / `upper_spec` (the spec limits the engine used); `load_table` dispatcher in `data/io.py` so `engine.analyze()` accepts CSV / XLSX / XLSM directly; multi-attribute metadata `lower_spec` / `upper_spec` override now actually applied (v0.2.1 CHANGELOG claim honored at last); `tools/regen_expected.py` is now pure-numpy (the v0.1.1 "regen uses statsmodels" known-open item is finally closed). |
 | `0.6.0` | Export + API foundation | `reports/pdf.py` (weasyprint primary, pdfkit fallback); `reports/artifacts.py` (`make_report_artifact` with inlined plot); `api.py` thin programmatic surface; new CLI flags `--pdf`, `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`; improved error messages + non-zero exit codes; multi-attribute HTML spec display fix. |
 | `0.5.1` | Audit patch on v0.5.0 | Arrhenius hook filtered to selected attribute + direction-aware; mixed-model convergence / boundary status surfaced at `StabilityResult.model_convergence` + warnings + HTML; explicit "no temp_c" warning when `--mkt` is requested without temperature data; docs synced; v0.5 tests now hard-require the v0.5 modules. |
@@ -122,12 +130,12 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-437 passed in <Xs> (plus 4 PDF-backend skips on hosts without weasyprint/pdfkit)
+447 passed, 4 skipped in <Xs>  (11 deprecation warnings — see §6)
 ```
 
 Pass criteria:
 
-- The exact count is **360** (the per-file collection map is in
+- The exact count is **447** (the per-file collection map is in
   the `pytest --collect-only -q` output; ~33 test files under
   `validation/`).
 - `validation/conftest.py` must import cleanly. If any of the v0.5
@@ -264,7 +272,7 @@ code review check. Do not relax any of them.
 
 ---
 
-## 6. Open warnings (v0.7.0 status)
+## 6. Open warnings (v0.9.0 status)
 
 All v0.1.1, v0.3.1, and v0.5.1 known-open items are now **resolved**
 (documented below under "Recent releases" history).
@@ -354,9 +362,17 @@ long-term shelf life from stress-temperature rate data and the
 v0.5.0 Arrhenius module), leave-one-batch-out sensitivity
 (`--sensitivity-mode batch`; the v0.7.0 row-level mode is the
 default), cross-platform `Makefile` (`make fresh / test /
-regen-check`). **No frontend in v0.6, v0.7, or v0.8** — the
-UI pass (Cloudflare Pages + Claude Design) is deferred to a
-future release (v0.9.0+ or v1.0).
+regen-check`). v0.9.0 — more backend features (no UI):
+Holm-Bonferroni corrected poolability p-values
+(`PoolabilityResult.p_slopes_holm` / `p_intercepts_holm`),
+multi-engine `analyze_many` accepts XLSX / XLSM directly via
+the v0.7.0 `load_table` dispatcher, per-batch Arrhenius rate
+diagnostic (`--arrhenius-per-batch`; flags outlier batches via
+robust z-score), multi-attribute `unit` + `report_order`
+surfaced in the per-attribute HTML block and a new top-level
+`attribute_order` key in the multi JSON record. **No frontend
+in v0.6, v0.7, v0.8, or v0.9** — the UI pass (Cloudflare Pages
++ Claude Design) is deferred to a future release (v1.0).
 
 The three v0.1 audit fixes that mattered most:
 

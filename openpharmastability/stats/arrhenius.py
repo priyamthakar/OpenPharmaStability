@@ -21,13 +21,17 @@ from __future__ import annotations
 
 import math
 import warnings
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from openpharmastability.contracts import ArrheniusResult
 
+if TYPE_CHECKING:  # pragma: no cover — types only
+    import pandas as pd
 
-__all__ = ["fit_arrhenius"]
+
+__all__ = ["fit_arrhenius", "_per_batch_rates"]
 
 
 # Note carried on ArrheniusResult.notes when only 2 stress temperatures
@@ -131,3 +135,98 @@ def fit_arrhenius(
         rate_by_temp_C=rate_by_temp_echo,
         notes=notes,
     )
+
+
+# ---------------------------------------------------------------------------
+# v0.9.0 — per-batch rate diagnostic
+# ---------------------------------------------------------------------------
+
+
+def _per_batch_rates(
+    df: "pd.DataFrame",
+    time_col: str = "time_months",
+    value_col: str = "value",
+    batch_col: str = "batch",
+    temp_col: str = "temp_c",
+    *,
+    direction: str = "decreasing",
+) -> dict[str, dict[str, float]]:
+    """Build a ``{batch: {temp_C_str: rate}}`` dict from a stability frame.
+
+    For each (batch, temp_c) cell, fit a quick log-linear OLS on the
+    rows with ``value > 0`` and extract the per-batch rate. The rate
+    is the magnitude ``abs(slope)`` of the ``log(value) ~ time`` fit;
+    the sign convention is encoded by ``direction`` (``"decreasing"``
+    -> the slope is expected negative; ``"increasing"`` -> expected
+    positive). Cells with fewer than two finite positive values, or
+    cells whose temperature is not finite, are skipped silently.
+
+    Returns
+    -------
+    dict[str, dict[str, float]]
+        Keys are batch identifiers (str). Values are
+        ``{temp_C_str: k(1/month)}`` mappings (the temperature is
+        stringified so the dict is JSON-friendly). Returns an empty
+        dict when ``df`` is empty, when ``temp_col`` is missing, or
+        when no (batch, temp_c) cell has enough finite positive
+        values to fit a slope.
+
+    Notes
+    -----
+    This helper is the v0.9.0 per-batch diagnostic building block.
+    Outlier detection is the caller's responsibility (see
+    :func:`openpharmastability.shelf_life.engine._detect_arrhenius_outliers`).
+    Logs/warnings are NOT raised here.
+    """
+    import pandas as pd  # local import — keeps the module stdlib-only at top
+
+    if df is None or len(df) == 0:
+        return {}
+    if temp_col not in df.columns:
+        return {}
+    if batch_col not in df.columns:
+        return {}
+    if time_col not in df.columns or value_col not in df.columns:
+        return {}
+
+    # Coerce numeric, drop rows with no finite temp / time / value.
+    work = df.copy()
+    work["_temp_c"] = pd.to_numeric(work[temp_col], errors="coerce")
+    work["_time"] = pd.to_numeric(work[time_col], errors="coerce")
+    work["_value"] = pd.to_numeric(work[value_col], errors="coerce")
+    work = work.dropna(subset=["_temp_c", "_time", "_value"])
+    if work.empty:
+        return {}
+
+    # `direction` is informational here; we always store the
+    # magnitude. The caller (engine outlier detection) only cares
+    # about relative magnitudes per temperature. Normalize to lower
+    # case so callers can pass enum names or labels interchangeably.
+    _ = str(direction).strip().lower()
+
+    out: dict[str, dict[str, float]] = {}
+    batches = sorted(work[batch_col].astype(str).unique().tolist())
+    for batch in batches:
+        sub_b = work[work[batch_col].astype(str) == batch]
+        if sub_b.empty:
+            continue
+        temps = sorted(sub_b["_temp_c"].astype(float).unique().tolist())
+        per_temp: dict[str, float] = {}
+        for t_key in temps:
+            cell = sub_b[sub_b["_temp_c"] == t_key]
+            pos = cell[cell["_value"] > 0.0]
+            if len(pos) < 2:
+                continue
+            try:
+                slope = float(np.polyfit(
+                    pos["_time"].astype(float).to_numpy(),
+                    np.log(pos["_value"].astype(float).to_numpy()),
+                    deg=1,
+                )[0])
+            except (np.linalg.LinAlgError, ValueError):
+                continue
+            rate = float(abs(slope))
+            per_temp[str(float(t_key))] = rate
+        if per_temp:
+            out[str(batch)] = per_temp
+    return out

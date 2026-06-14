@@ -457,6 +457,20 @@ def _build_parser() -> argparse.ArgumentParser:
              "this is the T_storage used for the predicted rate.",
     )
 
+    # ---- v0.9.0 per-batch Arrhenius diagnostic flag ----
+    a.add_argument(
+        "--arrhenius-per-batch", action="store_true", default=False,
+        dest="arrhenius_per_batch",
+        help="Compute a per-batch Arrhenius rate diagnostic and "
+             "flag batches whose rate is a robust-z outlier (z > 2.5) "
+             "from the per-temperature median. Requires --arrhenius "
+             "to be set; otherwise the diagnostic is skipped with a "
+             "warning. Single-attribute mode only; the flag is a "
+             "silent no-op in multi-attribute mode. Exploratory "
+             "only; does not change the official Q1E shelf-life "
+             "decision.",
+    )
+
     return p
 
 
@@ -534,6 +548,16 @@ def _engine_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         arrhenius_shelf_life_storage_temp_C=float(
             args.arrhenius_shelf_life_storage_temp
         ),
+        # v0.9.0: per-batch Arrhenius rate diagnostic. The single-
+        # attribute ``analyze()`` path accepts this kwarg and
+        # attaches the per-batch rates + outlier list to the
+        # underlying ``ArrheniusResult``; the multi-attribute
+        # ``analyze_many()`` does NOT (its signature is owned by a
+        # parallel build stream and is out of scope for v0.9.0),
+        # so the multi-mode runner pops this kwarg out before
+        # forwarding. The flag is a silent no-op in multi-attribute
+        # mode.
+        run_arrhenius_per_batch=bool(args.arrhenius_per_batch),
     )
 
 
@@ -843,6 +867,7 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     multi_kwargs.pop("sensitivity_mode", None)
     multi_kwargs.pop("run_arrhenius_shelf_life", None)
     multi_kwargs.pop("arrhenius_shelf_life_storage_temp_C", None)
+    multi_kwargs.pop("run_arrhenius_per_batch", None)
     result = analyze_many(
         path=args.path,
         condition=args.condition,

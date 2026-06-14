@@ -54,12 +54,12 @@ from openpharmastability.contracts import (
     TOOL_VERSION,
 )
 from openpharmastability.data.conditions import parse_condition
-from openpharmastability.data.io import load_csv
+from openpharmastability.data.io import load_table
 from openpharmastability.data.metadata import (
     load_attribute_metadata_csv,
     load_attribute_metadata_from_dataframe,
 )
-from openpharmastability.data.xlsx import load_xlsx, load_xlsx_sheet
+from openpharmastability.data.xlsx import load_xlsx_sheet
 from openpharmastability.shelf_life.engine import analyze
 from openpharmastability.shelf_life.limiting import select_limiting
 
@@ -418,11 +418,11 @@ def analyze_many(
         The full per-attribute results plus the overall limiting
         decision.
     """
-    # 1) Load data
-    if _is_xlsx(path):
-        df = load_xlsx(path, sheet_name=data_sheet)
-    else:
-        df = load_csv(path)
+    # 1) Load data via the v0.7.0 dispatcher. ``load_table`` accepts
+    #    ``.csv`` / ``.xlsx`` / ``.xlsm`` / ``.xls`` by extension and
+    #    forwards ``sheet`` to the XLSX path. Mirrors the
+    #    single-attribute :func:`engine.analyze` entry point.
+    df = load_table(path, sheet=data_sheet)
 
     # 2) Normalize the condition
     condition_norm = parse_condition(condition)

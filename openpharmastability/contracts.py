@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.8.0"
+TOOL_VERSION: str = "0.9.0"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -165,6 +165,17 @@ class PoolabilityResult:
     alpha: float
     # Diagnostic detail; the per-step OLS results, useful for the report.
     notes: list[str] = field(default_factory=list)
+    # v0.9.0: Holm-Bonferroni corrected p-values for the two-step
+    # poolability test. Two hypothesis tests are run (slopes +
+    # intercepts); the Holm correction preserves the family-wise
+    # error rate at `alpha` while gaining power over the
+    # conservative Bonferroni correction. `None` until the
+    # corresponding test is reached (e.g. p_intercepts_holm is
+    # None if the slopes test already rejected). Both fields are
+    # the corrected p-values; the original (uncorrected)
+    # p_slopes and p_intercepts are unchanged.
+    p_slopes_holm: Optional[float] = None
+    p_intercepts_holm: Optional[float] = None
 
 
 @dataclass
@@ -485,6 +496,18 @@ class ArrheniusResult:
     n_temps: int
     # Per-temperature input echo (helpful in reports and tests).
     rate_by_temp_C: dict[str, float] = field(default_factory=dict)
+    # v0.9.0: per-batch rate echo. `per_batch_rate_by_temp` keys
+    # are batch identifiers; values are {temp_C_str: k(1/month)}
+    # for that batch at that temperature. Empty dict when the
+    # per-batch rate diagnostic was not requested (--arrhenius-
+    # per-batch). Used by the v0.9.0 outlier detection: any batch
+    # whose rate is more than `outlier_z_threshold` robust z-scores
+    # from the per-temperature median is flagged in
+    # `outlier_batches`.
+    per_batch_rate_by_temp: dict[str, dict[str, float]] = field(
+        default_factory=dict
+    )
+    outlier_batches: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
 

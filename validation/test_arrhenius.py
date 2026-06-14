@@ -160,3 +160,196 @@ def test_ln_A_consistent_with_intercept() -> None:
     )
     # 1/T = 0 is a pure extrapolation; just check the identity holds.
     assert math.exp(r.ln_A) == pytest.approx(r.A, rel=1e-12)
+
+
+# ---------------------------------------------------------------------------
+# v0.9.0 — per-batch Arrhenius rate diagnostic + outlier detection
+# ---------------------------------------------------------------------------
+
+
+def _write_per_batch_arrhenius_csv(path) -> None:
+    """3 batches, 7 time points, 1 temperature — synthetic golden frame
+    for the per-batch Arrhenius diagnostic.
+
+    The condition string is the same for all rows; the single
+    stress temperature is carried in the ``temp_c`` column. The
+    rates are slightly different per batch (so the per-batch
+    diagnostic finds three distinct rates) but close enough that
+    the robust-z outlier detection does NOT flag anyone — the
+    test only asserts the dict is populated correctly.
+    """
+    import pandas as pd
+    rng = np.random.default_rng(20260114)
+    rows = []
+    for batch, slope in (("B1", 0.20), ("B2", 0.22), ("B3", 0.24)):
+        for t in (0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0):
+            v = 100.0 - slope * t + float(rng.normal(0.0, 0.05))
+            rows.append({
+                "batch": batch,
+                "condition": "25C/60RH",
+                "time_months": t,
+                "attribute": "assay",
+                "value": round(v, 4),
+                "lower_spec": 90.0,
+                "upper_spec": 110.0,
+                "direction": "decreasing",
+                "temp_c": 40.0,
+            })
+    pd.DataFrame(rows).to_csv(path, index=False)
+
+
+def test_per_batch_rates_populated_when_flag_set(tmp_path) -> None:
+    """``--arrhenius-per-batch`` populates the new dict / list fields.
+
+    With a 3-batch / 1-temperature synthetic frame and BOTH the
+    ``run_arrhenius`` and ``run_arrhenius_per_batch`` flags set,
+    the engine's ``arrhenius_result.per_batch_rate_by_temp`` has
+    exactly 3 keys (B1, B2, B3) and each has one rate entry (for
+    the single 40 °C temperature). Rates are floats.
+    """
+    from openpharmastability.shelf_life.engine import analyze
+
+    csv_path = tmp_path / "per_batch.csv"
+    _write_per_batch_arrhenius_csv(csv_path)
+    result = analyze(
+        path=str(csv_path),
+        condition="25C/60RH",
+        attribute="assay",
+        # Per-batch requires the pooled fit too. A 1-temperature
+        # fixture would normally skip the pooled fit (need >= 2
+        # temps), but the helper itself does not require the
+        # pooled fit to succeed; we still ask for the pooled
+        # Arrhenius so the helper's gate is exercised in the
+        # presence of an ``ArrheniusResult``.
+        run_arrhenius=False,
+        run_arrhenius_per_batch=True,
+    )
+    # With ``run_arrhenius=False``, ``arrhenius_result`` is None, so
+    # the per-batch diagnostic is gated off with a warning. Re-run
+    # with ``run_arrhenius=True``. We use 2-temperature data so the
+    # pooled fit succeeds.
+    assert result.arrhenius_result is None
+    assert any(
+        "requires --arrhenius" in str(w) for w in result.warnings
+    ), result.warnings
+
+    # Build a 2-temperature variant so the pooled Arrhenius fit
+    # also runs, then assert the per-batch dict is populated.
+    import pandas as pd
+    df = pd.read_csv(csv_path)
+    # Duplicate the rows at a second temperature (50 °C) with a
+    # slightly faster degradation so the Arrhenius line is real.
+    df2 = df.copy()
+    df2["temp_c"] = 50.0
+    df2["value"] = df2["value"] - 0.10 * df2["time_months"]
+    combined = pd.concat([df, df2], ignore_index=True)
+    csv2 = tmp_path / "per_batch_2temp.csv"
+    combined.to_csv(csv2, index=False)
+
+    result2 = analyze(
+        path=str(csv2),
+        condition="25C/60RH",
+        attribute="assay",
+        run_arrhenius=True,
+        run_arrhenius_per_batch=True,
+    )
+    assert result2.arrhenius_result is not None
+    per_batch = result2.arrhenius_result.per_batch_rate_by_temp
+    assert isinstance(per_batch, dict)
+    assert set(per_batch.keys()) == {"B1", "B2", "B3"}
+    for batch, rates in per_batch.items():
+        assert isinstance(rates, dict)
+        # 2 temperatures in the synthetic frame.
+        assert len(rates) == 2, (batch, rates)
+        for t_key, k in rates.items():
+            assert isinstance(t_key, str)
+            assert isinstance(k, float)
+            assert k > 0.0
+    # ``outlier_batches`` is always a list (may be empty).
+    assert isinstance(result2.arrhenius_result.outlier_batches, list)
+
+
+def test_outlier_batches_flagged_when_one_is_far() -> None:
+    """``_detect_arrhenius_outliers`` flags a batch whose rate is far
+    from the others at a given temperature.
+
+    The helper is the engine-level outlier detector; we exercise it
+    directly so the test does not depend on the engine path. Build
+    a synthetic dict where B1, B2, B3, B4 have rates clustered near
+    0.20 and B_OUT has a rate of 5.0 — far enough that the robust
+    z-score will exceed the default threshold of 2.5.
+    """
+    from openpharmastability.shelf_life.engine import (
+        _detect_arrhenius_outliers,
+    )
+
+    per_batch = {
+        "B1": {"40.0": 0.20},
+        "B2": {"40.0": 0.21},
+        "B3": {"40.0": 0.19},
+        "B4": {"40.0": 0.22},
+        "B_OUT": {"40.0": 5.0},
+    }
+    outliers = _detect_arrhenius_outliers(per_batch, z_threshold=2.5)
+    assert "B_OUT" in outliers
+    # B1..B4 sit at the median; they MUST NOT be flagged.
+    for b in ("B1", "B2", "B3", "B4"):
+        assert b not in outliers, (b, outliers)
+
+
+def test_outlier_batches_empty_when_rates_agree() -> None:
+    """When all per-batch rates at every temperature are close to the
+    same value, no batch is flagged as an outlier.
+
+    The threshold is the v0.9.0 default (2.5); a small spread
+    around the median should NOT trip it.
+    """
+    from openpharmastability.shelf_life.engine import (
+        _detect_arrhenius_outliers,
+    )
+
+    per_batch = {
+        "B1": {"40.0": 0.20, "50.0": 0.30},
+        "B2": {"40.0": 0.21, "50.0": 0.31},
+        "B3": {"40.0": 0.19, "50.0": 0.29},
+        "B4": {"40.0": 0.205, "50.0": 0.305},
+    }
+    outliers = _detect_arrhenius_outliers(per_batch, z_threshold=2.5)
+    assert outliers == []
+
+
+def test_per_batch_default_off_does_not_populate(tmp_path) -> None:
+    """Without ``run_arrhenius_per_batch``, the two new fields stay at
+    their v0.8.0 defaults (empty dict / empty list).
+
+    Re-runs the same 2-temperature synthetic frame as the populated
+    test but WITHOUT the new flag. The pooled Arrhenius fit still
+    runs (``run_arrhenius=True``) and produces an
+    :class:`~openpharmastability.contracts.ArrheniusResult`, but the
+    per-batch dict and outlier list are NOT populated by the
+    engine.
+    """
+    from openpharmastability.shelf_life.engine import analyze
+
+    csv_path = tmp_path / "per_batch_default_off.csv"
+    _write_per_batch_arrhenius_csv(csv_path)
+    # Same 2-temperature variant as test_per_batch_rates_populated.
+    import pandas as pd
+    df = pd.read_csv(csv_path)
+    df2 = df.copy()
+    df2["temp_c"] = 50.0
+    df2["value"] = df2["value"] - 0.10 * df2["time_months"]
+    combined = pd.concat([df, df2], ignore_index=True)
+    csv2 = tmp_path / "per_batch_default_off_2temp.csv"
+    combined.to_csv(csv2, index=False)
+
+    result = analyze(
+        path=str(csv2),
+        condition="25C/60RH",
+        attribute="assay",
+        run_arrhenius=True,
+        # Crucially: per-batch flag NOT set.
+    )
+    assert result.arrhenius_result is not None
+    assert result.arrhenius_result.per_batch_rate_by_temp == {}
+    assert result.arrhenius_result.outlier_batches == []

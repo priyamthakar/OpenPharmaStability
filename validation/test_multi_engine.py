@@ -491,3 +491,162 @@ def test_metadata_override_applied_to_data_layer() -> None:
     assert tight_result.supported_shelf_life_months < (
         equal_result.supported_shelf_life_months
     )
+
+
+# ---------------------------------------------------------------------------
+# 14-15. v0.9.0 — ``analyze_many`` routes through the v0.7.0
+#         ``load_table`` dispatcher for both the data file and the
+#         optional metadata file. CSV / XLSX / XLSM inputs must all
+#         produce the same limiting decision on the shipped
+#         ``multi_attribute`` fixture.
+# ---------------------------------------------------------------------------
+
+
+def _write_temp_xlsx(df: pd.DataFrame, *, sheet: str = "data") -> str:
+    """Write ``df`` to a temp ``.xlsx`` file with one sheet; return path.
+
+    The caller is responsible for ``os.unlink``-ing the returned path.
+    Uses ``openpyxl`` (already in the runtime deps). The sheet name
+    must be a valid Excel sheet name and is honored by
+    :func:`load_xlsx` if the user passes ``data_sheet=``; otherwise
+    the default-candidate resolution picks it.
+    """
+    tmp = tempfile.NamedTemporaryFile(
+        mode="wb", suffix=".xlsx", delete=False
+    )
+    tmp.close()
+    with pd.ExcelWriter(tmp.name, engine="openpyxl") as xw:
+        df.to_excel(xw, sheet_name=sheet, index=False)
+    return tmp.name
+
+
+def test_multi_engine_xlsx_dispatch() -> None:
+    """``analyze_many`` accepts an ``.xlsx`` data file via the
+    v0.7.0 ``load_table`` dispatcher. The per-attribute results
+    match the CSV run (within XLSX dtype round-trip tolerance) and
+    the limiting decision is preserved.
+
+    The shipped ``examples/multi_attribute.csv`` is round-tripped
+    to a tmp XLSX and run through :func:`analyze_many`. The XLSX
+    numeric values can differ from the CSV by ULP-level noise
+    because openpyxl writes 64-bit floats through the OOXML
+    string representation; the per-attribute supported shelf life
+    and statistical crossing time therefore match within a single
+    whole month, and the limiting attribute is unchanged.
+    """
+    src_df = pd.read_csv(DATA_CSV)
+    xlsx_path = _write_temp_xlsx(src_df, sheet="data")
+    try:
+        # Baseline CSV run for the comparison below.
+        csv_multi = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            all_attributes=True,
+            metadata_path=str(META_CSV),
+        )
+        xlsx_multi = analyze_many(
+            path=xlsx_path,
+            condition="25C/60RH",
+            all_attributes=True,
+            metadata_path=str(META_CSV),
+        )
+    finally:
+        os.unlink(xlsx_path)
+
+    # Top-level limiting decision is preserved.
+    assert xlsx_multi.limiting_attribute == "impurity_a"
+    # The shipped fixture gives 7 months for impurity_a; the XLSX
+    # round-trip is allowed to perturb this by at most one whole
+    # month because of ULP-level noise in the bound math.
+    assert xlsx_multi.supported_shelf_life_months is not None
+    assert abs(
+        xlsx_multi.supported_shelf_life_months
+        - (csv_multi.supported_shelf_life_months or 0)
+    ) <= 1
+    assert xlsx_multi.supported_shelf_life_months in (6, 7, 8)
+
+    # Per-attribute results are well-formed and structurally
+    # equivalent to the CSV run. The XLSX numeric values are
+    # allowed to differ by ULP-level noise, so we check the
+    # qualitative fields (model, poolability, supported shelf
+    # life within 1 month, the same set of attributes).
+    csv_by_name = {a.metadata.attribute: a for a in csv_multi.attributes}
+    xlsx_by_name = {a.metadata.attribute: a for a in xlsx_multi.attributes}
+    assert set(xlsx_by_name) == set(csv_by_name)
+
+    for name, xlsx_attr in xlsx_by_name.items():
+        csv_attr = csv_by_name[name]
+        # Same deliverable + direction fields were loaded by the
+        # v0.7.0 ``load_table`` dispatcher.
+        assert xlsx_attr.result.condition == csv_attr.result.condition
+        assert xlsx_attr.result.deliverable_term == (
+            csv_attr.result.deliverable_term
+        )
+        # The supported shelf life is allowed to perturb by at
+        # most one whole month from the CSV run; the v0.2.0
+        # baseline for impurity_a is 7, the v0.2.0 baseline for
+        # assay is 18 — both still well under the 60-month horizon.
+        assert xlsx_attr.result.supported_shelf_life_months is not None
+        assert abs(
+            xlsx_attr.result.supported_shelf_life_months
+            - (csv_attr.result.supported_shelf_life_months or 0)
+        ) <= 1
+        # The statistical crossing time is allowed to perturb by
+        # at most ~0.1 month from the CSV run; the v0.2.0 baseline
+        # for impurity_a is ~7.93 months.
+        if (
+            xlsx_attr.result.statistical_crossing_months is not None
+            and csv_attr.result.statistical_crossing_months is not None
+        ):
+            assert abs(
+                xlsx_attr.result.statistical_crossing_months
+                - csv_attr.result.statistical_crossing_months
+            ) < 0.2
+
+
+def test_multi_engine_xlsx_with_metadata_xlsx() -> None:
+    """The metadata ``.xlsx`` file is also accepted: the existing
+    multi-engine logic dispatches ``metadata_path`` through
+    ``data/metadata.py::load_attribute_metadata_csv`` which already
+    handles either extension.
+
+    The shipped ``examples/multi_attribute.csv`` is round-tripped
+    to a tmp XLSX; the metadata CSV is also round-tripped to a
+    separate tmp XLSX. :func:`analyze_many` is then called with
+    both XLSX inputs. The shipped fixture still picks
+    ``impurity_a`` as limiting at 7 months — the v0.2.0 byte-
+    equivalent path is preserved across the XLSX dispatch.
+    """
+    data_df = pd.read_csv(DATA_CSV)
+    meta_df = pd.read_csv(META_CSV)
+
+    data_xlsx = _write_temp_xlsx(data_df, sheet="data")
+    # The metadata workbook uses the default candidate sheet name
+    # "attributes" (one of the v0.2.0 candidates), so no explicit
+    # ``metadata_sheet=`` is needed.
+    meta_xlsx = _write_temp_xlsx(meta_df, sheet="attributes")
+    try:
+        multi = analyze_many(
+            path=data_xlsx,
+            condition="25C/60RH",
+            all_attributes=True,
+            metadata_path=meta_xlsx,
+        )
+    finally:
+        os.unlink(data_xlsx)
+        os.unlink(meta_xlsx)
+
+    # Top-level limiting decision is preserved end-to-end.
+    assert multi.limiting_attribute == "impurity_a"
+    assert multi.supported_shelf_life_months == 7
+
+    # Both per-attribute results are present and well-formed.
+    by_name = {a.metadata.attribute: a for a in multi.attributes}
+    assert set(by_name) == {"assay", "impurity_a"}
+
+    # The metadata override is recorded on the per-attribute
+    # result the same way it is on the CSV path.
+    assert by_name["assay"].result.upper_spec == 110.0
+    assert by_name["assay"].result.lower_spec == 90.0
+    assert by_name["impurity_a"].result.upper_spec == 0.50
+    assert by_name["impurity_a"].result.lower_spec is None

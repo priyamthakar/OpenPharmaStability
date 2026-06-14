@@ -188,6 +188,28 @@ def _sensitivity_mode(result: StabilityResult) -> str:
     return str(getattr(sr, "mode", "row") or "row")
 
 
+def _arrhenius_field(result: StabilityResult, field_name: str) -> Any:
+    """Return ``field_name`` from the result's ``arrhenius_result``.
+
+    Returns the empty default (``{}`` for the per-batch dict,
+    ``[]`` for the outlier list) when the result has no Arrhenius
+    payload or when the payload is a dict that predates the v0.9.0
+    field. Handles both shapes (dataclass + dict) so the template
+    works on live engine output and on hand-built fixtures.
+    """
+    arr = getattr(result, "arrhenius_result", None)
+    if arr is None:
+        return [] if field_name == "outlier_batches" else {}
+    if isinstance(arr, dict):
+        if field_name in arr:
+            return arr[field_name]
+        return [] if field_name == "outlier_batches" else {}
+    return getattr(
+        arr, field_name,
+        [] if field_name == "outlier_batches" else {},
+    )
+
+
 def _library_versions(result: StabilityResult) -> dict[str, str]:
     md = result.metadata or {}
     versions = md.get("library_versions") or {}
@@ -240,6 +262,14 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
     n_batches = md.get("n_batches")
     time_points = md.get("time_points")
     row_count = md.get("row_count")
+    # v0.9.0: surface ``unit`` from the result metadata when the
+    # engine / caller wrote one there. The single-attribute path
+    # does not natively carry a per-attribute unit on the
+    # ``StabilityResult`` (the v0.2.0 ``AttributeMetadata.unit``
+    # only flows through the multi-attribute path); callers can
+    # put a string under ``result.metadata["unit"]`` and the
+    # report will pick it up here. Missing → em-dash placeholder.
+    unit = md.get("unit")
 
     return {
         # Headings / identity
@@ -253,6 +283,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "n_batches": n_batches,
         "time_points": time_points,
         "row_count": row_count,
+        "unit": unit if unit else "—",
         "validation_status": val_status,
         "validation_status_css": val_css,
         # Model
@@ -392,6 +423,22 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "arrhenius_shelf_life_present": getattr(
             result, "arrhenius_shelf_life", None
         ) is not None,
+        # v0.9.0: per-batch Arrhenius rate diagnostic. The template
+        # gates on ``arrhenius_per_batch_present`` (non-empty
+        # per-batch dict) so the section only renders when the
+        # diagnostic was actually run. ``arrhenius_outlier_batches``
+        # is a list of batch identifiers; the template lists them
+        # separately. Both helpers handle the dataclass + dict
+        # shapes (live engine vs. hand-built fixture).
+        "arrhenius_per_batch": _arrhenius_field(
+            result, "per_batch_rate_by_temp"
+        ),
+        "arrhenius_outlier_batches": _arrhenius_field(
+            result, "outlier_batches"
+        ),
+        "arrhenius_per_batch_present": bool(
+            _arrhenius_field(result, "per_batch_rate_by_temp")
+        ),
         # Reproducibility
         "tool_version": md.get("tool_version") or TOOL_VERSION or _PKG_VERSION,
         "timestamp": md.get("timestamp"),

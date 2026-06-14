@@ -35,7 +35,8 @@ does not start with ``def test_``.
 """
 from __future__ import annotations
 
-from typing import Iterable
+import dataclasses
+from typing import Iterable, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -50,6 +51,47 @@ from openpharmastability.contracts import (
     PoolabilityResult,
     ValidatedData,
 )
+
+
+# -----------------------------------------------------------------------
+# Holm-Bonferroni step-up correction (v0.9.0)
+# -----------------------------------------------------------------------
+
+
+def holm_bonferroni(pvalues: List[Optional[float]]) -> List[Optional[float]]:
+    """Apply the Holm-Bonferroni step-up correction to a list of p-values.
+
+    The procedure preserves the family-wise error rate at the chosen
+    alpha while gaining power over the conservative Bonferroni
+    correction. Sort the p-values ascending; multiply the i-th
+    smallest by ``(m - i + 1)`` where ``m`` is the number of tests;
+    cap the result at ``1.0``; and enforce monotonicity (the
+    corrected values are non-decreasing in the rank order).
+
+    Returns the corrected p-values in the SAME ORDER as the input.
+    ``None`` entries in the input pass through as ``None`` and are
+    excluded from the rank computation. The corrected p-values are
+    capped at ``1.0``.
+    """
+    indexed = [(i, p) for i, p in enumerate(pvalues) if p is not None]
+    if not indexed:
+        return list(pvalues)
+    m = len(indexed)
+    sorted_p = sorted(indexed, key=lambda x: x[1])
+    corrected: dict[int, float] = {}
+    running_max = 0.0
+    for rank, (orig_idx, p) in enumerate(sorted_p, start=1):
+        c = min(1.0, p * (m - rank + 1))
+        # Step-up: enforce monotonicity across the rank order.
+        running_max = max(running_max, c)
+        corrected[orig_idx] = running_max
+    out: List[Optional[float]] = []
+    for i, p in enumerate(pvalues):
+        if p is None:
+            out.append(None)
+        else:
+            out.append(corrected[i])
+    return out
 
 
 # -----------------------------------------------------------------------
@@ -158,12 +200,20 @@ def decide_poolability(
     )
 
     if p_slopes < alpha:
+        # v0.9.0: Holm-Bonferroni correction over the two-step
+        # poolability test. The slopes test rejected, so the
+        # intercepts test was not reached: ``p_intercepts`` is
+        # ``None`` and ``p_intercepts_holm`` propagates that ``None``
+        # through the helper unchanged.
+        correction = holm_bonferroni([p_slopes, p_intercepts])
         return PoolabilityResult(
             decision=Poolability.NONE,
             p_slopes=p_slopes,
             p_intercepts=None,
             alpha=alpha,
             notes=notes,
+            p_slopes_holm=correction[0],
+            p_intercepts_holm=correction[1],
         )
 
     # --- Step 2: equality of intercepts (given common slope) -----
@@ -178,26 +228,32 @@ def decide_poolability(
     )
 
     if p_intercepts < alpha:
+        correction = holm_bonferroni([p_slopes, p_intercepts])
         return PoolabilityResult(
             decision=Poolability.PARTIAL,
             p_slopes=p_slopes,
             p_intercepts=p_intercepts,
             alpha=alpha,
             notes=notes,
+            p_slopes_holm=correction[0],
+            p_intercepts_holm=correction[1],
         )
 
     # --- Step 3: full pooling ------------------------------------
     notes.append("step3: neither slopes nor intercepts rejected; FULL")
+    correction = holm_bonferroni([p_slopes, p_intercepts])
     return PoolabilityResult(
         decision=Poolability.FULL,
         p_slopes=p_slopes,
         p_intercepts=p_intercepts,
         alpha=alpha,
         notes=notes,
+        p_slopes_holm=correction[0],
+        p_intercepts_holm=correction[1],
     )
 
 
-__all__ = ["decide_poolability", "test_poolability"]
+__all__ = ["decide_poolability", "test_poolability", "holm_bonferroni"]
 
 # Backward-compatible alias. The function is named
 # ``decide_poolability`` to avoid pytest's auto-collection of any

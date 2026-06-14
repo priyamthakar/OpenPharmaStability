@@ -696,3 +696,163 @@ def test_multi_html_v070_sensitivity_marker(tmp_path):
     assert html.count("<strong>Sensitivity:</strong>") == 1
     # The summary text surfaces.
     assert "max delta 1 mo" in html
+
+
+# ---------------------------------------------------------------------------
+# v0.9.0 — surface ``unit`` + ``report_order`` from AttributeMetadata
+# ---------------------------------------------------------------------------
+#
+# The contract layer has carried ``unit`` and ``report_order`` on
+# ``AttributeMetadata`` since v0.2.0. v0.9.0 surfaces them on the
+# per-attribute HTML block, on the overview table, and adds a top-level
+# ``attribute_order`` list to the multi JSON record. None of these
+# fields reach into contracts, the CLI, or the engine; this section
+# only exercises the reporting layer.
+
+
+def _build_multi_result_with_metadata(meta_overrides: dict[str, dict]) -> MultiAttributeResult:
+    """Build a 2-attribute :class:`MultiAttributeResult` whose
+    ``AttributeMetadata`` entries are taken from ``meta_overrides``
+    keyed by attribute name. Falls back to the shipped
+    ``multi_attribute_metadata.csv`` for any keys not provided.
+    The underlying :class:`StabilityResult` is the real engine output
+    for the shipped ``multi_attribute.csv``; we then attach
+    user-controlled metadata on top of it.
+    """
+    result = analyze_many(
+        str(CSV), condition="25C/60RH", all_attributes=True,
+        source_epoch=1700000000,
+        metadata_path=str(META),
+    )
+    for ar in result.attributes:
+        attr = ar.metadata.attribute
+        if attr in meta_overrides:
+            for k, v in meta_overrides[attr].items():
+                object.__setattr__(ar.metadata, k, v)
+    return result
+
+
+def test_multi_html_surfaces_unit_per_attribute(tmp_path):
+    """The v0.9.0 per-attribute HTML block must surface the
+    ``unit`` string from :class:`AttributeMetadata` in both the
+    per-attribute heading and the spec line."""
+    result = _build_multi_result_with_metadata({
+        "assay": {"unit": "%LC"},
+        "impurity_a": {"unit": "%area"},
+    })
+    out_html = tmp_path / "report_unit.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+    # The heading shows the unit in parentheses: "Attribute: assay (%LC)".
+    assert "Attribute: assay (%LC)" in html
+    assert "Attribute: impurity_a (%area)" in html
+    # The spec line also shows "(unit: %LC)" / "(unit: %area)".
+    assert "(unit: %LC)" in html
+    assert "(unit: %area)" in html
+
+
+def test_multi_html_surfaces_report_order_per_attribute(tmp_path):
+    """The v0.9.0 per-attribute HTML block must surface the
+    ``report_order`` integer from :class:`AttributeMetadata`."""
+    result = _build_multi_result_with_metadata({
+        "assay": {"report_order": 2},
+        "impurity_a": {"report_order": 1},
+    })
+    out_html = tmp_path / "report_order.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+    # The "Report order:" marker renders as
+    # <strong>Report order:</strong> N. The integer must appear
+    # after the closing </strong> tag, not inside it.
+    assert "<strong>Report order:</strong> 1" in html
+    assert "<strong>Report order:</strong> 2" in html
+    # And the markers appear in the expected per-attribute block
+    # (one per attribute).
+    assert html.count("<strong>Report order:</strong>") == 2
+
+
+def test_multi_record_attribute_order_top_level():
+    """The v0.9.0 multi JSON record must expose a top-level
+    ``attribute_order`` list. When ``report_order`` is supplied on
+    every eligible attribute, the list is sorted by it; when none
+    of the attributes carry a ``report_order``, the list mirrors
+    the input order."""
+    # All eligible attributes carry a report_order → sorted ascending.
+    result = _build_multi_result_with_metadata({
+        "assay": {"report_order": 2},
+        "impurity_a": {"report_order": 1},
+    })
+    rec = to_multi_decision_record(result)
+    assert "attribute_order" in rec
+    assert isinstance(rec["attribute_order"], list)
+    assert rec["attribute_order"] == ["impurity_a", "assay"]
+    # Sanity: only the eligible attributes are listed (the shipped
+    # fixture has both attributes eligible).
+    assert set(rec["attribute_order"]).issubset(
+        {ar.metadata.attribute for ar in result.attributes
+         if ar.included_in_limiting_decision}
+    )
+
+    # Mixed: some have report_order, some don't. The ones without
+    # sort AFTER the ones that have a value, and keep their
+    # relative input order.
+    result2 = _build_multi_result_with_metadata({
+        "assay": {"report_order": None},
+        "impurity_a": {"report_order": 3},
+    })
+    rec2 = to_multi_decision_record(result2)
+    assert rec2["attribute_order"][0] == "impurity_a"
+    assert "assay" in rec2["attribute_order"]
+
+    # None carry report_order → matches input order.
+    result3 = _build_multi_result_with_metadata({
+        "assay": {"report_order": None},
+        "impurity_a": {"report_order": None},
+    })
+    rec3 = to_multi_decision_record(result3)
+    assert rec3["attribute_order"] == [
+        ar.metadata.attribute for ar in result3.attributes
+        if ar.included_in_limiting_decision
+    ]
+
+
+def test_multi_html_no_unit_falls_back_to_em_dash(tmp_path):
+    """The v0.9.0 multi HTML block must fall back to the em-dash
+    placeholder ``—`` when ``unit`` is ``None`` on every
+    attribute. The literal string ``None`` must NOT leak into the
+    rendered output (the per-attribute spec line and the overview
+    Unit column both go through the fallback)."""
+    result = _build_multi_result_with_metadata({
+        "assay": {"unit": None},
+        "impurity_a": {"unit": None},
+    })
+    out_html = tmp_path / "report_no_unit.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+    # The spec line must not show the bare "unit: None" string.
+    assert "unit: None" not in html
+    # The "(unit: ...)" suffix is omitted when unit is None; the
+    # placeholder "—" only appears in the overview table's Unit
+    # column for the two attributes.
+    import re
+    overview_match = re.search(
+        r"Overall decision.*?</table>", html, flags=re.DOTALL,
+    )
+    assert overview_match, "Overall decision table not found"
+    overview = overview_match.group(0)
+    # The Unit column header is present.
+    assert "<th>Unit</th>" in overview
+    # And the em-dash placeholder fills both Unit cells.
+    unit_cells = re.findall(r"<td>([^<]*)</td>", overview)
+    # Filter to the two Unit cells; they should each be exactly "—".
+    em_dash_count = sum(1 for c in unit_cells if c == "—")
+    assert em_dash_count >= 2, (
+        f"expected at least 2 em-dash unit placeholders in overview; "
+        f"got cells: {unit_cells!r}"
+    )

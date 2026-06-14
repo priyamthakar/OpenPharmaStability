@@ -107,6 +107,31 @@ def _sensitivity_mode(result: StabilityResult) -> str:
     return str(getattr(sr, "mode", "row") or "row")
 
 
+def _arrhenius_field(result: StabilityResult, field_name: str) -> Any:
+    """Return ``field_name`` from the result's ``arrhenius_result``.
+
+    Returns the empty default (``{}`` for the per-batch dict,
+    ``[]`` for the outlier list) when the result has no Arrhenius
+    payload or when the payload is a dict that predates the v0.9.0
+    field. ``getattr`` handles both shapes: a dataclass (live
+    engine output) and a dict (hand-built fixtures, or output that
+    has already been flattened by ``_as_python``).
+    """
+    arr = getattr(result, "arrhenius_result", None)
+    if arr is None:
+        # Pick the right empty default by field name.
+        return [] if field_name == "outlier_batches" else {}
+    if isinstance(arr, dict):
+        # Hand-built fixture / pre-flattened payload.
+        if field_name in arr:
+            return arr[field_name]
+        return [] if field_name == "outlier_batches" else {}
+    return getattr(
+        arr, field_name,
+        [] if field_name == "outlier_batches" else {},
+    )
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -264,6 +289,17 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         "p_value_intercepts": (
             float(pool.p_intercepts) if pool.p_intercepts is not None else None
         ),
+        # v0.9.0: Holm-Bonferroni corrected p-values for the two-step
+        # poolability test. ``getattr(..., None)`` keeps the record
+        # builder forward-compatible with hand-built PoolabilityResult
+        # fixtures that predate the v0.9.0 fields (e.g. v0.8.x
+        # callers).
+        "p_value_slopes_holm": _as_python(
+            getattr(pool, "p_slopes_holm", None)
+        ),
+        "p_value_intercepts_holm": _as_python(
+            getattr(pool, "p_intercepts_holm", None)
+        ),
         "confidence_bound": _confidence_bound_label(result.direction),
         "confidence_level": float(CONFIDENCE),
         "poolability_alpha_reference": float(POOLABILITY_ALPHA),
@@ -363,6 +399,25 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         # Q1E shelf-life decision above is unchanged.
         "arrhenius_shelf_life": _as_python(
             getattr(result, "arrhenius_shelf_life", None)
+        ),
+        # v0.9.0: per-batch Arrhenius rate diagnostic. Two
+        # additive top-level keys on the JSON record so downstream
+        # tooling can read them without descending into the nested
+        # ``arrhenius`` block. ``arrhenius_per_batch`` is a
+        # ``{batch: {temp_C_str: k}}`` mapping;
+        # ``arrhenius_outlier_batches`` is a list of batch
+        # identifiers whose robust z-score exceeded the engine's
+        # threshold (default 2.5) at one or more temperatures.
+        # Both default to the empty container ({} / []) when
+        # ``--arrhenius-per-batch`` was not set or when the
+        # underlying ``ArrheniusResult`` predates the v0.9.0
+        # fields. The helper ``_arrhenius_field`` handles both
+        # dataclass and dict shapes for forward compatibility.
+        "arrhenius_per_batch": _as_python(
+            _arrhenius_field(result, "per_batch_rate_by_temp")
+        ),
+        "arrhenius_outlier_batches": _as_python(
+            _arrhenius_field(result, "outlier_batches")
         ),
         # v0.7.0: one-row acceptance-criteria summary for the
         # single-attribute path. ``to_acceptance_criteria`` is the

@@ -174,7 +174,8 @@ def _per_attr_block(idx: int, ar, plot_relpath: str | None) -> str:
      <strong>Direction:</strong> {_esc(r.direction.value)} &middot;
      <strong>Spec:</strong>
      lower={lower_disp},
-     upper={upper_disp}</p>
+     upper={upper_disp}{' (unit: ' + _esc(meta.unit) + ')' if meta.unit else ''}</p>
+  {'<p><strong>Report order:</strong> ' + _esc(meta.report_order) + '</p>' if meta.report_order is not None else ''}
   <p><strong>Model:</strong> {_esc(r.model.value)} &middot;
      <strong>Poolability:</strong> {_esc(r.poolability.decision.value)}
      (p<sub>slopes</sub>={_esc(f'{r.poolability.p_slopes:.3g}')},
@@ -227,6 +228,7 @@ def render_multi_html(
     overview_table_rows = "".join(
         f"<tr>"
         f"<td>{_esc(ar.metadata.attribute)}</td>"
+        f"<td>{_esc(ar.metadata.unit or '—')}</td>"
         f"<td>{_esc(ar.metadata.attribute_role.value)}</td>"
         f"<td>{_esc(ar.result.model.value)}</td>"
         f"<td>{_esc(ar.result.poolability.decision.value)}</td>"
@@ -295,7 +297,7 @@ def render_multi_html(
 <h2>Overall decision</h2>
 <table>
   <tr>
-    <th>Attribute</th><th>Role</th><th>Model</th><th>Poolability</th>
+    <th>Attribute</th><th>Unit</th><th>Role</th><th>Model</th><th>Poolability</th>
     <th>Crossing</th><th>Statistical (mo)</th><th>Supported (mo)</th><th>Limiting?</th>
   </tr>
   {overview_table_rows}

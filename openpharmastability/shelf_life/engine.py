@@ -194,6 +194,18 @@ def analyze(
     # field stays at its v0.7.0 default (None).
     run_arrhenius_shelf_life: bool = False,
     arrhenius_shelf_life_storage_temp_C: float = 25.0,
+    # v0.9.0 — per-batch Arrhenius rate diagnostic. Opt-in; when
+    # True the engine builds a per-batch rate dict via
+    # :func:`openpharmastability.stats.arrhenius._per_batch_rates`
+    # and runs the robust-z outlier detection
+    # (:func:`_detect_arrhenius_outliers`). The two new fields on
+    # ``ArrheniusResult`` (``per_batch_rate_by_temp`` and
+    # ``outlier_batches``) are populated and the result is
+    # surfaced through the JSON record and HTML report. Default
+    # ``False`` — v0.8.x callers see byte-equivalent output.
+    # Requires ``run_arrhenius=True`` (no per-batch diagnostic
+    # without a pooled fit).
+    run_arrhenius_per_batch: bool = False,
 ) -> StabilityResult:
     """Run the end-to-end v0.1 stability analysis on a CSV.
 
@@ -639,6 +651,79 @@ def analyze(
         except Exception as exc:  # defensive
             warnings.append(f"Arrhenius-driven shelf-life prediction failed: {exc!r}")
             v080_arrhenius_shelf_life = None
+
+    # v0.9.0 — per-batch Arrhenius rate diagnostic. Builds a
+    # ``{batch: {temp_C_str: rate}}`` dict via
+    # :func:`openpharmastability.stats.arrhenius._per_batch_rates`
+    # and runs the robust-z outlier detection. Only meaningful
+    # when ``run_arrhenius=True`` produced an ``ArrheniusResult``
+    # (so there is a pooled fit to compare against); otherwise the
+    # diagnostic is skipped with a warning. The two new fields on
+    # ``ArrheniusResult`` (``per_batch_rate_by_temp`` and
+    # ``outlier_batches``) are attached via a
+    # ``dataclasses.replace`` so callers see the diagnostic on the
+    # same dataclass instance they already received from the
+    # v0.5.0 / v0.7.0 wire. Fail-soft: any exception is captured
+    # as a warning and the fields stay at their v0.8.0 defaults.
+    # Warnings raised in this block are appended to
+    # ``result.warnings`` via ``dataclasses.replace`` because by
+    # this point ``apply_extrapolation_caps`` and
+    # ``_run_significant_change_gate`` have re-bound
+    # ``result.warnings`` to a fresh list — the local ``warnings``
+    # alias from earlier in ``analyze()`` no longer reaches the
+    # result.
+    if run_arrhenius_per_batch:
+        if v050_arrhenius_result is None:
+            _new_warnings = list(result.warnings)
+            _new_warnings.append(
+                "Per-batch Arrhenius diagnostic skipped: requires --arrhenius "
+                "(no pooled Arrhenius fit was produced)."
+            )
+            result = dataclasses.replace(result, warnings=_new_warnings)
+        else:
+            try:
+                from openpharmastability.stats.arrhenius import (
+                    _per_batch_rates as _v090_per_batch_rates,
+                )
+                v090_per_batch = _v090_per_batch_rates(
+                    data.df,
+                    direction=(
+                        "increasing"
+                        if data.direction is Direction.INCREASING
+                        else "decreasing"
+                    ),
+                )
+                v090_outlier_batches = _detect_arrhenius_outliers(
+                    v090_per_batch, z_threshold=2.5,
+                )
+                # Surface a one-line summary on the underlying
+                # ArrheniusResult's notes so the report can
+                # explain the outlier set.
+                _existing_notes = list(getattr(
+                    v050_arrhenius_result, "notes", []
+                ) or [])
+                if v090_outlier_batches:
+                    _existing_notes.append(
+                        "v0.9.0 per-batch outlier(s) flagged (robust z > 2.5): "
+                        + ", ".join(v090_outlier_batches)
+                    )
+                else:
+                    _existing_notes.append(
+                        "v0.9.0 per-batch diagnostic: no outliers "
+                        "(robust z <= 2.5 for all batches)."
+                    )
+                v050_arrhenius_result = dataclasses.replace(
+                    v050_arrhenius_result,
+                    per_batch_rate_by_temp=v090_per_batch,
+                    outlier_batches=v090_outlier_batches,
+                    notes=_existing_notes,
+                )
+            except Exception as exc:  # defensive
+                _new_warnings = list(result.warnings)
+                _new_warnings.append(
+                    f"Per-batch Arrhenius diagnostic failed: {exc!r}"
+                )
+                result = dataclasses.replace(result, warnings=_new_warnings)
 
     # v0.5.0 — final ``dataclasses.replace`` that sets all four
     # advanced-statistics fields in one shot. Doing it in a single
@@ -1109,6 +1194,88 @@ def _run_significant_change_gate(
         new_warnings = list(pre_gate_result.warnings)
         new_warnings.append(f"significant-change gate failed: {exc!r}")
         return dataclasses.replace(pre_gate_result, warnings=new_warnings)
+
+
+# ---------------------------------------------------------------------------
+# v0.9.0 — per-batch Arrhenius outlier detection
+# ---------------------------------------------------------------------------
+
+
+def _detect_arrhenius_outliers(
+    per_batch_rates: dict[str, dict[str, float]],
+    *,
+    z_threshold: float = 2.5,
+) -> list[str]:
+    """Robust-z outlier detection over the v0.9.0 per-batch rate dict.
+
+    For each temperature in the per-batch dict, compute the median of
+    the per-batch rates and the median absolute deviation (MAD). The
+    robust z-score for each batch at that temperature is
+
+    .. code-block:: text
+
+        z_b = (rate_b - median) / (MAD * 1.4826)
+
+    where ``1.4826`` is the standard MAD-to-sigma scaling factor for a
+    Gaussian (so the z-score is comparable to a classical z-score
+    under normality). A batch is flagged if ``|z_b| > z_threshold``
+    for ANY temperature. The result is a sorted list of batch
+    identifiers.
+
+    When fewer than three batches are present at a given temperature,
+    that temperature is skipped (MAD-based outlier detection is not
+    meaningful with one or two points). When ``MAD == 0`` (all
+    batches at the same rate for that temperature), no batch is
+    flagged for that temperature.
+
+    Parameters
+    ----------
+    per_batch_rates:
+        ``{batch: {temp_C_str: k(1/month)}}`` mapping produced by
+        :func:`openpharmastability.stats.arrhenius._per_batch_rates`.
+    z_threshold:
+        Robust-z threshold (default ``2.5``). The classical 2-sigma
+        rule corresponds to ``2.0``; ``2.5`` is the canonical
+        conservative choice for batch-level pharma quality work.
+
+    Returns
+    -------
+    list[str]
+        Sorted batch identifiers flagged as outliers in at least one
+        temperature. Empty when no outlier is found.
+    """
+    if not per_batch_rates:
+        return []
+    # Collect the set of temperatures across all batches.
+    all_temps: set[str] = set()
+    for rates in per_batch_rates.values():
+        all_temps.update(rates.keys())
+    if not all_temps:
+        return []
+
+    flagged: set[str] = set()
+    for t in all_temps:
+        # Gather (batch, rate) for every batch that has this temp.
+        per_temp = [
+            (b, float(rates[t]))
+            for b, rates in per_batch_rates.items()
+            if t in rates
+        ]
+        if len(per_temp) < 3:
+            # Not enough batches for a meaningful MAD-based outlier.
+            continue
+        rates_arr = np.array([r for _, r in per_temp], dtype=float)
+        median = float(np.median(rates_arr))
+        mad = float(np.median(np.abs(rates_arr - median)))
+        if mad <= 0.0:
+            # All batches identical at this temperature; no outlier.
+            continue
+        scale = mad * 1.4826
+        for b, rate in per_temp:
+            z = abs(rate - median) / scale
+            if z > float(z_threshold):
+                flagged.add(str(b))
+    return sorted(flagged)
 
 
 __all__ = ["analyze"]

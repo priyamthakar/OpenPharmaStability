@@ -164,7 +164,40 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
             )
             for ar in result.attributes
         },
+        # v0.9.0: top-level canonical attribute ordering. Returns
+        # the eligible (limiting-decision-included) attribute names
+        # sorted by ``report_order``; attributes without a
+        # ``report_order`` keep their input position and are
+        # placed AFTER all attributes that do have one. The order
+        # matches the existing input order when no attribute
+        # supplied a ``report_order``. Downstream tooling can use
+        # this list to render attributes in a stable, user-
+        # controlled order without having to re-parse the
+        # ``attributes`` list and sort it client-side.
+        "attribute_order": _attribute_order(result),
     }
+
+
+def _attribute_order(result: MultiAttributeResult) -> list[str]:
+    """Build the v0.9.0 top-level ``attribute_order`` list.
+
+    Eligible attributes (those with
+    ``included_in_limiting_decision``) are sorted by
+    ``report_order``; attributes with a ``None`` ``report_order``
+    keep their input position relative to one another, and are
+    placed AFTER every attribute that supplied a
+    ``report_order``.
+
+    If no eligible attribute has a ``report_order``, the returned
+    order matches the input order on the ``MultiAttributeResult``.
+    """
+    eligible = [ar for ar in result.attributes if ar.included_in_limiting_decision]
+    with_order = [ar for ar in eligible if ar.metadata.report_order is not None]
+    without_order = [ar for ar in eligible if ar.metadata.report_order is None]
+    with_order.sort(key=lambda ar: ar.metadata.report_order)
+    return [ar.metadata.attribute for ar in with_order] + [
+        ar.metadata.attribute for ar in without_order
+    ]
 
 
 __all__ = ["to_multi_decision_record"]

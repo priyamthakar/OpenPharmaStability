@@ -46,7 +46,7 @@ openpharmastability analyze examples/assay_3batch.csv \
     --output build/report.html
 ```
 
-## v0.8.0 quick start
+## v0.9.0 quick start
 
 ### Single-attribute (v0.1 back-compat)
 
@@ -227,6 +227,13 @@ openpharmastability analyze multi_temp.csv \
     --arrhenius-shelf-life-storage-temp 25.0 \
     --output build/report.html
 ```
+# v0.9.0: per-batch Arrhenius rate diagnostic (flags outlier
+# batches via robust z-score; per-batch kinetics).
+openpharmastability analyze multi_temp.csv \
+    --condition "25C/60RH" --attribute assay \
+    --arrhenius --arrhenius-per-batch \
+    --output build/report.html
+```
 
 ### Python API (v0.6.0, programmatic surface)
 
@@ -274,22 +281,23 @@ and an INFO entry for a row whose `condition` doesn't match the
 requested one. The engine still runs (the audit reports, it does
 not gate).
 
-## What v0.8.0 adds over v0.7.0
+## What v0.9.0 adds over v0.8.0
 
-| Area | v0.7.0 | v0.8.0 (more backend features) |
+| Area | v0.8.0 | v0.9.0 (more backend features) |
 |---|---|---|
-| Arrhenius-driven shelf-life | v0.5.0 Arrhenius fit is exploratory only (fits `ln(k) = ln(A) − Ea/(R·T)` from per-temp rate data; no model-based shelf life). | New `stats.arrhenius_shelf_life.predict_arrhenius_shelf_life` reuses the v0.5.0 fit to predict the long-term rate at the storage temperature and runs the standard crossing logic. New `--arrhenius-shelf-life` flag attaches an `ArrheniusShelfLife` to the result. New `StabilityResult.arrhenius_shelf_life` field. |
-| Sensitivity mode | `--sensitivity` is row-level only (leave-one-out per Cook's-distance outlier). | New `--sensitivity-mode {row,batch}` flag (default `row`). Batch mode answers "is any single batch driving the shelf-life number?" — a common Q1E concern. `compute_sensitivity` dispatches on the mode. New `SensitivityRow.mode` and `drop_key` fields; `SensitivityReport.mode` field. |
-| Build | No Makefile; the PowerShell script in `NEXT_STEPS.md` §7.1 works on Windows. | New cross-platform `Makefile` at the repo root with `make fresh` (canonical reset), `make test`, `make regen-check`. Works on Linux / macOS / WSL / git-bash. The PowerShell script remains the Windows-native complement. |
-| Documentation | — | README "Development" section (Makefile, PowerShell script, PYTHONDONTWRITEBYTECODE, conftest hard-require philosophy); HANDOVER / NEXT_STEPS / CHANGELOG all synced to v0.8.0. |
-| Tests | 421 at v0.7.0. | 421 → **437** at v0.8.0; new tests for Arrhenius shelf-life, batch sensitivity, engine regression, and Makefile smoke. |
-
-The v0.7.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
+| Poolability p-values | Raw p-values only; no family-wise correction. | New `PoolabilityResult.p_slopes_holm` / `p_intercepts_holm` carry the Holm-Bonferroni corrected p-values for the two-step poolability test; preserves FWER at `alpha` while gaining power over the conservative Bonferroni correction. The raw `p_slopes` / `p_intercepts` are unchanged. |
+| Multi-engine input | Multi path accepted `.xlsx` via a separate `data/xlsx` branch; single path used the v0.7.0 `load_table` dispatcher. | Multi `analyze_many` now uses the v0.7.0 `load_table` dispatcher - symmetry fix; `.csv`, `.xlsx`, `.xlsm` accepted on both paths via the same code path. |
+| Per-batch Arrhenius | The pooled per-temperature rate is the only Arrhenius signal; batch-level kinetics aren't surfaced. | New `--arrhenius-per-batch` flag; engine builds a per-(batch × temperature) rate dict and flags outlier batches via robust z-score (default 2.5). `ArrheniusResult.per_batch_rate_by_temp` and `ArrheniusResult.outlier_batches` are additive fields. |
+| Multi-attribute metadata surfacing | `unit` and `report_order` were on `AttributeMetadata` but not surfaced in the per-attribute HTML block or overview table. | Per-attribute HTML block now shows `unit` and `report_order`; overview table has a `Unit` column; a new top-level `attribute_order` key in the multi JSON record sorts eligible attributes by `report_order`. |
+| Documentation | - | README / HANDOVER / NEXT_STEPS / CHANGELOG all synced to v0.9.0. |
+| Tests | 437 at v0.8.0. | 437 -> **451** at v0.9.0; new tests for Holm correction, multi XLSX dispatch, per-batch Arrhenius outlier detection, and unit / report_order surfacing. |
+The v0.8.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
 batch, alpha = 0.25, one-sided 95% t-quantile, floor rounding, worst-case
 earliest crossing, Q1A significant-change gating, PDF + artifact
-export, pure-numpy regen). v0.8.0 layers opt-in Arrhenius-driven
-shelf-life + batch-out sensitivity on top; the default path
-produces the same numbers as v0.7.0.
+export, pure-numpy regen, Arrhenius-driven shelf-life, batch-out
+sensitivity). v0.9.0 layers opt-in Holm correction + multi XLSX
+dispatch + per-batch Arrhenius + unit / report_order surfacing on
+top; the default path produces the same numbers as v0.8.0.
 
 See `CHANGELOG.md` for the full per-release entries. Future work and
 known limitations are tracked in `NEXT_STEPS.md`.
@@ -300,7 +308,7 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The full suite is **437 passing** (plus 4 PDF-backend tests that
+The full suite is **451 passing** (plus 4 PDF-backend tests that
 skip cleanly on hosts without weasyprint/pdfkit). The golden-file
 test in `validation/test_golden.py` locks slope, intercept,
 residual SE, one-sided 95% bound, statistical crossing, and rounded
@@ -339,7 +347,7 @@ validation/            # pytest suites (conftest + 421 tests)
 
 ## Limitations / out of scope (current and future)
 
-v0.8.0 is the current release. The stats engine remains in Python
+v0.9.0 is the current release. The stats engine remains in Python
 and ICH Q1E-style fixed-effect by default; the opt-in advanced
 features (Arrhenius, MKT, reduced designs, random effects,
 sensitivity, acceptance-criteria CSV) are clearly labelled
