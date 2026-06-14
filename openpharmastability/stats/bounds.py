@@ -204,27 +204,43 @@ def _bound_curve(
     batch: str | None,
     t_value: float,
     side: str,
+    quantile: float = ONE_SIDED_T_QUANTILE,
 ) -> float:
-    """The bound value at ``t_value`` for the given model/batch."""
+    """The bound value at ``t_value`` for the given model/batch.
+
+    ``quantile`` is the t-distribution quantile used for the
+    multiplier. It defaults to :data:`ONE_SIDED_T_QUANTILE` (0.95)
+    so the one-sided DECREASING / INCREASING paths are byte-for-byte
+    unchanged; the bidirectional path passes
+    :data:`TWO_SIDED_T_QUANTILE` (0.975).
+    """
     side_norm = side.lower()
     if fit.kind is ModelKind.POOLED:
         se = _mean_se_pooled(fit, t_value)
         yhat = float(fit.fitted_fn(t_value))
     else:
         yhat, se = _predict_and_se_multi(fit, batch, t_value)  # type: ignore[arg-type]
+    k = _bound_multiplier(fit, quantile)
     if side_norm == "lower":
-        return yhat - _bound_multiplier(fit) * se
-    return yhat + _bound_multiplier(fit) * se
+        return yhat - k * se
+    return yhat + k * se
 
 
-def _bound_multiplier(fit: FitResult) -> float:
-    """t-quantile multiplier for a one-sided 95% bound.
+def _bound_multiplier(
+    fit: FitResult, quantile: float = ONE_SIDED_T_QUANTILE
+) -> float:
+    """t-quantile multiplier for a confidence bound.
 
-    Always :data:`ONE_SIDED_T_QUANTILE` (0.95) — the bounds module
-    is for one-sided 95% bounds; the two-sided / unknown-direction
-    case is out of scope for v0.1.
+    ``quantile`` selects the tail: :data:`ONE_SIDED_T_QUANTILE`
+    (0.95) for a one-sided 95% bound (5% in one tail) or
+    :data:`TWO_SIDED_T_QUANTILE` (0.975) for a two-sided 95% bound
+    (2.5% in each tail). v0.10.0 made this quantile-aware so the
+    bidirectional crossing path (``Direction.BIDIRECTIONAL``) can
+    use 0.975 while the one-sided paths keep 0.95. This is one of
+    the two places (with :func:`_quantile_for`) that decide the
+    0.95-vs-0.975 choice — touch with care (Appendix A hazard #2).
     """
-    return float(student_t.ppf(ONE_SIDED_T_QUANTILE, fit.df_resid))
+    return float(student_t.ppf(quantile, fit.df_resid))
 
 
 def _spec_for_direction(data: ValidatedData) -> tuple[float, str]:
@@ -274,13 +290,14 @@ def _per_batch_crossings(
     spec: float,
     side: str,
     horizon: float,
+    quantile: float = ONE_SIDED_T_QUANTILE,
 ) -> list[tuple[float, str]]:
     """For multi-batch models: return ``(crossing_t, batch)`` for
     every batch that crosses within ``[0, horizon]``.
     """
     results: list[tuple[float, str]] = []
     for batch in fit.batches:
-        t_cross = _single_crossing(fit, batch, spec, side, horizon)
+        t_cross = _single_crossing(fit, batch, spec, side, horizon, quantile)
         if t_cross is not None:
             results.append((t_cross, batch))
     return results
@@ -292,6 +309,7 @@ def _single_crossing(
     spec: float,
     side: str,
     horizon: float,
+    quantile: float = ONE_SIDED_T_QUANTILE,
 ) -> float | None:
     """Crossing time for one batch (or for the single POOLED curve).
 
@@ -305,7 +323,7 @@ def _single_crossing(
 
     def f(t_value: float) -> float:
         # bound - spec: zero when the bound is exactly at the spec.
-        return _bound_curve(fit, batch, t_value, side_norm) - spec
+        return _bound_curve(fit, batch, t_value, side_norm, quantile) - spec
 
     # We bracket the root with a closed interval that is guaranteed
     # to straddle it: ``f(0)`` and ``f(horizon)`` must have
@@ -326,6 +344,8 @@ def find_crossing(
     fit: FitResult,
     data: ValidatedData,
     horizon: float = DEFAULT_HORIZON_MONTHS,
+    one_sided_quantile: float = ONE_SIDED_T_QUANTILE,
+    two_sided_quantile: float = TWO_SIDED_T_QUANTILE,
 ) -> CrossingResult:
     """Find the statistical crossing time of the bound against the spec.
 
@@ -339,10 +359,19 @@ def find_crossing(
     data:
         The :class:`ValidatedData` whose ``direction`` decides
         which spec the bound is compared against (lower spec for
-        DECREASING, upper spec for INCREASING).
+        DECREASING, upper spec for INCREASING, BOTH for
+        BIDIRECTIONAL).
     horizon:
         The upper end of the search interval, in months. Default
         is :data:`DEFAULT_HORIZON_MONTHS` (60).
+    one_sided_quantile:
+        t-quantile for the one-sided DECREASING / INCREASING bound
+        (default :data:`ONE_SIDED_T_QUANTILE` = 0.95). The engine
+        sources this from the active :class:`GuidanceProfile`.
+    two_sided_quantile:
+        t-quantile for the BIDIRECTIONAL (two-sided) bound (default
+        :data:`TWO_SIDED_T_QUANTILE` = 0.975). The engine sources
+        this from the active :class:`GuidanceProfile`.
 
     Returns
     -------
@@ -351,7 +380,9 @@ def find_crossing(
         ``NO_CROSSING`` / ``FLAT_OR_OPPOSITE``). ``status`` is one
         of the four :class:`CrossingStatus` values. The governing
         batch is recorded for multi-batch models; for POOLED it
-        is always ``None``.
+        is always ``None``. ``governing_side`` is ``"lower"`` /
+        ``"upper"`` for a BIDIRECTIONAL crossing and ``None`` for
+        the one-sided paths.
 
     Notes
     -----
@@ -359,8 +390,19 @@ def find_crossing(
     a fixture that exhibits e.g. ``fail_at_baseline`` never enters
     the bisection and never raises.
     """
+    # BIDIRECTIONAL is handled by a dedicated two-sided helper: both
+    # spec limits are evaluated with the two-sided 0.975 multiplier
+    # and the earliest crossing of either governs (ICH Q1E). The
+    # one-sided edge-case logic below assumes a single declared
+    # direction, so we branch out before it.
+    if data.direction is Direction.BIDIRECTIONAL:
+        return _bidirectional_crossing(
+            fit, data, horizon, two_sided_quantile
+        )
+
     spec, side = _spec_for_direction(data)
     side_norm = side.lower()
+    quantile = one_sided_quantile
 
     # --- Edge case 1: slope flat or opposite -------------------
     # Use the model's own slope at t=0 to decide. For a multi-batch
@@ -392,7 +434,7 @@ def find_crossing(
         )
 
     # --- Edge case 2: bound already past spec at t=0 -----------
-    if _bound_past_spec_at_zero(fit, spec, side_norm):
+    if _bound_past_spec_at_zero(fit, spec, side_norm, quantile):
         return CrossingResult(
             crossing_months=0.0,
             status=CrossingStatus.FAIL_AT_BASELINE,
@@ -402,7 +444,7 @@ def find_crossing(
 
     # --- Main path: numerical root find -----------------------
     if fit.kind is ModelKind.POOLED:
-        crossing = _single_crossing(fit, None, spec, side_norm, horizon)
+        crossing = _single_crossing(fit, None, spec, side_norm, horizon, quantile)
         if crossing is None:
             return CrossingResult(
                 crossing_months=None,
@@ -421,14 +463,13 @@ def find_crossing(
         )
 
     # Multi-batch: per-batch crossings, take the earliest.
-    per_batch = _per_batch_crossings(fit, spec, side_norm, horizon)
+    per_batch = _per_batch_crossings(fit, spec, side_norm, horizon, quantile)
     if not per_batch:
         return CrossingResult(
             crossing_months=None,
             status=CrossingStatus.NO_CROSSING,
             governing_batch=None,
             notes=[
-                "no batch crosses the spec within the evaluated "
                 f"horizon ({horizon:g} months)"
             ],
         )
@@ -438,6 +479,97 @@ def find_crossing(
         status=CrossingStatus.CROSSED,
         governing_batch=batch,
         notes=[f"governing batch: {batch!r} (earliest crossing)"],
+    )
+
+
+def _bidirectional_crossing(
+    fit: FitResult,
+    data: ValidatedData,
+    horizon: float,
+    two_sided_quantile: float,
+) -> CrossingResult:
+    """Crossing for a BIDIRECTIONAL attribute (two finite spec limits).
+
+    Per ICH Q1E (NEXT_STEPS §2.4): when neither direction dominates
+    a priori, evaluate BOTH a lower bound against ``lower_spec`` and
+    an upper bound against ``upper_spec``, each with the **two-sided**
+    t-quantile (0.975 -- 2.5% in each tail, *not* the one-sided 0.95),
+    and take the **earliest** crossing of either. The governing spec
+    limit is recorded on ``governing_side``.
+
+    A ``fail_at_baseline`` on either side at t=0 short-circuits to
+    :attr:`CrossingStatus.FAIL_AT_BASELINE`. If neither side crosses
+    within ``[0, horizon]`` the result is
+    :attr:`CrossingStatus.NO_CROSSING`.
+    """
+    candidates: list[tuple[float, str]] = []
+    if data.lower_spec is not None:
+        candidates.append((float(data.lower_spec), "lower"))
+    if data.upper_spec is not None:
+        candidates.append((float(data.upper_spec), "upper"))
+    if not candidates:
+        raise ValueError(
+            "BIDIRECTIONAL direction requires at least one of "
+            "lower_spec / upper_spec; both are None"
+        )
+
+    # Edge case: either bound already past its spec at t=0.
+    for spec, side in candidates:
+        if _bound_past_spec_at_zero(fit, spec, side, two_sided_quantile):
+            return CrossingResult(
+                crossing_months=0.0,
+                status=CrossingStatus.FAIL_AT_BASELINE,
+                governing_batch=None,
+                notes=[
+                    f"two-sided bound already beyond the {side} spec "
+                    "at t=0"
+                ],
+                governing_side=side,
+            )
+
+    # Collect the earliest crossing on each side, with the governing
+    # batch for multi-batch models.
+    found: list[tuple[float, str, str | None]] = []  # (t, side, batch)
+    for spec, side in candidates:
+        if fit.kind is ModelKind.POOLED:
+            t_cross = _single_crossing(
+                fit, None, spec, side, horizon, two_sided_quantile
+            )
+            if t_cross is not None:
+                found.append((t_cross, side, None))
+        else:
+            per_batch = _per_batch_crossings(
+                fit, spec, side, horizon, two_sided_quantile
+            )
+            if per_batch:
+                t_cross, batch = min(per_batch, key=lambda x: x[0])
+                found.append((t_cross, side, batch))
+
+    if not found:
+        return CrossingResult(
+            crossing_months=None,
+            status=CrossingStatus.NO_CROSSING,
+            governing_batch=None,
+            notes=[
+                "neither the lower nor the upper two-sided bound "
+                f"crosses within the [0, {horizon:g}] month horizon"
+            ],
+            governing_side=None,
+        )
+
+    t_cross, side, batch = min(found, key=lambda x: x[0])
+    note = (
+        f"bidirectional: earliest crossing on the {side} spec "
+        "using the two-sided 0.975 quantile"
+    )
+    if batch is not None:
+        note += f"; governing batch: {batch!r}"
+    return CrossingResult(
+        crossing_months=float(t_cross),
+        status=CrossingStatus.CROSSED,
+        governing_batch=batch,
+        notes=[note],
+        governing_side=side,
     )
 
 
@@ -462,22 +594,15 @@ def _effective_slopes(fit: FitResult) -> list[float]:
 
 
 def _bound_past_spec_at_zero(
-    fit: FitResult, spec: float, side: str
+    fit: FitResult, spec: float, side: str,
+    quantile: float = ONE_SIDED_T_QUANTILE,
 ) -> bool:
-    """True if the bound at t=0 is already at or past the spec.
-
-    For DECREASING + lower spec: the lower bound is already at or
-    below the spec (``bound <= spec``).
-    For INCREASING + upper spec: the upper bound is already at or
-    above the spec (``bound >= spec``).
-    """
+    """True if the bound at t=0 is already at or past the spec."""
     if fit.kind is ModelKind.POOLED:
-        b0 = _bound_curve(fit, None, 0.0, side)
+        b0 = _bound_curve(fit, None, 0.0, side, quantile)
         return _past(b0, spec, side)
-    # Multi-batch: if the WORST batch's bound is already past the
-    # spec, the product fails at baseline.
     bound_values = [
-        _bound_curve(fit, batch, 0.0, side) for batch in fit.batches
+        _bound_curve(fit, batch, 0.0, side, quantile) for batch in fit.batches
     ]
     if side == "lower":
         worst = min(bound_values)

@@ -130,3 +130,28 @@ def test_count_bql_rows_helper():
     df = _df_with_bql(n_bql=3)
     assert count_bql_rows(df) == 3
     assert count_bql_rows(df.drop(columns=["is_bql"])) == 0
+
+
+# ---------------------------------------------------------------------------
+# §9.11  apply_replicate_policy raises ValueError for unknown policy
+# ---------------------------------------------------------------------------
+
+
+def test_replicate_unknown_policy_raises():
+    """apply_replicate_policy must raise ValueError for an unrecognised policy.
+
+    This locks the error path so a typo in the engine's replicate_policy
+    argument surfaces loudly rather than silently using the wrong logic.
+    """
+    import pandas as pd
+    from openpharmastability.data.replicates import apply_replicate_policy
+
+    df = pd.DataFrame({
+        "batch": ["A", "A"],
+        "time_months": [0.0, 0.0],
+        "value": [99.5, 100.5],
+        "attribute": ["assay", "assay"],
+        "condition": ["25C/60RH", "25C/60RH"],
+    })
+    with pytest.raises(ValueError, match="bogus"):
+        apply_replicate_policy(df, "bogus")

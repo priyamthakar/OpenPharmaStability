@@ -1,4 +1,4 @@
-"""OpenPharmaStability — ICH Q1E-inspired stability analysis toolkit (v0.3)."""
+"""OpenPharmaStability — ICH Q1E-inspired stability analysis toolkit."""
 
 from .contracts import (
     BQLSummary,
@@ -27,6 +27,11 @@ from .contracts import (
     TransformCandidate,
     ValidatedData,
 )
+from .regulatory.profile import (
+    DEFAULT_PROFILE,
+    GuidanceProfile,
+    Q1AE,
+)
 from .api import (
     analyze_and_artifact,
     analyze_csv,
@@ -38,7 +43,7 @@ from .api import (
     predict_arrhenius_shelf_life_for,
 )
 
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 
 __all__ = [
     "BQLSummary",
@@ -66,7 +71,9 @@ __all__ = [
     "TransformAssessment",
     "TransformCandidate",
     "ValidatedData",
-    # v0.6.0 thin programmatic API
+    "GuidanceProfile",
+    "Q1AE",
+    "DEFAULT_PROFILE",
     "analyze_csv",
     "analyze_xlsx",
     "analyze_path",
@@ -74,7 +81,6 @@ __all__ = [
     "make_artifact",
     "analyze_and_artifact",
     "compute_sensitivity_for",
-    # v0.8.0 thin programmatic API
     "predict_arrhenius_shelf_life_for",
     "__version__",
 ]

@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v0.9.0 on a fresh machine.**
+> **You are picking up OpenPharmaStability v0.10.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,7 +9,7 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v0.9.0** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v0.10.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
@@ -18,7 +18,9 @@ sensitivity report (row-level or batch-level leave-one-out), an
 optional acceptance-criteria CSV, an optional Arrhenius-driven
 shelf-life prediction, and (v0.9.0) optional per-batch Arrhenius
 rate diagnostics with outlier flagging + Holm-corrected poolability
-p-values. The v0.1 baseline has been extended through v0.2
+p-values + v0.10.0 GuidanceProfile abstraction, bidirectional
+two-sided quantile fix, and §9 test sweep. The v0.1 baseline has
+been extended through v0.2
 (multi-attribute + XLSX), v0.3 (data quality + BQL + transform
 evidence), v0.4 (ICH Q1A significant-change gating), v0.5
 (Arrhenius / MKT / reduced designs / random-effects opt-in, plus
@@ -272,7 +274,7 @@ code review check. Do not relax any of them.
 
 ---
 
-## 6. Open warnings (v0.9.0 status)
+## 6. Open warnings (v0.10.0 status)
 
 All v0.1.1, v0.3.1, and v0.5.1 known-open items are now **resolved**
 (documented below under "Recent releases" history).
@@ -362,7 +364,7 @@ long-term shelf life from stress-temperature rate data and the
 v0.5.0 Arrhenius module), leave-one-batch-out sensitivity
 (`--sensitivity-mode batch`; the v0.7.0 row-level mode is the
 default), cross-platform `Makefile` (`make fresh / test /
-regen-check`). v0.9.0 — more backend features (no UI):
+regen-check`). v0.10.0 — GuidanceProfile + bidirectional fix + §9 tests:
 Holm-Bonferroni corrected poolability p-values
 (`PoolabilityResult.p_slopes_holm` / `p_intercepts_holm`),
 multi-engine `analyze_many` accepts XLSX / XLSM directly via

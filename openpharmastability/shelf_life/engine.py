@@ -45,6 +45,7 @@ from openpharmastability.contracts import (
 from openpharmastability.data.io import load_table
 from openpharmastability.data.schema import validate_and_select
 from openpharmastability.models.selection import select_model
+from openpharmastability.regulatory.profile import Q1AE, GuidanceProfile
 from openpharmastability.shelf_life.extrapolation import apply_extrapolation_caps
 from openpharmastability.stats.bounds import find_crossing
 from openpharmastability.stats.diagnostics import run_diagnostics
@@ -206,6 +207,15 @@ def analyze(
     # Requires ``run_arrhenius=True`` (no per-batch diagnostic
     # without a pooled fit).
     run_arrhenius_per_batch: bool = False,
+    # v0.10.0 — active guidance profile. Bundles the poolability
+    # alpha, confidence level, one-/two-sided t-quantiles, and the
+    # extrapolation caps the regulator defines. Defaults to ``Q1AE``
+    # (ICH Q1A(R2)+Q1E), whose values are sourced from the
+    # ``contracts`` primitives, so the default path is byte-equivalent
+    # to v0.9.0. Pass a different ``GuidanceProfile`` (e.g. a future
+    # ``Q1_CONSOLIDATED``) to re-base every regulator constant in one
+    # place with no algorithm change.
+    profile: GuidanceProfile = Q1AE,
 ) -> StabilityResult:
     """Run the end-to-end v0.1 stability analysis on a CSV.
 
@@ -419,10 +429,16 @@ def analyze(
         )
 
     fits = fit_models(data, random_effects=random_effects)
-    poolability = decide_poolability(fits, data)
+    poolability = decide_poolability(fits, data, alpha=profile.poolability_alpha)
     model_kind, fit = select_model(poolability, fits)
 
-    crossing = find_crossing(fit, data, horizon=horizon)
+    crossing = find_crossing(
+        fit,
+        data,
+        horizon=horizon,
+        one_sided_quantile=profile.one_sided_quantile,
+        two_sided_quantile=profile.two_sided_quantile,
+    )
 
     # v0.5.0 — Arrhenius opt-in. Computed between ``find_crossing``
     # and the result construction so the value is available for the
@@ -569,7 +585,11 @@ def analyze(
 
     # Apply extrapolation caps (may add a warning and revise the
     # supported value).
-    result = apply_extrapolation_caps(result)
+    result = apply_extrapolation_caps(
+        result,
+        max_factor=profile.extrapolation_max_factor,
+        max_months_beyond=profile.extrapolation_max_months_beyond,
+    )
 
     # v0.4.0 — ICH Q1A(R2) §2.2.7 significant-change gate. Wired in
     # after the v0.3.1 cap math so the binding cap becomes the
@@ -590,6 +610,7 @@ def analyze(
         intermediate_condition=intermediate_condition,
         assay_change_threshold=assay_change_threshold,
         no_significant_change_gate=no_significant_change_gate,
+        profile=profile,
     )
 
     # v0.3.0: optional transform-candidate evidence. Recorded on
@@ -1084,6 +1105,7 @@ def _run_significant_change_gate(
     intermediate_condition: str | None,
     assay_change_threshold: float,
     no_significant_change_gate: bool,
+    profile: GuidanceProfile = Q1AE,
 ) -> StabilityResult:
     """Run the ICH Q1A(R2) §2.2.7 significant-change gate and refine
     the result's extrapolation decision.
@@ -1186,6 +1208,8 @@ def _run_significant_change_gate(
         # is binding.
         result = apply_extrapolation_caps(
             result, allowance=(bool(allowed), float(cap_months), str(rationale or "")),
+            max_factor=profile.extrapolation_max_factor,
+            max_months_beyond=profile.extrapolation_max_months_beyond,
         )
         return result
     except Exception as exc:

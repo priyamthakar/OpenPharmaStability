@@ -7,6 +7,11 @@ the long-term analysis; the rest of the toolkit is unaware of them.
 from __future__ import annotations
 
 from openpharmastability.contracts import SignificantChange
+from openpharmastability.regulatory.profile import (
+    DEFAULT_PROFILE,
+    GuidanceProfile,
+    Q1AE,
+)
 from openpharmastability.regulatory.significant_change import (
     evaluate_significant_change,
     extrapolation_allowance,
@@ -19,4 +24,8 @@ __all__ = [
     "evaluate_significant_change",
     "extrapolation_allowance",
     "q1e_cap",
+    # v0.10.0 guidance-profile abstraction
+    "GuidanceProfile",
+    "Q1AE",
+    "DEFAULT_PROFILE",
 ]

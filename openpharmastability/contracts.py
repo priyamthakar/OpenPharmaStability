@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.9.0"
+TOOL_VERSION: str = "0.10.0"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -184,6 +184,14 @@ class CrossingResult:
     status: CrossingStatus
     governing_batch: Optional[str]
     notes: list[str] = field(default_factory=list)
+    # v0.10.0: which spec limit governed the crossing for a
+    # bidirectional (two-sided) analysis. ``"lower"`` or ``"upper"``
+    # when the data's direction is BIDIRECTIONAL and a crossing was
+    # found; ``None`` for the one-sided (DECREASING / INCREASING)
+    # paths and for non-CROSSED statuses. Appended last so existing
+    # positional constructions (``CrossingResult(months, status,
+    # batch, notes)``) keep working unchanged.
+    governing_side: Optional[str] = None
 
 
 @dataclass

@@ -4,6 +4,93 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.10.0] — 2026-06-14 — GuidanceProfile abstraction + bidirectional quantile fix
+
+### Theme
+Pure backend release, no UI changes. Introduces the
+`GuidanceProfile` abstraction that bundles every
+regulator-defined numeric constant, implements the correct
+two-sided 0.975 t-quantile for BIDIRECTIONAL crossings, and
+adds the `governing_side` field to `CrossingResult`.  Also
+ships fifteen additive §9 tests that were called for in
+NEXT_STEPS but had not been written.  All changes are backward-
+compatible: the default one-sided path is bit-identical to
+v0.9.0 and the golden file is unchanged.
+
+### Added
+- **`GuidanceProfile` dataclass**
+  (`openpharmastability/regulatory/profile.py`).  A frozen
+  dataclass that bundles `poolability_alpha`, `confidence`,
+  `one_sided_quantile`, `two_sided_quantile`,
+  `extrapolation_max_factor`, `extrapolation_max_months_beyond`,
+  and `assay_change_threshold_pct`.  The singleton `Q1AE` is
+  defined as the default profile matching v0.9.0 constants.
+  Both are exported from `openpharmastability` and
+  `openpharmastability.regulatory`.
+- **`profile=` keyword on `analyze()` and `analyze_many()`.**
+  Accepts a `GuidanceProfile` (default `Q1AE`).  All hardcoded
+  constants in the engine are now sourced from the active
+  profile, enabling future alternative profiles (e.g. a
+  forthcoming consolidated ICH Q1 profile) without algorithm
+  rewrites.
+- **Bidirectional two-sided quantile** (`stats/bounds.py`).
+  `find_crossing()` now dispatches `Direction.BIDIRECTIONAL` to
+  a dedicated `_bidirectional_crossing()` helper that evaluates
+  both spec limits with the two-sided 0.975 t-quantile (per ICH
+  Q1E), takes the earliest crossing, and records which spec
+  limit governed via the new `governing_side` field.
+- **`CrossingResult.governing_side`** (`contracts.py`).
+  Optional `str` field (`"lower"` / `"upper"` / `None`).
+  Populated by the bidirectional path; `None` on all one-sided
+  paths.  Backward-compatible (appended with a default of
+  `None`; existing positional constructions continue to work).
+- **`governing_side` in JSON decision record**
+  (`reports/record.py`).  The `to_decision_record()` output now
+  includes `"governing_side"` at the top level alongside
+  `"crossing_status"`.
+- **§9 test additions** (15 new tests across 5 files):
+  - `test_reporting.py`: `test_json_record_deterministic_with_fixed_epoch`
+    (§9.2), `test_disclaimer_verbatim_in_json` (§9.4),
+    `test_disclaimer_verbatim_in_html` (§9.3 companion).
+  - `test_stats_crossing.py`: `test_bidirectional_uses_two_sided_quantile_and_is_tighter`
+    (§9.8, new correct behavior), `test_bidirectional_no_crossing_when_wide_specs`,
+    `test_all_four_crossing_statuses_covered` (§9.12 meta-guard).
+  - `test_extrapolation.py`: `test_extrapolation_caps_preserves_all_result_fields`
+    (§9.9 copy-block regression guard).
+  - `test_data_bql.py`: `test_replicate_unknown_policy_raises` (§9.11).
+  - `test_engine.py`: `test_engine_unknown_direction_raises_when_no_spec`
+    (§9.7), `test_engine_two_batches_emits_q1e_warning` (§9.13),
+    `test_engine_handles_single_time_point` (§9.14),
+    `test_engine_handles_nan_value` (§9.15),
+    `test_engine_handles_negative_time` (§9.16).
+
+### Changed
+- `find_crossing()` signature gains optional `one_sided_quantile`
+  and `two_sided_quantile` keyword arguments (default to the
+  same constants as v0.9.0; no numeric change on the default
+  path).
+- `apply_extrapolation_caps()` gains optional `max_factor` and
+  `max_months_beyond` keyword arguments sourced from the active
+  profile (defaults preserve v0.9.0 values exactly).
+- `TOOL_VERSION` bumped to `"0.10.0"` (three locations:
+  `contracts.py`, `__init__.py`, `pyproject.toml`).
+
+### Fixed
+- **Bidirectional quantile was incorrect.**  Before v0.10.0 the
+  `BIDIRECTIONAL` path fell through to the one-sided 0.95
+  quantile.  The two-sided 0.975 is now applied correctly, which
+  changes numeric output for any `Direction.BIDIRECTIONAL` run.
+  The default one-sided (DECREASING / INCREASING) path is
+  unaffected and golden-file-identical to v0.9.0.
+
+### Notes
+- The `Q1AE` profile is intentionally singleton; do not mutate
+  it.  Future alternative profiles should be defined as new
+  `GuidanceProfile(...)` instances.
+- The golden file (`examples/assay_3batch.expected.json`) is
+  **unchanged** — the fix only affects BIDIRECTIONAL runs, which
+  the golden dataset does not exercise.
+
 ## [0.9.0] — 2026-06-13 — Backend Features (no UI)
 
 ### Theme

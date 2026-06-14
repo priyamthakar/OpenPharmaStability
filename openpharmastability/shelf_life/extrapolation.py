@@ -62,6 +62,8 @@ from openpharmastability.contracts import (
 def apply_extrapolation_caps(
     result: StabilityResult,
     allowance: tuple[bool, float, str] | None = None,
+    max_factor: float = EXTRAPOLATION_MAX_FACTOR,
+    max_months_beyond: float = EXTRAPOLATION_MAX_MONTHS_BEYOND,
 ) -> StabilityResult:
     """Apply Q1E room-temperature extrapolation guardrails.
 
@@ -130,10 +132,10 @@ def apply_extrapolation_caps(
         and new_supported_shelf_life_months > result.observed_data_months
     ):
         factor_cap = math.floor(
-            EXTRAPOLATION_MAX_FACTOR * result.observed_data_months
+            max_factor * result.observed_data_months
         )
         months_cap = math.floor(
-            result.observed_data_months + EXTRAPOLATION_MAX_MONTHS_BEYOND
+            result.observed_data_months + max_months_beyond
         )
         cap = min(factor_cap, months_cap)
         if new_supported_shelf_life_months > cap:
