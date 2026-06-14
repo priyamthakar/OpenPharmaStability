@@ -34,8 +34,8 @@
     "supported_shelf_life_rounded_down": 19
   },
   "common_slope_fit": {
-    "b1_common": -0.48884697272122224,
-    "s_resid": 0.33120584965929756,
+    "b1_common": -0.48884697272122424,
+    "s_resid": 0.3312058496592973,
     "df_resid": 38,
     "param_names": [
       "Intercept",
@@ -45,40 +45,40 @@
     ],
     "per_batch": {
       "B1": {
-        "b0": 99.86225457656116,
-        "b1_common": -0.48884697272122224,
-        "s_resid": 0.33120584965929756,
+        "b0": 99.86225457656111,
+        "b1_common": -0.48884697272122424,
+        "s_resid": 0.3312058496592973,
         "df_resid": 38
       },
       "B2": {
-        "b0": 98.94860457656118,
-        "b1_common": -0.48884697272122224,
-        "s_resid": 0.33120584965929756,
+        "b0": 98.94860457656114,
+        "b1_common": -0.48884697272122424,
+        "s_resid": 0.3312058496592973,
         "df_resid": 38
       },
       "B3": {
-        "b0": 100.80209743370403,
-        "b1_common": -0.48884697272122224,
-        "s_resid": 0.33120584965929756,
+        "b0": 100.80209743370398,
+        "b1_common": -0.48884697272122424,
+        "s_resid": 0.3312058496592973,
         "df_resid": 38
       }
     },
     "bound_at_t12": {
-      "B1": 93.84566596335048,
-      "B2": 92.93201596335051,
-      "B3": 94.78550882049336
+      "B1": 93.84566596335041,
+      "B2": 92.93201596335044,
+      "B3": 94.78550882049328
     },
     "per_batch_crossings_lower_spec_90_months": {
-      "B1": 19.80162110789948,
-      "B2": 17.954842444120718,
-      "B3": 21.69815042819943
+      "B1": 19.801621107899354,
+      "B2": 17.954842444120562,
+      "B3": 21.698150428199227
     },
     "worst_case_batch": "B2",
-    "worst_case_crossing_months": 17.954842444120718,
+    "worst_case_crossing_months": 17.954842444120562,
     "supported_shelf_life_rounded_down": 17
   },
   "shelf_life": {
-    "statistical_crossing_months": 17.954842444120718,
+    "statistical_crossing_months": 17.954842444120562,
     "supported_shelf_life_months_rounded_down": 17,
     "observed_data_months": 24.0,
     "extrapolation_flag": false

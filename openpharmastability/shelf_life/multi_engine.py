@@ -180,6 +180,37 @@ def _empty_stability_result(
     )
 
 
+def _apply_metadata_spec_to_frame(
+    sub: pd.DataFrame,
+    meta: AttributeMetadata,
+) -> pd.DataFrame:
+    """Replace per-row ``lower_spec`` / ``upper_spec`` columns with the
+    metadata override values, if any.
+
+    The metadata override must win over the per-row data values for
+    the per-attribute analysis. The cleanest seam is to write the
+    override into the per-attribute temp CSV before it is handed to
+    :func:`analyze`; the single-attribute engine reads the spec
+    limits from the CSV columns, so an in-place override flows
+    naturally through the crossing solver, the bound math, the
+    JSON record, and the HTML report.
+
+    No-op when both ``meta.lower_spec`` and ``meta.upper_spec`` are
+    ``None`` — the caller's frame is returned unchanged (byte-
+    equivalent to v0.2.0). When only one of the two is supplied,
+    only that column is overwritten; the other side is left as
+    the data-derived value so the per-attribute engine still has a
+    usable spec for the unspecified bound.
+    """
+    if meta.lower_spec is None and meta.upper_spec is None:
+        return sub
+    if meta.lower_spec is not None and "lower_spec" in sub.columns:
+        sub["lower_spec"] = float(meta.lower_spec)
+    if meta.upper_spec is not None and "upper_spec" in sub.columns:
+        sub["upper_spec"] = float(meta.upper_spec)
+    return sub
+
+
 def _write_temp_csv(df: pd.DataFrame) -> str:
     """Write a per-attribute subset to a temporary CSV file; return path."""
     tmp = tempfile.NamedTemporaryFile(
@@ -200,38 +231,35 @@ def _apply_metadata_to_stability_result(
     """Overlay :class:`AttributeMetadata` overrides onto a per-attribute
     :class:`StabilityResult` and return a new instance.
 
-    The single-attribute :func:`analyze` infers direction / spec
-    limits from the per-row data columns. The metadata table
-    provides an explicit override. The metadata override must win.
+    The single-attribute :func:`analyze` infers direction from the
+    per-row data columns. The metadata table provides an explicit
+    override. The metadata override must win.
+
+    v0.7.0 update: ``lower_spec`` / ``upper_spec`` overrides are
+    honored end-to-end. The per-row spec columns on the per-attribute
+    temp CSV are overwritten with the override values before
+    :func:`analyze` runs (see :func:`_apply_metadata_spec_to_frame`),
+    so the crossing solver and the bound math see the override as
+    the data-derived spec. This helper additionally records the
+    override on the :class:`StabilityResult` itself so the JSON
+    decision record and the HTML report carry the values the
+    engine actually used. ``direction`` continues to be applied
+    post-hoc the same way it was in v0.2.0 (the per-row direction
+    column is unchanged; only the field on the result is patched).
 
     We always return a *new* :class:`StabilityResult` (via
     :func:`dataclasses.replace`) because downstream code treats the
-    result as immutable.
-
-    v0.2.1 note: ``lower_spec`` / ``upper_spec`` overrides are
-    recorded on the result but, in v0.2.1, are not threaded back
-    into the crossing solver (the data layer reads specs from the
-    CSV columns). A follow-up will pipe them through. The override
-    is therefore advisory for the crossing math in v0.2.1; the
-    override is honored for ``direction`` because the data layer
-    does not own that field the same way.
+    result as immutable. When the metadata supplies no override at
+    all, the original result is returned untouched (byte-equivalent
+    to v0.2.0 for the ``assay``/``impurity_a`` case).
     """
     updates: dict[str, object] = {}
     if meta.direction is not None:
         updates["direction"] = meta.direction
-    if meta.lower_spec is not None or meta.upper_spec is not None:
-        # Advisory in v0.2.1: see docstring. We still record the
-        # override so downstream consumers can see the metadata-
-        # declared spec limits alongside the data-derived ones.
+    if meta.lower_spec is not None:
         updates["lower_spec"] = meta.lower_spec
+    if meta.upper_spec is not None:
         updates["upper_spec"] = meta.upper_spec
-    if not updates:
-        return single
-    # StabilityResult has no lower_spec / upper_spec fields of its own
-    # (those live on ValidatedData), so drop the advisory keys before
-    # the replace call. The advisory nature is documented above.
-    updates.pop("lower_spec", None)
-    updates.pop("upper_spec", None)
     if not updates:
         return single
     return dataclasses.replace(single, **updates)
@@ -443,6 +471,17 @@ def analyze_many(
             )
             no_data_indices.add(len(attribute_results) - 1)
             continue
+
+        # v0.7.0: honor AttributeMetadata.lower_spec / upper_spec
+        # by writing the override into the per-row spec columns of
+        # the per-attribute temp CSV. The single-attribute analyze()
+        # reads the spec from those columns, so this seam is enough
+        # to thread the override through the crossing solver, the
+        # bound math, the JSON record, and the HTML report. No-op
+        # when the metadata supplies no spec override for this
+        # attribute, so existing v0.2.0 callers (and the v0.7.0
+        # default-handling tests) are byte-equivalent.
+        sub = _apply_metadata_spec_to_frame(sub, meta)
 
         tmp = _write_temp_csv(sub)
         try:

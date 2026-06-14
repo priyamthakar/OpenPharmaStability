@@ -67,6 +67,67 @@ def test_script_does_not_import_project_stats(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# 2b. v0.7.0: the regen script must NOT import statsmodels either.
+# ---------------------------------------------------------------------------
+#
+# v0.1.1 known-open item: "regen uses statsmodels for COMMON_SLOPE —
+# reduces independence". The pure-numpy rewrite of
+# ``_common_slope_expected`` (v0.7.0) closes that. These assertions
+# forbid the regression: if anyone re-introduces a statsmodels import
+# in the regen script (e.g. by copy-pasting from regression.py), the
+# test fails loudly. We check for the substring ``"statsmodels"``
+# and the common shorthand ``"smf."`` / ``"statsmodels.formula"``.
+
+
+def test_script_does_not_import_statsmodels():
+    """v0.7.0: the regen script must be pure numpy/scipy. Forbidden
+    substrings: any literal mention of ``statsmodels`` (the package
+    name), the ``smf.`` shorthand, and the explicit
+    ``statsmodels.formula`` submodule name."""
+    src = SCRIPT.read_text()
+    forbidden = ("statsmodels", "smf.", "statsmodels.formula")
+    for f in forbidden:
+        assert f not in src, (
+            f"{SCRIPT} still references {f!r}; v0.7.0 made the regen "
+            "script pure-numpy. Re-introducing a statsmodels import "
+            "would re-open the v0.1.1 'regen uses statsmodels for "
+            "COMMON_SLOPE' known-open item."
+        )
+
+
+def test_script_imports_only_expected_modules():
+    """v0.7.0: the regen script's import block must contain only
+    numpy, scipy, pandas, and the stdlib. The actual set of names
+    imported is checked at runtime via ``ast`` so the test survives
+    comment-only or docstring-only mentions of forbidden packages.
+    """
+    import ast
+
+    tree = ast.parse(SCRIPT.read_text())
+    imported_names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imported_names.add(alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            if node.module is not None:
+                imported_names.add(node.module.split(".")[0])
+    forbidden_top_level = {"statsmodels"}
+    for f in forbidden_top_level:
+        assert f not in imported_names, (
+            f"{SCRIPT} imports {f!r} at top level; v0.7.0 requires "
+            "the regen script to be pure numpy/scipy."
+        )
+    # Sanity: numpy, scipy, pandas must be imported (the script's job
+    # is to compute expected values from the dataset).
+    for required in ("numpy", "scipy", "pandas"):
+        assert required in imported_names, (
+            f"{SCRIPT} must import {required!r}; the regen is the "
+            "source of truth for the frozen expected.json."
+        )
+
+
+# ---------------------------------------------------------------------------
 # 3. Regenerating produces the same file
 # ---------------------------------------------------------------------------
 

@@ -42,7 +42,7 @@ from openpharmastability.contracts import (
     TOOL_VERSION,
     ValidatedData,
 )
-from openpharmastability.data.io import load_csv
+from openpharmastability.data.io import load_table
 from openpharmastability.data.schema import validate_and_select
 from openpharmastability.models.selection import select_model
 from openpharmastability.shelf_life.extrapolation import apply_extrapolation_caps
@@ -165,6 +165,14 @@ def analyze(
     mkt_ea_kJ_per_mol: float = 83.144,
     detect_reduced_design: bool = False,
     random_effects: bool = False,
+    # v0.7.0 — leave-one-out sensitivity analysis. When True, the
+    # engine re-runs the full analysis for each Cook's-distance
+    # influential point flagged by the diagnostics layer and
+    # attaches a `SensitivityReport` to the result on the
+    # `sensitivity_report` field. Default False; the field stays
+    # at its v0.6 default (None) so v0.6.x callers and hand-built
+    # fixtures keep working unchanged.
+    run_sensitivity: bool = False,
 ) -> StabilityResult:
     """Run the end-to-end v0.1 stability analysis on a CSV.
 
@@ -267,7 +275,7 @@ def analyze(
     StabilityResult
         The full decision record.
     """
-    raw_df = load_csv(path)
+    raw_df = load_table(path)
 
     # v0.5.0 advanced-statistics hooks — each is opt-in via its
     # own flag. We compute the values here so the rest of the
@@ -561,6 +569,25 @@ def analyze(
             object.__setattr__(result, "transform_assessment", ta)
         except Exception as exc:  # pragma: no cover — defensive
             warnings.append(f"transform assessment failed: {exc!r}")
+
+    # v0.7.0 — leave-one-out sensitivity analysis over Cook's-distance
+    # influential points. Re-runs the full analysis for each flagged
+    # point and attaches a `SensitivityReport` to the result. The
+    # trigger set is `result.diagnostics.influential_points`; when
+    # it is empty the helper returns a no-op report with an
+    # explanatory summary. Any exception in the helper is captured
+    # as a warning and the field stays at the v0.6 default (None).
+    if run_sensitivity:
+        try:
+            from openpharmastability.stats.sensitivity import (
+                compute_sensitivity as _compute_sensitivity,
+            )
+            v070_sens = _compute_sensitivity(result, data)
+        except Exception as exc:  # defensive
+            warnings.append(f"sensitivity analysis failed: {exc!r}")
+            v070_sens = None
+        else:
+            result = dataclasses.replace(result, sensitivity_report=v070_sens)
 
     # v0.5.0 — final ``dataclasses.replace`` that sets all four
     # advanced-statistics fields in one shot. Doing it in a single

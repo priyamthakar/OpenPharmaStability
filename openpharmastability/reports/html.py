@@ -339,6 +339,20 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
                 "message", ""
             )
         ),
+        # v0.7.0: optional sensitivity report (leave-one-out over
+        # Cook's-distance outliers). ``None`` when ``--sensitivity``
+        # is not requested; a populated ``SensitivityReport``
+        # otherwise. The template branches on ``sensitivity_present``
+        # (a pre-computed bool) so the Jinja template stays
+        # declarative. ``getattr(..., default)`` keeps the context
+        # builder forward-compatible with hand-built StabilityResult
+        # fixtures that predate the v0.7.0 field.
+        "sensitivity_report": getattr(
+            result, "sensitivity_report", None
+        ),
+        "sensitivity_present": getattr(
+            result, "sensitivity_report", None
+        ) is not None,
         # Reproducibility
         "tool_version": md.get("tool_version") or TOOL_VERSION or _PKG_VERSION,
         "timestamp": md.get("timestamp"),

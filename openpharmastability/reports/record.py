@@ -13,8 +13,9 @@ Only depends on :mod:`openpharmastability.contracts`.
 """
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import asdict, is_dataclass
-from typing import Any
+from typing import Any, Union
 
 from openpharmastability import __version__ as _PKG_VERSION
 from openpharmastability.contracts import (
@@ -22,7 +23,9 @@ from openpharmastability.contracts import (
     DISCLAIMER,
     POOLABILITY_ALPHA,
     TOOL_VERSION,
+    AcceptanceCriteriaRow,
     Direction,
+    MultiAttributeResult,
     StabilityResult,
 )
 
@@ -91,6 +94,84 @@ def _as_python(value: Any) -> Any:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+
+def to_acceptance_criteria(
+    result: Union[StabilityResult, MultiAttributeResult],
+) -> list[AcceptanceCriteriaRow]:
+    """Build the list of :class:`AcceptanceCriteriaRow` from an analysis result.
+
+    Single result -> 1 row. Multi result -> 1 row per analyzed
+    attribute, carrying the :class:`AttributeMetadata`'s unit and
+    spec overrides. The CSV emitted by the
+    ``--acceptance-csv PATH`` CLI flag is built by
+    :func:`csv.DictWriter`-ing this list directly; the field order
+    is the dataclass's field order.
+    """
+    if isinstance(result, StabilityResult):
+        return [_stability_result_to_acceptance_row(result)]
+    if isinstance(result, MultiAttributeResult):
+        rows: list[AcceptanceCriteriaRow] = []
+        for ar in result.attributes:
+            rows.append(_attribute_result_to_acceptance_row(ar))
+        return rows
+    raise TypeError(
+        f"to_acceptance_criteria: unsupported result type {type(result).__name__!r}; "
+        "expected StabilityResult or MultiAttributeResult"
+    )
+
+
+def _stability_result_to_acceptance_row(
+    result: StabilityResult,
+) -> AcceptanceCriteriaRow:
+    """One :class:`AcceptanceCriteriaRow` for a single StabilityResult."""
+    # The v0.7.0 lower_spec / upper_spec fields on the result are the
+    # authoritative spec context (data-derived or metadata-overridden
+    # depending on how the result was built). They default to None
+    # so the row stays well-formed when the result has no spec context.
+    lower_spec = getattr(result, "lower_spec", None)
+    upper_spec = getattr(result, "upper_spec", None)
+    return AcceptanceCriteriaRow(
+        attribute=result.attribute,
+        condition=result.condition,
+        direction=result.direction.value,
+        model=result.model.value,
+        poolability=result.poolability.decision.value,
+        lower_spec=lower_spec,
+        upper_spec=upper_spec,
+        statistical_crossing_months=result.statistical_crossing_months,
+        supported_shelf_life_months=result.supported_shelf_life_months,
+        observed_data_months=float(result.observed_data_months),
+        extrapolation_flag=bool(result.extrapolation_flag),
+        included_in_limiting_decision=True,
+        exclusion_reason="",
+        unit=None,
+        governing_batch=result.crossing.governing_batch,
+    )
+
+
+def _attribute_result_to_acceptance_row(
+    ar,
+) -> AcceptanceCriteriaRow:
+    """One :class:`AcceptanceCriteriaRow` for a multi-attribute entry."""
+    r = ar.result
+    return AcceptanceCriteriaRow(
+        attribute=ar.metadata.attribute,
+        condition=r.condition,
+        direction=r.direction.value,
+        model=r.model.value,
+        poolability=r.poolability.decision.value,
+        lower_spec=ar.metadata.lower_spec,
+        upper_spec=ar.metadata.upper_spec,
+        statistical_crossing_months=r.statistical_crossing_months,
+        supported_shelf_life_months=r.supported_shelf_life_months,
+        observed_data_months=float(r.observed_data_months),
+        extrapolation_flag=bool(r.extrapolation_flag),
+        included_in_limiting_decision=bool(ar.included_in_limiting_decision),
+        exclusion_reason=str(ar.exclusion_reason or ""),
+        unit=ar.metadata.unit,
+        governing_batch=r.crossing.governing_batch,
+    )
 
 
 def to_decision_record(result: StabilityResult) -> dict[str, Any]:
@@ -236,6 +317,26 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
                 result, "model_convergence",
                 {"converged": True, "boundary": False, "message": ""},
             )
+        ),
+        # v0.7.0: leave-one-out sensitivity report. ``None`` when
+        # ``--sensitivity`` is not requested; a populated
+        # ``SensitivityReport`` (with one row per Cook's-distance
+        # influential point) when it is. ``getattr(..., default)``
+        # keeps the record forward-compatible with hand-built
+        # fixtures that predate the v0.7.0 field.
+        "sensitivity_report": _as_python(
+            getattr(result, "sensitivity_report", None)
+        ),
+        # v0.7.0: one-row acceptance-criteria summary for the
+        # single-attribute path. ``to_acceptance_criteria`` is the
+        # shared helper the ``--acceptance-csv PATH`` CLI flag also
+        # calls; the same dataclass (``AcceptanceCriteriaRow``) is
+        # used here, in the multi-attribute record, and in the CSV.
+        "acceptance_criteria": _as_python(
+            [
+                asdict(row)
+                for row in to_acceptance_criteria(result)
+            ]
         ),
     }
 

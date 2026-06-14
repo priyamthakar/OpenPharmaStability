@@ -10,10 +10,14 @@ Backwards compatible: the v0.1 ``analyze()`` path still calls
 """
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
 from openpharmastability.contracts import MultiAttributeResult
-from openpharmastability.reports.record import to_decision_record as _single_record
+from openpharmastability.reports.record import (
+    to_acceptance_criteria,
+    to_decision_record as _single_record,
+)
 
 
 def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
@@ -50,6 +54,19 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
         rec["report_order"] = ar.metadata.report_order
         if ar.metadata.warnings:
             rec["metadata_warnings"] = list(ar.metadata.warnings)
+        # v0.7.0: per-attribute sensitivity report. The single-
+        # attribute record already inherits the field (under
+        # ``sensitivity_report``), but the multi-attribute record
+        # also exposes a flat per-attribute list under
+        # ``sensitivity_reports`` so downstream tooling can iterate
+        # ``rec["sensitivity_reports"]`` without recursing into
+        # ``rec["attributes"]``. ``getattr(..., default)`` keeps the
+        # record forward-compatible with hand-built fixtures that
+        # predate the v0.7.0 field.
+        rec["sensitivity_report"] = rec.get(
+            "sensitivity_report",
+            getattr(ar.result, "sensitivity_report", None),
+        )
         per_attr.append(rec)
 
     # v0.4.0: overall extrapolation gate verdict. All eligible attributes
@@ -122,6 +139,31 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
             for ar in result.attributes
             if ar.included_in_limiting_decision
         ),
+        # v0.7.0: top-level acceptance-criteria summary. The same
+        # ``to_acceptance_criteria`` helper the
+        # ``--acceptance-csv PATH`` CLI flag also calls; the
+        # per-attribute entries are flattened to a list of dicts
+        # so the JSON record is self-describing without forcing
+        # downstream tooling to re-import the dataclass.
+        "acceptance_criteria": [
+            asdict(row) for row in to_acceptance_criteria(result)
+        ],
+        # v0.7.0: per-attribute sensitivity reports. One entry per
+        # analyzed attribute, mirroring the per-attribute shape.
+        # ``None`` when ``--sensitivity`` was not requested for
+        # that attribute (or when the diagnostics layer did not
+        # flag any influential points). Using
+        # ``getattr(..., default)`` keeps the record forward-
+        # compatible with hand-built fixtures that predate the
+        # v0.7.0 field.
+        "sensitivity_reports": {
+            ar.metadata.attribute: (
+                asdict(ar.result.sensitivity_report)
+                if getattr(ar.result, "sensitivity_report", None) is not None
+                else None
+            )
+            for ar in result.attributes
+        },
     }
 
 

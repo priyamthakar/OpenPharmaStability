@@ -589,3 +589,110 @@ def test_multi_html_overview_table_no_none_spec_cells(tmp_path):
     assert "None" not in overview, (
         f"raw 'None' leaked into overview table:\n{overview!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# v0.7.0 sensitivity + acceptance-criteria multi-reporting tests
+# ---------------------------------------------------------------------------
+
+
+def test_multi_record_v070_has_top_level_acceptance_criteria():
+    """Multi-attribute JSON record must expose the v0.7.0
+    top-level ``acceptance_criteria`` list — one row per
+    analyzed attribute, mirroring the per-attribute
+    :class:`AttributeMetadata`."""
+    result = analyze_many(str(CSV), condition="25C/60RH", all_attributes=True,
+                          source_epoch=1700000000)
+    rec = to_multi_decision_record(result)
+    assert "acceptance_criteria" in rec
+    assert isinstance(rec["acceptance_criteria"], list)
+    # The shipped fixture has 2 attributes.
+    assert len(rec["acceptance_criteria"]) == 2
+    # Each row carries the documented columns.
+    for row in rec["acceptance_criteria"]:
+        for key in (
+            "attribute", "condition", "model", "poolability",
+            "supported_shelf_life_months",
+            "statistical_crossing_months",
+            "observed_data_months",
+            "extrapolation_flag",
+            "included_in_limiting_decision",
+            "exclusion_reason",
+            "unit",
+            "governing_batch",
+        ):
+            assert key in row, f"missing {key!r} in acceptance row {row!r}"
+    # The unit comes from AttributeMetadata; the shipped
+    # metadata CSV (when used) carries units. Without
+    # metadata_path, AttributeMetadata.unit is None.
+    # And the JSON is serializable.
+    json.dumps(rec)
+
+
+def test_multi_record_v070_has_per_attr_sensitivity_reports():
+    """Multi-attribute JSON record must expose the v0.7.0
+    per-attribute ``sensitivity_reports`` map AND the
+    ``sensitivity_report`` key on each per-attribute entry.
+    Default (no ``--sensitivity``) values are all ``None``."""
+    result = analyze_many(str(CSV), condition="25C/60RH", all_attributes=True,
+                          source_epoch=1700000000)
+    rec = to_multi_decision_record(result)
+    assert "sensitivity_reports" in rec
+    assert isinstance(rec["sensitivity_reports"], dict)
+    # One entry per analyzed attribute.
+    assert set(rec["sensitivity_reports"].keys()) == {
+        ar.metadata.attribute for ar in result.attributes
+    }
+    # Default state: every value is None.
+    for v in rec["sensitivity_reports"].values():
+        assert v is None
+    # The per-attribute record entries also expose
+    # ``sensitivity_report`` (inherited from the single-attribute
+    # record).
+    for a in rec["attributes"]:
+        assert "sensitivity_report" in a
+        assert a["sensitivity_report"] is None
+    # JSON-serializable.
+    json.dumps(rec)
+
+
+def test_multi_html_v070_sensitivity_marker(tmp_path):
+    """A per-attribute result with ``sensitivity_report``
+    populated must surface the 'Sensitivity:' marker in its
+    per-attribute block. Default (None) results do NOT
+    surface the marker."""
+    from openpharmastability.contracts import (
+        SensitivityReport, SensitivityRow,
+    )
+    result = analyze_many(str(CSV), condition="25C/60RH", all_attributes=True,
+                          source_epoch=1700000000)
+    assert len(result.attributes) >= 2
+    # Populate sensitivity on exactly one attribute.
+    ar0 = result.attributes[0]
+    object.__setattr__(ar0.result, "sensitivity_report", SensitivityReport(
+        rows=[
+            SensitivityRow(
+                influential_row_index=13,
+                baseline_supported_shelf_life=17,
+                leave_one_out_supported_shelf_life=18,
+                leave_one_out_statistical_crossing_months=18.3,
+                diff_supported_shelf_life_months=1,
+                note="",
+            ),
+        ],
+        summary="max delta 1 mo; 1 point changes the shelf life",
+        baseline_supported_shelf_life=17,
+        notes=[],
+    ))
+    # Defensive: the other attribute is still the default.
+    for ar in result.attributes[1:]:
+        assert getattr(ar.result, "sensitivity_report", None) is None
+    out_html = tmp_path / "report_v070.html"
+    render_multi_html(
+        result, plot_dir=str(tmp_path / "nope"), out_path=str(out_html),
+    )
+    html = out_html.read_text(encoding="utf-8")
+    # Exactly one per-attribute block carries the marker.
+    assert html.count("<strong>Sensitivity:</strong>") == 1
+    # The summary text surfaces.
+    assert "max delta 1 mo" in html

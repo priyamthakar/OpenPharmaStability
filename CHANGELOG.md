@@ -4,6 +4,117 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.7.0] — 2026-06-13 — Backend Features (no UI)
+
+### Theme
+Backend features only. **No UI, no Streamlit, no Cloudflare Pages**
+— the UI pass remains deferred to v0.8.0+ (per the user's
+"features first, website last" reshape). Python remains the
+authoritative stats engine. This release closes four long-open
+items and ships two genuinely new analytical capabilities.
+
+### Added
+- **Sensitivity analysis** (`--sensitivity`). New
+  `openpharmastability.stats.sensitivity.compute_sensitivity` re-runs
+  the analysis end-to-end with each Cook's-distance influential
+  point removed and reports the resulting supported shelf life,
+  the absolute change vs the baseline, and a human-readable
+  summary ("max delta 2 mo; shelf life robust" vs "max delta 5
+  mo; a single point drives the shelf-life decision"). Wired
+  through the engine (auto-attached to the result when
+  `--sensitivity` is set) and the JSON record / HTML report.
+  New `StabilityResult.sensitivity_report: Optional[SensitivityReport]`
+  field (additive, default None).
+- **Acceptance-criteria CSV export** (`--acceptance-csv PATH`).
+  New `to_acceptance_criteria` helper emits a flat CSV — one row
+  per analyzed attribute — with the key decision fields
+  (attribute, condition, direction, model, poolability, lower_spec,
+  upper_spec, statistical crossing, supported shelf life, observed
+  data, extrapolation flag, limiting-decision inclusion +
+  exclusion reason, unit, governing batch). Designed for LIMS /
+  regulatory-tracking ingestion. New
+  `AcceptanceCriteriaRow` dataclass.
+- **`StabilityResult.lower_spec` / `upper_spec` fields** (additive,
+  default None). Records the spec limits the engine used —
+  data-derived or metadata-overridden. Lets callers read the
+  decision-driving limits without reaching into `ValidatedData`.
+  Backed by the v0.7.0 metadata-override wire (see Fixed below).
+- **`compute_sensitivity` in `openpharmastability.api`**. New
+  high-level API helper that takes a `StabilityResult` +
+  `ValidatedData` and returns a `SensitivityReport` (the same
+  function the engine calls internally).
+
+### Fixed
+- **Multi-attribute metadata `lower_spec` / `upper_spec` override is
+  now applied to the per-attribute decision.** The v0.2.1
+  CHANGELOG claimed "metadata override is now applied to per-
+  attribute analysis"; v0.7.0 makes that true. The override now
+  replaces the data-derived spec for the crossing solver, the
+  supported shelf life, the JSON record, and the HTML report. The
+  v0.7.0 release closes a known discrepancy between the
+  CHANGELOG and the code.
+- **`tools/regen_expected.py` is now pure-numpy (no statsmodels).**
+  The v0.1.1 known-open item ("regen uses statsmodels for
+  COMMON_SLOPE — reduces independence") is finally closed. The
+  COMMON_SLOPE fit is built from a hand-built treatment-coded
+  design matrix and solved with `numpy.linalg.lstsq`; the bound is
+  computed via `c @ cov @ c` directly. The independent validator
+  no longer shares an OLS backend with the engine.
+- **`engine.analyze()` now supports XLSX input directly.** The
+  single-attribute path used to require CSV; XLSX had to be
+  reloaded by the CLI for the plot. v0.7.0 adds a `load_table`
+  dispatcher in `data/io.py` that handles `.csv`, `.xlsx`, and
+  `.xlsm` by extension; the engine calls `load_table` instead of
+  `load_csv`. The single-attribute CLI path now matches the multi-
+  attribute path: any format the data layer supports is accepted.
+
+### Tests
+- `validation/test_regen.py` extended (new test): asserts the
+  regen script does not import statsmodels. The existing
+  `test_script_does_not_import_project_stats` tuple is extended
+  to forbid `"statsmodels"` as well.
+- `validation/test_data_io.py` extended: `load_table` CSV / XLSX
+  dispatch, unsupported-extension error, XLSX sheet-selection
+  round-trip.
+- `validation/test_engine.py` extended: `analyze()` accepts an
+  XLSX mirror of the golden fixture and produces the same numeric
+  result.
+- `validation/test_multi_engine.py` extended: metadata
+  `lower_spec` / `upper_spec` override changes the per-attribute
+  result; `result.lower_spec` / `result.upper_spec` record the
+  override values; existing multi-attribute fixture (no override)
+  still has `impurity_a` as the limiting attribute.
+- `validation/test_sensitivity.py` (new, ~6 tests): golden fixture
+  has 4 influential points; `compute_sensitivity` returns 4 rows;
+  the per-row `leave_one_out_supported_shelf_life` differs from
+  the baseline; the `summary` string is short and non-empty.
+- `validation/test_cli.py` extended: `--sensitivity` flag is
+  accepted; `--acceptance-csv PATH` writes a CSV with one row per
+  eligible attribute; both flags compose with the existing
+  single + multi paths.
+- `validation/test_reporting.py` and
+  `validation/test_multi_reporting.py` extended: the new fields
+  are surfaced in the JSON record and the HTML report.
+- Total: ~420 tests passing (was 390 at v0.6.0; +30 new across
+  regen purity, XLSX dispatch, sensitivity, metadata override,
+  acceptance CSV, and reporting).
+
+### Backward compatibility
+- All v0.6.0 single-attribute and multi-attribute golden paths
+  still pass. The default analyze path is byte-equivalent
+  (`engine.analyze` now calls `load_table` which is a thin
+  wrapper around `load_csv` for `.csv` paths; the numeric result
+  is identical).
+- v0.6.0 callers that don't import the new `stats.sensitivity`
+  module or the new API helper are unaffected; all new fields
+  and helpers are additive with permissive defaults.
+- `--sensitivity` and `--acceptance-csv` are opt-in; default
+  behavior unchanged.
+- The `StabilityResult.lower_spec` / `upper_spec` fields are
+  `None` by default for callers that build `StabilityResult`
+  by hand. v0.7.0 callers that use the engine get the
+  data-derived specs recorded automatically.
+
 ## [0.6.0] — 2026-06-13 — Export + API Foundation
 
 ### Theme

@@ -1,13 +1,19 @@
 # OpenPharmaStability
 
 ICH Q1E-inspired stability analysis and shelf-life reporting toolkit for
-pharmaceutical development. **v0.5.1** is the current release. The v0.1
+pharmaceutical development. **v0.7.0** is the current release. The v0.1
 baseline (one attribute, one long-term condition, fixed-effect ANCOVA,
 one-sided 95% bound, lower-spec crossing) has been extended with multi-
 attribute analysis, XLSX input, data-quality auditing, real BQL policies,
-transform-candidate evidence, ICH Q1A(R2) significant-change gating, and
+transform-candidate evidence, ICH Q1A(R2) significant-change gating,
 opt-in advanced statistics (Arrhenius, MKT, reduced-design detection,
-random-effects mixed model).
+random-effects mixed model), a Python API + report artifacts (PDF +
+self-contained HTML bundles), and a v0.7.0 backend-features layer
+(sensitivity analysis, acceptance-criteria CSV export, multi-attribute
+metadata spec override, direct XLSX support in the engine, pure-numpy
+regen). **No frontend** — the UI pass (Cloudflare Pages + Claude
+Design) is deferred to a future release per the user's "features first,
+website last" reshape.
 
 - CSV or XLSX input (single or multi attribute, single long-term condition)
 - N-batch fixed-effect ANCOVA poolability at alpha = 0.25
@@ -40,7 +46,7 @@ openpharmastability analyze examples/assay_3batch.csv \
     --output build/report.html
 ```
 
-## v0.5.1 quick start
+## v0.7.0 quick start
 
 ### Single-attribute (v0.1 back-compat)
 
@@ -53,7 +59,20 @@ openpharmastability analyze examples/assay_3batch.csv \
 Result: model=`common_slope_batch_intercepts`, statistical
 crossing 17.95 mo, supported shelf life **17 mo**. The JSON record
 also carries a `model_convergence` block (always populated; the
-OLS / fixed-effect path reports `converged=True, boundary=False`).
+OLS / fixed-effect path reports `converged=True, boundary=False`)
+and the v0.7.0 `lower_spec` / `upper_spec` fields (the spec
+limits the engine used).
+
+### Direct XLSX (v0.7.0)
+
+The single-attribute `engine.analyze()` now accepts `.xlsx` and
+`.xlsm` directly via the `load_table` dispatcher in `data/io.py`:
+
+```bash
+openpharmastability analyze examples/assay_3batch.xlsx \
+    --condition "25C/60RH" --attribute assay \
+    --output build/xlsx_report.html
+```
 
 ### Multi-attribute (v0.2+)
 
@@ -65,7 +84,10 @@ openpharmastability analyze examples/multi_attribute.csv \
 ```
 
 Result: 2 attributes, limiting **impurity_a** at 7 mo, per-attribute
-plots written to `build/plots/`.
+plots written to `build/plots/`. The v0.7.0 release honors the
+multi-attribute metadata `lower_spec` / `upper_spec` override
+end-to-end: the override is applied to the per-attribute analysis
+(v0.2.1 CHANGELOG claim, finally true in v0.7.0).
 
 ### XLSX with same-workbook metadata (v0.2.1+)
 
@@ -108,7 +130,7 @@ adds a "Transform Candidate Evidence" section listing AICc,
 s_resid, normality p, and homoscedasticity p for `none`,
 `log`, and `sqrt` candidates. The recommendation is the valid
 candidate with the lowest AICc; `recommendation_is_official`
-is always False through v0.5.1.
+is always False.
 
 ### ICH Q1A significant-change gating (v0.4.0)
 
@@ -163,6 +185,52 @@ Q1A-gated extrapolation. The opt-ins add `arrhenius_result`,
 to the result; the v0.5.1 hotfix also surfaces
 `model_convergence` at the top level for the mixed-model path.
 
+### Export + artifact + acceptance-criteria (v0.6.0 + v0.7.0)
+
+```bash
+# v0.6.0: PDF copy (requires `pip install openpharmastability[pdf]`
+# OR `.[pdf-fallback]`)
+openpharmastability analyze stability.csv \
+    --condition "25C/60RH" --attribute assay \
+    --output build/report.html --pdf build/report.pdf
+
+# v0.6.0: self-contained report bundle (HTML with the plot inlined
+# as a base64 data URL, JSON, plots, optional PDF) with SHA-256
+# digests and byte sizes.
+openpharmastability analyze stability.csv \
+    --condition "25C/60RH" --attribute assay \
+    --output build/report.html --artifact-dir build/bundle
+
+# v0.7.0: leave-one-out sensitivity over Cook's-distance outliers
+openpharmastability analyze stability.csv \
+    --condition "25C/60RH" --attribute assay \
+    --sensitivity --output build/report.html
+
+# v0.7.0: flat acceptance-criteria CSV for LIMS / regulatory
+# tracking ingestion.
+openpharmastability analyze stability.csv \
+    --condition "25C/60RH" --attribute assay \
+    --acceptance-csv build/acceptance.csv
+```
+
+### Python API (v0.6.0, programmatic surface)
+
+```python
+from openpharmastability import analyze_csv, analyze_multi, make_artifact
+result = analyze_csv("examples/assay_3batch.csv",
+                    condition="25C/60RH", attribute="assay")
+print(result.supported_shelf_life_months)   # 17
+
+multi = analyze_multi("examples/multi_attribute.csv",
+                      condition="25C/60RH", all_attributes=True,
+                      metadata_path="examples/multi_attribute_metadata.csv")
+print(multi.limiting_attribute, multi.supported_shelf_life_months)
+# impurity_a 7
+
+artifact = make_artifact(result, "build/bundle")
+print(artifact.html_sha256)   # byte-portable HTML
+```
+
 ### Reproducible reports (v0.1.1+)
 
 ```bash
@@ -191,22 +259,24 @@ and an INFO entry for a row whose `condition` doesn't match the
 requested one. The engine still runs (the audit reports, it does
 not gate).
 
-## What v0.5.1 adds over v0.4.0
+## What v0.7.0 adds over v0.6.0
 
-| Area | v0.5.0 | v0.5.1 (audit patch) |
+| Area | v0.6.0 | v0.7.0 (backend features) |
 |---|---|---|
-| Arrhenius | New module + `--arrhenius` flag; fits `ln(k) = ln(A) − Ea/(R·T)` from per-temperature OLS slopes. | Hook now filters to the selected attribute and respects the declared direction (decreasing vs increasing degradant). |
-| MKT | New module + `--mkt` flag; Haynes equation with the USP <1160> default `Ea = 83.144 kJ/mol`. | Emits an explicit warning when `--mkt` is requested but the input has no `temp_c` column. |
-| Reduced designs (ICH Q1D) | New module + `--detect-reduced-design` flag; flags bracketing and matrixing. | Unchanged. |
-| Random effects | Opt-in `--random-effects` mixed model via statsmodels `mixedlm`. | Mixed-model convergence / boundary status is now a top-level `StabilityResult.model_convergence` field, surfaced in warnings, the JSON record, and the HTML report. |
-| Documentation | — | README / HANDOVER / NEXT_STEPS synced to v0.5.1. |
-| Tests | 341 → ~350 at v0.5.0. | New conftest hard-requires the v0.5 modules; new direction / convergence / MKT-warning tests; **360 total**. |
+| Engine input | CSV only (XLSX reloaded separately for the plot). | `engine.analyze()` now calls a new `load_table` dispatcher in `data/io.py`; accepts `.csv`, `.xlsx`, `.xlsm` directly. |
+| Multi-attribute metadata override | `lower_spec` / `upper_spec` recorded on `AttributeMetadata` but NOT applied to the per-attribute decision (v0.2.1 CHANGELOG claim was a lie). | Override is now applied to the per-attribute temp CSV before `analyze()` runs; the per-attribute result reflects the override. New `StabilityResult.lower_spec` / `upper_spec` fields record the engine-used value. |
+| Sensitivity analysis | Diagnostics flagged Cook's-distance outliers but the report only mentioned them. | New `stats.sensitivity.compute_sensitivity` re-runs the analysis with each influential point removed and reports the new supported shelf life. `--sensitivity` flag attaches a `SensitivityReport`. New `StabilityResult.sensitivity_report` field. |
+| Acceptance criteria | The JSON record was the only machine-readable artifact. | New `--acceptance-csv PATH` flag emits a flat 15-column CSV (one row per analyzed attribute) for LIMS / regulatory-tracking ingestion. New `AcceptanceCriteriaRow` dataclass + `to_acceptance_criteria` helper. |
+| Regen validator | Used statsmodels for COMMON_SLOPE — shared an OLS backend with the engine (v0.1.1 known-open). | `tools/regen_expected.py` is now pure-numpy: hand-built design matrix + `np.linalg.lstsq` + `np.linalg.inv` for the covariance. The validator is fully independent of the engine. |
+| Documentation | — | README / HANDOVER / NEXT_STEPS / CHANGELOG all synced to v0.7.0. |
+| Tests | 390 → ~410 at v0.6.0. | 390 → **421** at v0.7.0; new tests for regen purity, `load_table` dispatch, metadata spec override, sensitivity, acceptance-criteria CSV, and reporting. |
 
-The v0.4.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
+The v0.6.0 shelf-life math is **unchanged** (linear, raw-scale, fixed-effect
 batch, alpha = 0.25, one-sided 95% t-quantile, floor rounding, worst-case
-earliest crossing, Q1A significant-change gating). v0.5.x layers
-opt-in exploratory analyses on top; the default path produces the
-same numbers as v0.4.0.
+earliest crossing, Q1A significant-change gating, PDF + artifact
+export). v0.7.0 layers opt-in sensitivity / acceptance-criteria on top
+plus bug-fixes (regen purity, XLSX dispatch, metadata override); the
+default path produces the same numbers as v0.6.0.
 
 See `CHANGELOG.md` for the full per-release entries. Future work and
 known limitations are tracked in `NEXT_STEPS.md`.
@@ -217,11 +287,20 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The golden-file test in `validation/test_golden.py` locks slope, intercept,
-residual SE, one-sided 95% bound, statistical crossing, and rounded shelf
-life against the frozen expected values in `examples/assay_3batch.expected.json`.
-`validation/conftest.py` fails collection (exit code 2) if any v0.5 module
-is missing — the v0.5 tests are hard-required, not skip-if-missing.
+The full suite is **421 passing** (plus 4 PDF-backend tests that
+skip cleanly on hosts without weasyprint/pdfkit). The golden-file
+test in `validation/test_golden.py` locks slope, intercept,
+residual SE, one-sided 95% bound, statistical crossing, and rounded
+shelf life against the frozen expected values in
+`examples/assay_3batch.expected.json`. `validation/conftest.py`
+fails collection (exit code 2) if any v0.5 module is missing —
+the v0.5 tests are hard-required, not skip-if-missing.
+
+The independent validator `tools/regen_expected.py --check` is
+also part of CI: it recomputes the golden values from scratch
+using a pure-numpy path and exits 0 if the engine still agrees.
+v0.7.0 made the regen fully independent of the engine (no shared
+statsmodels backend).
 
 ## Layout
 
@@ -229,30 +308,39 @@ is missing — the v0.5 tests are hard-required, not skip-if-missing.
 openpharmastability/
   contracts.py         # frozen shared dataclasses / enums / constants
   data/                # CSV/XLSX I/O, schema, condition parser, BQL/replicate/quality
+                       #   load_table (v0.7.0) auto-dispatches by extension
   stats/               # regression, poolability, bounds, diagnostics,
-                       #   transforms (v0.3), arrhenius (v0.5), mkt (v0.5)
+                       #   transforms (v0.3), arrhenius (v0.5), mkt (v0.5),
+                       #   sensitivity (v0.7.0)
   models/              # model selection
   shelf_life/          # engine + extrapolation caps + multi-attribute engine
   regulatory/          # significant-change (v0.4), reduced-design (v0.5)
   reports/             # HTML + JSON decision record (single + multi)
+                       #   + pdf (v0.6) + artifacts (v0.6)
+  api.py               # v0.6.0 thin programmatic surface
   plots/               # confidence-bound plot
   cli.py               # console entry point
 examples/              # sample CSV/XLSX fixtures + expected.json
-validation/            # pytest suites (conftest + 360 tests)
+validation/            # pytest suites (conftest + 421 tests)
 ```
 
 ## Limitations / out of scope (current and future)
 
-v0.5.1 is the current release. The stats engine remains in Python and
-ICH Q1E-style fixed-effect by default; the opt-in advanced features
-above are clearly labelled exploratory. v0.6.0 will add PDF export and
-a Cloudflare Pages UI as a thin client over the existing Python engine;
-the math and the JSON decision record stay authoritative.
+v0.7.0 is the current release. The stats engine remains in Python
+and ICH Q1E-style fixed-effect by default; the opt-in advanced
+features (Arrhenius, MKT, reduced designs, random effects,
+sensitivity, acceptance-criteria CSV) are clearly labelled
+exploratory. **No frontend in v0.6 or v0.7** — the UI pass
+(Cloudflare Pages + Claude Design) is deferred to a future
+release (v0.8.0+ or v1.0) per the user's "features first, website
+last" reshape. When it lands, the UI is a thin client over the
+existing Python engine; the math and the JSON decision record
+stay authoritative.
 
-Out of scope for the current release: PDF export, web UI, REST API,
-multi-condition shelf-life selection (the engine reports per long-term
-condition, not the limiting one), and any GxP / 21 CFR Part 11
-validation claim.
+Out of scope for the current release: web UI, REST API,
+multi-condition shelf-life selection (the engine reports per
+long-term condition, not the limiting one), and any GxP / 21 CFR
+Part 11 validation claim.
 
 ## Reproducibility metadata
 

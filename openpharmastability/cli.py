@@ -412,6 +412,23 @@ def _build_parser() -> argparse.ArgumentParser:
              "Exit code and the file artifacts are unchanged.",
     )
 
+    # ---- v0.7.0 sensitivity + acceptance-criteria flags ----
+    a.add_argument(
+        "--sensitivity", action="store_true", default=False,
+        help="Run the leave-one-out sensitivity analysis over "
+             "Cook's-distance influential points and attach the "
+             "report to the JSON decision record and the HTML "
+             "report. Single-attribute mode only; the flag is a "
+             "silent no-op in multi-attribute mode.",
+    )
+    a.add_argument(
+        "--acceptance-csv", default=None, dest="acceptance_csv",
+        help="Write a flat acceptance-criteria CSV to PATH. One "
+             "row per analyzed attribute (single-attribute mode: "
+             "1 row; multi-attribute mode: 1 row per attribute "
+             "with the per-attribute metadata spec).",
+    )
+
     return p
 
 
@@ -461,6 +478,15 @@ def _engine_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         mkt_ea_kJ_per_mol=float(args.mkt_ea_kj_mol),
         detect_reduced_design=bool(args.detect_reduced_design),
         random_effects=bool(args.random_effects),
+        # v0.7.0: leave-one-out sensitivity analysis. The single-
+        # attribute ``analyze()`` path accepts this kwarg and
+        # attaches the ``SensitivityReport`` to the result; the
+        # multi-attribute ``analyze_many()`` does NOT (its
+        # signature is owned by a parallel build stream and is
+        # out of scope for v0.7.0), so the multi-mode runner
+        # pops this kwarg out before forwarding. The flag is a
+        # silent no-op in multi-attribute mode.
+        run_sensitivity=bool(args.sensitivity),
     )
 
 
@@ -561,6 +587,44 @@ def _write_artifact(
 # ---------------------------------------------------------------------------
 
 
+def _write_acceptance_csv(
+    result: Any,
+    path: str,
+) -> tuple[int, Optional[str]]:
+    """Write the v0.7.0 acceptance-criteria CSV to ``path``.
+
+    Single ``StabilityResult`` -> 1 row. ``MultiAttributeResult`` ->
+    1 row per analyzed attribute. Returns ``(n_rows, warning)``;
+    the warning is non-None on hard failure and is printed by the
+    caller. On success the warning is None and the caller prints a
+    one-line summary.
+
+    The function never raises; any exception is caught and
+    surfaced as a warning so the rest of the CLI flow continues
+    normally. The CSV is ``newline=""`` (Python's csv module
+    contract) and uses ``utf-8`` (the rest of the CLI uses utf-8
+    too).
+    """
+    try:
+        import csv as _csv
+        import dataclasses as _dc
+        from openpharmastability.contracts import AcceptanceCriteriaRow
+        from openpharmastability.reports.record import to_acceptance_criteria
+        rows = to_acceptance_criteria(result)
+        fieldnames = [f.name for f in _dc.fields(AcceptanceCriteriaRow)]
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            w = _csv.DictWriter(f, fieldnames=fieldnames)
+            w.writeheader()
+            for row in rows:
+                w.writerow(_dc.asdict(row))
+    except Exception as exc:  # noqa: BLE001
+        return 0, (
+            f"WARNING: --acceptance-csv {path} requested but writing "
+            f"the CSV failed: {exc!r}"
+        )
+    return len(rows), None
+
+
 def _run_single(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     """v0.1 single-attribute path."""
     out_path = os.path.abspath(args.output)
@@ -611,6 +675,22 @@ def _run_single(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     # JSON
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(to_decision_record(result), f, indent=2)
+
+    # v0.7.0: acceptance-criteria CSV. Best-effort; never crashes
+    # the CLI. The helper ``to_acceptance_criteria`` lives in
+    # ``openpharmastability.reports.record`` and is shared with
+    # the single-attribute JSON record (which embeds the same
+    # list under the ``acceptance_criteria`` key).
+    if args.acceptance_csv:
+        n_rows, accept_warn = _write_acceptance_csv(
+            result, args.acceptance_csv,
+        )
+        if accept_warn:
+            _eprint(accept_warn)
+        elif not bool(args.quiet):
+            print(
+                f"acceptance criteria: wrote {n_rows} row(s) to {args.acceptance_csv}"
+            )
 
     # PDF (best-effort, never crashes)
     pdf_written, pdf_warn = _maybe_render_pdf(
@@ -701,6 +781,13 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     os.makedirs(plots_dir, exist_ok=True)
 
     attrs = _parse_attributes(args.attributes) if args.attributes else None
+    # v0.7.0: ``analyze_many`` does not accept ``run_sensitivity``
+    # (its signature is owned by a parallel build stream and is
+    # out of scope for v0.7.0). Pop the kwarg out of the forwarded
+    # dict so the call does not raise a TypeError on the unknown
+    # keyword. The flag is a silent no-op in multi-attribute mode.
+    multi_kwargs = _engine_kwargs(args)
+    multi_kwargs.pop("run_sensitivity", None)
     result = analyze_many(
         path=args.path,
         condition=args.condition,
@@ -709,7 +796,7 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
         metadata_path=args.metadata_csv,
         data_sheet=args.data_sheet,
         metadata_sheet=args.metadata_sheet,
-        **_engine_kwargs(args),
+        **multi_kwargs,
     )
 
     # Per-attribute plots (skipped in --json-only).
@@ -752,6 +839,21 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
     # JSON
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(to_multi_decision_record(result), f, indent=2)
+
+    # v0.7.0: acceptance-criteria CSV. One row per analyzed
+    # attribute (excluded attributes appear with
+    # ``included_in_limiting_decision=False`` and a non-null
+    # ``exclusion_reason``). Best-effort; never crashes the CLI.
+    if args.acceptance_csv:
+        n_rows, accept_warn = _write_acceptance_csv(
+            result, args.acceptance_csv,
+        )
+        if accept_warn:
+            _eprint(accept_warn)
+        elif not bool(args.quiet):
+            print(
+                f"acceptance criteria: wrote {n_rows} row(s) to {args.acceptance_csv}"
+            )
 
     # PDF (best-effort, never crashes)
     pdf_written, pdf_warn = _maybe_render_pdf(

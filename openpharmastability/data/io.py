@@ -58,4 +58,60 @@ def load_csv(path: str) -> pd.DataFrame:
     return pd.read_csv(p, encoding="utf-8", index_col=False, na_values=[""])
 
 
-__all__ = ["load_csv"]
+def load_table(
+    path: str,
+    sheet: str | int | None = None,
+) -> pd.DataFrame:
+    """Load a stability data file (CSV, XLSX, or XLSM) into a DataFrame.
+
+    Dispatches on the file extension:
+      - .csv  -> load_csv(path)
+      - .xlsx / .xlsm -> load_xlsx(path, sheet_name=sheet)
+      - .xls  -> load_xlsx(path, sheet_name=sheet) (xlrd backend; documented
+                 as legacy and out of scope; raises if not installed)
+
+    This is the v0.7.0 convenience entry point that lets
+    :func:`openpharmastability.shelf_life.engine.analyze` accept CSV and
+    XLSX/XLSM inputs through a single ``path=`` argument. The numeric
+    result is byte-equivalent for ``.csv`` inputs (it forwards to
+    :func:`load_csv`).
+
+    Parameters
+    ----------
+    path:
+        Filesystem path to the input file. Extension determines the
+        loader.
+    sheet:
+        Optional sheet name (str) or zero-based positional index (int)
+        for XLSX/XLSM/XLS files. Forwarded to
+        :func:`openpharmastability.data.xlsx.load_xlsx` as
+        ``sheet_name``. Ignored for ``.csv`` files.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The data, normalized to the same shape :func:`load_csv` would
+        produce (no column renaming, no schema validation; see
+        :func:`openpharmastability.data.schema.validate_and_select`).
+
+    Raises
+    ------
+    ValueError
+        If the file extension is not one of ``.csv``, ``.xlsx``,
+        ``.xlsm``, ``.xls``.
+    FileNotFoundError
+        If ``path`` does not exist.
+    """
+    p = Path(path)
+    ext = p.suffix.lower()
+    if ext == ".csv":
+        return load_csv(path)
+    if ext in (".xlsx", ".xlsm", ".xls"):
+        from openpharmastability.data.xlsx import load_xlsx
+        return load_xlsx(path, sheet_name=sheet)
+    raise ValueError(
+        f"unsupported input extension {ext!r}; use .csv / .xlsx / .xlsm / .xls"
+    )
+
+
+__all__ = ["load_csv", "load_table"]

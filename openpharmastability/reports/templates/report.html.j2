@@ -621,6 +621,36 @@
     </div>
     {% endif %}
 
+    {% if sensitivity_present %}
+    <h2>Sensitivity analysis (leave-one-out over Cook's-distance outliers)</h2>
+    <div class="card">
+      <p><em>{{ sensitivity_report.summary }}</em></p>
+      <table class="summary">
+        <tr>
+          <th>Influential row</th>
+          <th>Baseline shelf (mo)</th>
+          <th>Leave-one-out shelf (mo)</th>
+          <th>&Delta; (mo)</th>
+          <th>Note</th>
+        </tr>
+        {% for r in sensitivity_report.rows %}
+        <tr>
+          <td>{{ r.influential_row_index }}</td>
+          <td>{{ r.baseline_supported_shelf_life }}</td>
+          <td>{{ r.leave_one_out_supported_shelf_life if r.leave_one_out_supported_shelf_life is not none else "&mdash;" }}</td>
+          <td>{{ r.diff_supported_shelf_life_months }}</td>
+          <td>{{ r.note or "" }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      {% if sensitivity_report.notes %}
+      <p class="muted">Notes:
+        {% for n in sensitivity_report.notes %}<br>&middot; {{ n }}{% endfor %}
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <h2>Reproducibility</h2>
     <div class="card">
       <table class="summary">

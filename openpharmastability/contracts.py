@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.6.0"
+TOOL_VERSION: str = "0.7.0"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -245,6 +245,22 @@ class StabilityResult:
     model_convergence: dict[str, Any] = field(default_factory=lambda: {
         "converged": True, "boundary": False, "message": "",
     })
+    # v0.7.0: explicit lower / upper spec fields on the result so
+    # callers can read the spec limits the engine used (data-derived
+    # or metadata-overridden) without reaching into
+    # `ValidatedData`. Always a float or None. The multi-attribute
+    # metadata override (v0.2.1 CHANGELOG claim, finally honored in
+    # v0.7.0) sets these to the metadata values when an override
+    # is supplied; otherwise they are the data-derived spec limits.
+    lower_spec: Optional[float] = None
+    upper_spec: Optional[float] = None
+    # v0.7.0: optional sensitivity report. None when --sensitivity
+    # is not requested; a `SensitivityReport` dataclass instance
+    # otherwise. The report records, for each Cook's-distance
+    # influential point flagged by the diagnostics layer, the
+    # supported shelf life that results from removing that point
+    # and re-running the analysis end-to-end.
+    sensitivity_report: Optional["SensitivityReport"] = None
 
 
 # ---------------------------------------------------------------------------
@@ -527,6 +543,74 @@ class ReportArtifact:
 
 
 # ---------------------------------------------------------------------------
+# v0.7.0 sensitivity + acceptance-criteria contracts (additive)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class SensitivityRow:
+    """One row of the v0.7.0 sensitivity report.
+
+    Records the supported shelf life that results from removing a
+    single flagged influential point (a Cook's-distance outlier
+    identified by the diagnostics layer) and re-running the
+    analysis end-to-end. The diff columns are the absolute change
+    versus the baseline (all-points) supported shelf life.
+    """
+    influential_row_index: int
+    baseline_supported_shelf_life: int
+    leave_one_out_supported_shelf_life: Optional[int]   # None when no crossing
+    leave_one_out_statistical_crossing_months: Optional[float]
+    diff_supported_shelf_life_months: int
+    note: str = ""
+
+
+@dataclass
+class SensitivityReport:
+    """Result of the v0.7.0 sensitivity analysis.
+
+    `rows` is one :class:`SensitivityRow` per Cook's-distance
+    influential point flagged by the diagnostics layer. `summary`
+    is a short human-readable string (e.g. "max delta 2 mo; shelf
+    life robust to outliers" or "max delta 5 mo; a single point
+    drives the shelf-life decision — sensitivity analysis
+    recommended"). `baseline_supported_shelf_life` echoes the
+    all-points number for convenience.
+    """
+    rows: list[SensitivityRow] = field(default_factory=list)
+    summary: str = ""
+    baseline_supported_shelf_life: Optional[int] = None
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class AcceptanceCriteriaRow:
+    """One row of the v0.7.0 acceptance-criteria CSV.
+
+    Emitted by the `--acceptance-csv PATH` CLI flag and the
+    `to_acceptance_criteria` helper. One row per analyzed
+    attribute (eligible attributes only; excluded attributes
+    appear with `included_in_limiting_decision = False` and a
+    non-null `exclusion_reason`).
+    """
+    attribute: str
+    condition: str
+    direction: str
+    model: str
+    poolability: str
+    lower_spec: Optional[float] = None
+    upper_spec: Optional[float] = None
+    statistical_crossing_months: Optional[float] = None
+    supported_shelf_life_months: Optional[int] = None
+    observed_data_months: float = 0.0
+    extrapolation_flag: bool = False
+    included_in_limiting_decision: bool = True
+    exclusion_reason: str = ""
+    unit: Optional[str] = None
+    governing_batch: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
 # Public function signatures (documented here, implemented in owning modules)
 # ---------------------------------------------------------------------------
 #
@@ -622,4 +706,8 @@ __all__ = [
     "ReducedDesignReport",
     # v0.6.0 export + artifacts
     "ReportArtifact",
+    # v0.7.0 sensitivity + acceptance criteria
+    "SensitivityRow",
+    "SensitivityReport",
+    "AcceptanceCriteriaRow",
 ]

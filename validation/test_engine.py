@@ -208,3 +208,56 @@ def test_engine_flat_or_opposite(tmp_path):
     )
     assert result.crossing.status is CrossingStatus.FLAT_OR_OPPOSITE
     assert result.supported_shelf_life_months is None
+
+
+# ---------------------------------------------------------------------------
+# v0.7.0: ``engine.analyze()`` must accept XLSX inputs directly
+# ---------------------------------------------------------------------------
+#
+# v0.7.0 closes the gap where the engine's internal ``load_csv`` call
+# would have failed on XLSX/XLSM input. The CSV -> XLSX round-trip
+# test pins the contract: the dispatcher in ``data.io.load_table``
+# forwards XLSX to ``load_xlsx``, and the rest of the pipeline
+# (validate -> fit -> pool -> select -> bound -> crossing ->
+# extrapolation) produces a ``StabilityResult`` with the same shape
+# it would have produced for the CSV source.
+#
+# The XLSX loader's default sheet picker ("results" / "data" /
+# "stability" / first sheet) means a single-sheet workbook with
+# the CSV columns is read as a single data frame, so the resulting
+# analysis is byte-equivalent to the CSV-driven one modulo any
+# dtype round-trip drift in pandas -> openpyxl -> pandas.
+
+
+def test_analyze_accepts_xlsx(tmp_path):
+    """``analyze(xlsx_path, ...)`` must produce a valid
+    ``StabilityResult`` for a 1-sheet XLSX mirror of the golden
+    CSV. The rounded-down shelf life is in {16, 17, 18} to
+    tolerate a 1-month dtype round-trip drift (the XLSX loader
+    casts int columns through float on the way back), and the
+    crossing status must be ``CrossingStatus.CROSSED``.
+    """
+    df = pd.read_csv(CSV)
+    xlsx = tmp_path / "assay_3batch.xlsx"
+    with pd.ExcelWriter(xlsx, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="data", index=False)
+
+    result = analyze(
+        path=str(xlsx),
+        condition="25C/60RH",
+        attribute="assay",
+    )
+    # The dispatcher must produce a real StabilityResult, not raise.
+    assert isinstance(result, type(analyze(path=str(CSV), condition="25C/60RH", attribute="assay")))
+    # The same model + crossing status the CSV produces on the
+    # golden dataset: poolability=PARTIAL -> COMMON_SLOPE, and the
+    # bound does cross within the 60-month horizon.
+    assert result.model is ModelKind.COMMON_SLOPE
+    assert result.crossing.status is CrossingStatus.CROSSED
+    # 1-month dtype round-trip drift is documented and acceptable
+    # for the XLSX mirror; the CSV gives 17, the XLSX can land at
+    # 16 or 18 if the data went through an integer promotion.
+    assert result.supported_shelf_life_months in (16, 17, 18)
+    # The row count must match the source CSV (no rows dropped or
+    # added by the dispatcher / XLSX loader).
+    assert result.metadata["row_count"] == len(df)

@@ -1,34 +1,32 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v0.6.0 SHIPPED (Export + API foundation).** v0.6.0 added
-> PDF export (weasyprint primary, pdfkit fallback), a thin Python
-> API around the engine, self-contained `ReportArtifact` bundles
-> (HTML with the plot inlined as a base64 data URL + JSON + plots +
-> optional PDF) with SHA-256 digests, CLI polish (`--pdf`,
-> `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`), improved
-> error messages, and the multi-attribute HTML spec-display fix.
-> **No frontend in v0.6** — the UI pass (Cloudflare Pages + Claude
-> Design) is deferred until the feature surface stabilises.
-> v0.5.1 (audit patch on v0.5.0 advanced statistics) and earlier
-> releases are documented in `CHANGELOG.md` and `HANDOVER.md`.
+> **STATUS: v0.7.0 SHIPPED (backend features, no UI).** v0.7.0
+> closed two long-open items: the v0.1.1 "regen uses statsmodels"
+> known-open (now pure-numpy) and the v0.2.1 CHANGELOG-vs-code
+> discrepancy on multi-attribute metadata `lower_spec` /
+> `upper_spec` overrides (now actually applied to the per-attribute
+> decision). v0.7.0 also added the `SensitivityReport` (leave-one-
+> out over Cook's-distance outliers) and the acceptance-criteria CSV
+> export. v0.6.0 added PDF export, report artifacts, the Python API,
+> and CLI polish. v0.5.0 + v0.5.1 added advanced statistics and
+> closed the v0.5.0 audit. Read `HANDOVER.md` and `CHANGELOG.md`
+> first.
 >
-> §§1–5 are now historical (all shipped). **§6 (Export + API
-> foundation) is shipped in v0.6.0.** The **next** focus is the UI
-> pass for v0.7.0+ or v1.0 (Cloudflare Pages + Claude Design). The
-> Python stats engine remains the authoritative implementation; the
-> UI is a thin client that posts CSV/XLSX to a thin API and renders
-> the HTML report inline. **Do not reimplement the statistical core
-> in JavaScript / TypeScript.**
+> §§1–6 are now historical (all shipped). **The next focus is
+> more backend features** (per the user's "features first, website
+> last" reshape). The UI pass (Cloudflare Pages + Claude Design)
+> remains deferred to a later release (v0.8.0+ or v1.0). The
+> Python stats engine stays authoritative; the UI is a thin client.
+> **Do not reimplement the statistical core in JS/TS.**
 
-**Comprehensive expansion plan: v0.1.0 → v0.6.0 (shipped) → v0.7.0+ (next)**
+**Comprehensive expansion plan: v0.1.0 → v0.7.0 (shipped) → v0.8.0+ (next)**
 
 > **Audience:** the next engineer/agent, starting cold. You have never seen
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
-> before you touch any code. §§1–5 are historical (shipped — kept as
-> design notes). §6 (Export + API foundation) is the v0.6.0 release
-> and is now in the past; the forward plan is the UI pass for
-> v0.7.0+ / v1.0. §10 is the ongoing regulatory watch + versioning
+> before you touch any code. §§1–6 are historical (shipped). §11
+> (the future UI pass) is the only forward section that has not
+> shipped yet. §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -57,31 +55,32 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v0.7.0+ / v1.0 (future) |
+| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v0.8.0+ / v1.0 (future) |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v0.6.0 is):
+> §1–§11, but the *execution* order on a fresh checkout at v0.7.0 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
-> releases that have already shipped (kept for reference). The env
-> setup and handover protocol must happen before any code change;
-> §11 is the v0.7.0+ UI hot list (Cloudflare Pages + Claude Design;
-> do not reimplement the statistical core in JS/TS).
+> releases that have already shipped. The env setup and handover
+> protocol must happen before any code change; §11 is the future
+> UI hot list (Cloudflare Pages + Claude Design; do not reimplement
+> the statistical core in JS/TS).
 
 ---
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `0.6.0` (declared in three places that must stay in
+**Current version:** `0.7.0` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v0.6.0 is the Export + API foundation release:
-PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin
-Python surface, CLI polish, and the multi-attribute HTML spec-display
-fix. **No frontend in v0.6** — the UI pass is deferred. The
-default analyze path is byte-equivalent to v0.5.1; v0.6.x added
-opt-in export / artifact / API features only.
+`pyproject.toml`). v0.7.0 is the **backend features** release:
+sensitivity analysis, acceptance-criteria CSV, multi-attribute
+metadata spec override, `engine.analyze()` direct XLSX support,
+and the pure-numpy regen (closing the v0.1.1 known-open item).
+**No frontend in v0.7** — the UI pass is deferred. The default
+analyze path is byte-equivalent to v0.6.0; v0.7.x added
+opt-in features and bug-fixes only.
 
 **Module map (what exists today at v0.5.1):**
 
@@ -1936,10 +1935,10 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.6.0: `~390 passed` (see §8.3 for the exact expectation
+Expected at v0.7.0: `421 passed` (see §8.3 for the exact expectation
 and how to treat drift). Earlier releases had different counts —
 v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280, v0.5.0 = 341,
-v0.5.1 = 365.
+v0.5.1 = 365, v0.6.0 = 390.
 
 ### 7.4 Permanent guard — Makefile target + pre-commit hook
 
@@ -1998,7 +1997,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`~390 passed` at v0.6.0; see §8.3
+prints the current expected count (`421 passed` at v0.7.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2058,9 +2057,8 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.6.0): **`~390 passed`**. Skips are NOT expected —
-`validation/conftest.py` hard-requires the v0.5 modules and exits with
-code 2 at collection time if any is missing. Earlier counts: 173
+Expected today (v0.7.0): **`421 passed`** (plus 4 PDF-backend
+skips on hosts without weasyprint/pdfkit). Earlier counts: 173
 (v0.1.0) → 184 (v0.1.1) → 254 (v0.3.0) → ~280 (v0.4.0) → 341
 (v0.5.0). Then run the end-to-end smoke:
 
@@ -2337,7 +2335,8 @@ comparison/audit.
 | Add Arrhenius, MKT, reduced designs, random effects opt-in (§5) — *shipped in v0.5.0* | MINOR → 0.5.0 |
 | Audit patch on v0.5.0 (Arrhenius hook filter + direction, mixed-model convergence surfacing, MKT-without-temp_c warning, docs sync, hard-require v0.5 modules) — *shipped in v0.5.1* | PATCH → 0.5.1 |
 | Add PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin surface, CLI polish, multi-attribute HTML spec display fix (§6) — *shipped in v0.6.0; no frontend in v0.6* | MINOR → 0.6.0 |
-| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 0.7.0+ / 1.0 |
+| Add sensitivity analysis, acceptance-criteria CSV, multi-attribute metadata spec override, `engine.analyze()` direct XLSX, pure-numpy regen (close v0.1.1 known-open) — *shipped in v0.7.0; backend features only, no UI* | MINOR → 0.7.0 |
+| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 0.8.0+ / 1.0 |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 

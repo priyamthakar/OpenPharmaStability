@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v0.6.0 on a fresh machine.**
+> **You are picking up OpenPharmaStability v0.7.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,18 +9,20 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v0.6.0** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v0.7.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
-copy, and a self-contained `ReportArtifact` bundle (HTML with the
-plot inlined as a base64 data URL, JSON, plots, optional PDF). The
-v0.1 baseline (one attribute, one long-term condition) has been
-extended through v0.2 (multi-attribute + XLSX), v0.3 (data quality +
-BQL + transform evidence), v0.4 (ICH Q1A significant-change
-gating), v0.5 (Arrhenius / MKT / reduced designs / random-effects
-opt-in, plus the v0.5.1 audit patch), and v0.6 (export + API
-foundation). It is a **decision-support /
+copy, a self-contained `ReportArtifact` bundle, an optional
+sensitivity report, and an optional acceptance-criteria CSV.
+The v0.1 baseline has been extended through v0.2 (multi-attribute +
+XLSX), v0.3 (data quality + BQL + transform evidence), v0.4 (ICH
+Q1A significant-change gating), v0.5 (Arrhenius / MKT / reduced
+designs / random-effects opt-in, plus the v0.5.1 audit patch),
+v0.6 (export + API foundation), and v0.7 (backend features only:
+pure-numpy regen, multi-attribute metadata spec override honored,
+sensitivity analysis, acceptance-criteria CSV, direct XLSX
+support in the engine). It is a **decision-support /
 educational** tool: not a regulatory submission tool, not
 submission-ready, and **not** a validated GxP / 21 CFR Part 11
 system. The mandatory disclaimer lives at
@@ -34,26 +36,29 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `0.6.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `0.7.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
 | CLI entry point | `openpharmastability` (console script) |
-| CLI invocation | `openpharmastability analyze <csv> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle]` |
+| CLI invocation | `openpharmastability analyze <csv-or-xlsx> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle] [--sensitivity] [--acceptance-csv acceptance.csv] [--quiet]` |
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
-| Regeneration script | `tools/regen_expected.py` (independent numpy + scipy.stats.t + brentq; no project imports) |
-| Test count | **~390** pytest tests across the files in `validation/` (count via `pytest --collect-only`) |
+| Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
+| Test count | **421** pytest tests across the files in `validation/` (count via `pytest --collect-only`); 4 PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
-| Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact` (re-exported from the top-level package) |
+| Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for` (re-exported from the top-level package) |
 | Report artifact | `contracts.ReportArtifact` — self-contained bundle (HTML with inlined plot, JSON, plots, optional PDF) with SHA-256 digests and byte sizes |
+| Sensitivity report | `contracts.SensitivityReport` — leave-one-out over Cook's-distance outliers, attached when `--sensitivity` is set |
+| Acceptance-criteria CSV | `--acceptance-csv PATH` flag emits a flat CSV (one row per analyzed attribute) for LIMS / regulatory-tracking ingestion |
 
 ### Recent releases
 
 | Version | Theme | What it added |
 |---|---|---|
-| `0.6.0` (current) | Export + API foundation | `reports/pdf.py` (weasyprint primary, pdfkit fallback); `reports/artifacts.py` (`make_report_artifact` with inlined plot); `api.py` thin programmatic surface; new CLI flags `--pdf`, `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`; improved error messages + non-zero exit codes; multi-attribute HTML spec display fix. **No frontend** — UI pass deferred to a later release. |
+| `0.7.0` (current) | Backend features (no UI) | `stats.sensitivity.compute_sensitivity` (leave-one-out over Cook's-distance outliers, `--sensitivity` flag); `to_acceptance_criteria` + `--acceptance-csv PATH` (LIMS-friendly flat CSV); `StabilityResult.lower_spec` / `upper_spec` (the spec limits the engine used); `load_table` dispatcher in `data/io.py` so `engine.analyze()` accepts CSV / XLSX / XLSM directly; multi-attribute metadata `lower_spec` / `upper_spec` override now actually applied (v0.2.1 CHANGELOG claim honored at last); `tools/regen_expected.py` is now pure-numpy (the v0.1.1 "regen uses statsmodels" known-open item is finally closed). **No frontend** — UI pass remains deferred. |
+| `0.6.0` | Export + API foundation | `reports/pdf.py` (weasyprint primary, pdfkit fallback); `reports/artifacts.py` (`make_report_artifact` with inlined plot); `api.py` thin programmatic surface; new CLI flags `--pdf`, `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`; improved error messages + non-zero exit codes; multi-attribute HTML spec display fix. |
 | `0.5.1` | Audit patch on v0.5.0 | Arrhenius hook filtered to selected attribute + direction-aware; mixed-model convergence / boundary status surfaced at `StabilityResult.model_convergence` + warnings + HTML; explicit "no temp_c" warning when `--mkt` is requested without temperature data; docs synced; v0.5 tests now hard-require the v0.5 modules. |
 | `0.5.0` | Advanced statistics | Arrhenius (`stats/arrhenius.py`), MKT (`stats/mkt.py`), reduced-design detection (`regulatory/reduced_design.py`), opt-in random-effects mixed model. All opt-in; default path unchanged. |
 | `0.4.0` | ICH Q1A significant-change gating | `regulatory/significant_change.py`; Q1E extrapolation decision tree; new `StabilityResult` fields for accelerated/intermediate flags + rationale; `--accelerated-condition`, `--intermediate-condition`, `--no-significant-change-gate` CLI flags. |
@@ -111,7 +116,7 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-~390 passed in <Xs>
+421 passed in <Xs> (plus 4 PDF-backend skips on hosts without weasyprint/pdfkit)
 ```
 
 Pass criteria:
@@ -253,16 +258,18 @@ code review check. Do not relax any of them.
 
 ---
 
-## 6. Open warnings (v0.6.0 status)
+## 6. Open warnings (v0.7.0 status)
 
 All v0.1.1, v0.3.1, and v0.5.1 known-open items are now **resolved**
 (documented below under "Recent releases" history).
 
-There are currently **no open known warnings**. The v0.6.0 release
-introduced a new `ReportArtifact` bundle (HTML with inlined plot,
-JSON, plots, optional PDF) which is the recommended format for
-archival / hand-off / audit trails — see §2 and the
-`openpharmastability.api` module for the programmatic surface.
+There are currently **no open known warnings**. The v0.7.0 release
+introduced two new optional analytical surfaces: the
+`SensitivityReport` (leave-one-out over Cook's-distance outliers,
+opt-in via `--sensitivity`) and the acceptance-criteria CSV
+(`--acceptance-csv PATH`, designed for LIMS / regulatory-tracking
+ingestion). See §2 and the `openpharmastability.api` module for
+the programmatic surface.
 
 ### 6.1 v0.1.1 known-open items (all resolved)
 
@@ -272,9 +279,10 @@ archival / hand-off / audit trails — see §2 and the
 - `schema._infer_direction_from_spec` false-positive warning — fixed
   in v0.1.1; declaring `decreasing` or `increasing` on a dataset with
   both spec limits no longer warns.
-- `tools/regen_expected.py` independence — fixed in v0.1.1; the
-  script is pure numpy + scipy.stats.t + pandas + brentq with no
-  statsmodels or project imports.
+- `tools/regen_expected.py` independence — **finally closed in
+  v0.7.0**. The COMMON_SLOPE fit is now pure-numpy
+  (`np.linalg.lstsq` + `np.linalg.inv`); the validator no longer
+  shares an OLS backend with the engine.
 
 ### 6.2 v0.3.0 / v0.3.1 cleanup (all resolved)
 
@@ -325,9 +333,17 @@ convergence surfacing, MKT-without-temp_c warning, docs sync,
 hard-require v0.5 modules. v0.6.0 — PDF export, report artifacts
 (self-contained HTML bundle with inlined plot), Python API, CLI
 polish (--pdf, --no-html, --json-only, --artifact-dir, --quiet),
-multi-attribute HTML spec display fix. **No frontend in v0.6** —
-the UI pass (Cloudflare Pages + Claude Design) is deferred until
-the feature surface stabilises (planned v0.7.0+ or v1.0).
+multi-attribute HTML spec display fix. v0.7.0 — backend
+features only (per user "features first, website last" reshape):
+pure-numpy regen (v0.1.1 "regen uses statsmodels" known-open
+item finally closed), multi-attribute metadata `lower_spec` /
+`upper_spec` override now actually applied (v0.2.1 CHANGELOG
+claim finally honored), `engine.analyze()` accepts XLSX / XLSM
+directly via the `load_table` dispatcher, sensitivity analysis
+(`--sensitivity`, leave-one-out over Cook's-distance outliers),
+acceptance-criteria CSV export (`--acceptance-csv PATH`). **No
+frontend in v0.6 or v0.7** — the UI pass (Cloudflare Pages +
+Claude Design) is deferred to a future release (v0.8.0+ or v1.0).
 
 The three v0.1 audit fixes that mattered most:
 
@@ -379,8 +395,8 @@ question.
    every module imports from. Do not edit unilaterally; additive
    only.
 
-If you are picking up **v0.7.0 / v1.0 UI work** (Cloudflare Pages +
-Claude Design), read `NEXT_STEPS.md` §6 in full and the v0.6.0
+If you are picking up **v0.8.0+ / v1.0 UI work** (Cloudflare Pages +
+Claude Design), read `NEXT_STEPS.md` §11 in full and the v0.7.0
 entry in `CHANGELOG.md` before opening an editor. The Python stats
 engine is the authoritative implementation; the UI is a thin
 client that posts CSV/XLSX to a thin API and renders the HTML

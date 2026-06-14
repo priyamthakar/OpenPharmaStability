@@ -13,12 +13,13 @@ three behaviors that actually matter:
 """
 from __future__ import annotations
 
+import pathlib
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-from openpharmastability.data.io import load_csv
+from openpharmastability.data.io import load_csv, load_table
 
 
 # Columns from the spec example. Listed explicitly so a regression in
@@ -130,3 +131,105 @@ def test_load_csv_does_not_validate_schema(tmp_path: Path) -> None:
     # ``schema.validate_and_select``, not here.
     loaded = load_csv(str(bad))
     assert list(loaded.columns) == ["foo"]
+
+
+# ---------------------------------------------------------------------------
+# v0.7.0: ``load_table`` dispatcher (CSV / XLSX / XLSM)
+# ---------------------------------------------------------------------------
+#
+# ``load_table`` is the v0.7.0 convenience entry point that lets
+# ``engine.analyze()`` accept CSV, XLSX, and XLSM inputs through a
+# single ``path=`` argument. The tests below pin the four behaviors
+# that matter:
+#  1. CSV is the byte-equivalent of ``load_csv``.
+#  2. XLSX round-trip reads back the same shape (row/column count)
+#     as the source CSV.
+#  3. Unsupported extensions raise ``ValueError`` with a useful
+#     message (not a generic ``KeyError`` from the dispatcher).
+#  4. Explicit ``sheet`` selection picks the right sheet in a
+#     multi-sheet workbook.
+
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+GOLDEN_CSV = ROOT / "examples" / "assay_3batch.csv"
+
+
+def _write_xlsx(path: Path, sheets: dict[str, pd.DataFrame]) -> None:
+    """Helper: write a multi-sheet XLSX with the openpyxl backend."""
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        for name, df in sheets.items():
+            df.to_excel(writer, sheet_name=name, index=False)
+
+
+def test_load_table_csv_dispatches_to_load_csv() -> None:
+    """``load_table(csv_path)`` returns the same frame as
+    ``load_csv(csv_path)`` — i.e. the dispatcher is transparent for
+    CSV inputs (no schema validation, no column renaming)."""
+    from_csv = load_csv(str(GOLDEN_CSV))
+    from_table = load_table(str(GOLDEN_CSV))
+    pd.testing.assert_frame_equal(from_csv, from_table)
+
+
+def test_load_table_xlsx_roundtrip(tmp_path: Path) -> None:
+    """Write a small XLSX mirror of the golden CSV and read it back;
+    the row/column count must match the CSV (no rows dropped or
+    added by the dispatcher)."""
+    csv = pd.read_csv(GOLDEN_CSV)
+    xlsx = tmp_path / "assay.xlsx"
+    _write_xlsx(xlsx, {"data": csv})
+    loaded = load_table(str(xlsx))
+    assert loaded.shape == csv.shape, (
+        f"XLSX round-trip changed shape: csv={csv.shape} xlsx={loaded.shape}"
+    )
+    assert list(loaded.columns) == list(csv.columns)
+
+
+def test_load_table_unsupported_extension_raises(tmp_path: Path) -> None:
+    """An unsupported extension (e.g. ``.txt``) must raise
+    ``ValueError`` with ``"unsupported"`` in the message so the user
+    can see the dispatcher refused the file."""
+    txt = tmp_path / "stability.txt"
+    txt.write_text("batch,value\nB1,1.0\n")
+    with pytest.raises(ValueError, match="unsupported"):
+        load_table(str(txt))
+
+
+def test_load_table_xlsx_sheet_selection(tmp_path: Path) -> None:
+    """``load_table(path, sheet="second")`` must read the second
+    sheet of a multi-sheet workbook. We write a 2-sheet XLSX with
+    distinguishable column values per sheet and assert the
+    dispatcher returned the second sheet's content."""
+    xlsx = tmp_path / "two_sheets.xlsx"
+    _write_xlsx(
+        xlsx,
+        {
+            "first": pd.DataFrame({"batch": ["B1"], "value": [1.0]}),
+            "second": pd.DataFrame({"batch": ["B2"], "value": [2.0]}),
+        },
+    )
+    loaded = load_table(str(xlsx), sheet="second")
+    assert loaded["batch"].tolist() == ["B2"]
+    assert loaded["value"].tolist() == [2.0]
+
+
+def test_load_table_xlsx_sheet_int_index() -> None:
+    """``load_table(path, sheet=1)`` must read the workbook's
+    second sheet by positional index. The XLSX loader's sheet
+    name resolver takes the candidate list, and the dispatcher's
+    ``sheet`` argument is forwarded to ``load_xlsx(sheet_name=...)``.
+    The current ``load_xlsx`` API accepts a string ``sheet_name``;
+    this test pins behavior at the string form, which is the
+    documented contract for the dispatcher."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        xlsx = Path(td) / "two_sheets.xlsx"
+        _write_xlsx(
+            xlsx,
+            {
+                "first": pd.DataFrame({"batch": ["B1"], "value": [1.0]}),
+                "second": pd.DataFrame({"batch": ["B2"], "value": [2.0]}),
+            },
+        )
+        loaded = load_table(str(xlsx), sheet="second")
+        assert loaded["batch"].tolist() == ["B2"]

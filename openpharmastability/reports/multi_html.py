@@ -99,6 +99,19 @@ def _per_attr_block(idx: int, ar, plot_relpath: str | None) -> str:
             f'predicted k at {_esc(ar.storage_temp_C)} °C = '
             f'{_esc(f"{ar.predicted_k_at_storage:.4g}")} 1/month</p>'
         )
+    # v0.7.0: per-attribute sensitivity report. Mirrors the single-
+    # attribute "Sensitivity analysis" section header, but in the
+    # multi-attribute compact summary the block is reduced to a
+    # single inline paragraph carrying just the summary string.
+    # Gated on `getattr(..., default)` so the multi-HTML
+    # renderer stays forward-compatible with hand-built fixtures
+    # that predate the v0.7.0 field.
+    sr = getattr(r, "sensitivity_report", None)
+    if sr is not None:
+        v5_bits += (
+            f'<p><strong>Sensitivity:</strong> '
+            f'<em>{_esc(getattr(sr, "summary", ""))}</em></p>'
+        )
     if mkt_present:
         v5_bits += (
             f'<p><strong>MKT:</strong> '

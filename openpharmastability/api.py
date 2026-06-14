@@ -17,7 +17,9 @@ from typing import Optional, Union
 from openpharmastability.contracts import (
     MultiAttributeResult,
     ReportArtifact,
+    SensitivityReport,
     StabilityResult,
+    ValidatedData,
 )
 from openpharmastability.data.io import load_csv
 from openpharmastability.data.schema import validate_and_select
@@ -25,6 +27,7 @@ from openpharmastability.data.xlsx import load_xlsx
 from openpharmastability.plots.confidence_plot import make_confidence_plot
 from openpharmastability.shelf_life.engine import analyze as _analyze_single
 from openpharmastability.shelf_life.multi_engine import analyze_many as _analyze_many
+from openpharmastability.stats.sensitivity import compute_sensitivity
 
 
 # `reports.artifacts` is owned by a parallel build stream and may not
@@ -401,6 +404,28 @@ def analyze_and_artifact(
     return result, artifact
 
 
+# ---------------------------------------------------------------------------
+# Public API: v0.7.0 sensitivity wrapper
+# ---------------------------------------------------------------------------
+
+
+def compute_sensitivity_for(
+    result: StabilityResult,
+    data: ValidatedData,
+    *,
+    horizon: float = 60.0,
+) -> SensitivityReport:
+    """Thin wrapper around :func:`openpharmastability.stats.sensitivity.compute_sensitivity`.
+
+    Convenience helper that re-exports the v0.7.0 leave-one-out
+    sensitivity analysis at the top-level API. The trigger set is
+    ``result.diagnostics.influential_points`` (a list of row indices
+    in the data used for the fit, populated by the diagnostics
+    layer). See the sensitivity module for the full contract.
+    """
+    return compute_sensitivity(result, data, horizon=horizon)
+
+
 __all__ = [
     "analyze_csv",
     "analyze_xlsx",
@@ -408,4 +433,5 @@ __all__ = [
     "analyze_multi",
     "make_artifact",
     "analyze_and_artifact",
+    "compute_sensitivity_for",
 ]

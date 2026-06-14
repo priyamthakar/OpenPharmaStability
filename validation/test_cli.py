@@ -487,3 +487,103 @@ def test_cli_pdf_when_no_backend_warns_not_crashes(tmp_path):
     assert (tmp_path / "report.html").exists()
     assert (tmp_path / "report.json").exists()
     assert (tmp_path / "confidence_plot.png").exists()
+
+
+# ---------------------------------------------------------------------------
+# 14. v0.7.0 -- new CLI flags: --sensitivity, --acceptance-csv
+# ---------------------------------------------------------------------------
+
+
+def test_cli_accepts_sensitivity_flag(tmp_path):
+    """`--sensitivity` is accepted; the CLI exits 0; the JSON
+    decision record carries a populated ``sensitivity_report``
+    with one row per Cook's-distance influential point."""
+    import csv
+    output_html = tmp_path / "report.html"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--sensitivity",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    with open(tmp_path / "report.json") as f:
+        data = json.load(f)
+    # The new field is present and populated.
+    assert "sensitivity_report" in data
+    assert data["sensitivity_report"] is not None
+    assert "rows" in data["sensitivity_report"]
+    # The golden fixture has 4 influential points.
+    assert len(data["sensitivity_report"]["rows"]) == 4
+    # Each row has the documented fields.
+    row = data["sensitivity_report"]["rows"][0]
+    for key in (
+        "influential_row_index",
+        "baseline_supported_shelf_life",
+        "leave_one_out_supported_shelf_life",
+        "leave_one_out_statistical_crossing_months",
+        "diff_supported_shelf_life_months",
+        "note",
+    ):
+        assert key in row, f"missing {key!r} in sensitivity row {row!r}"
+
+
+def test_cli_acceptance_csv_writes_csv(tmp_path):
+    """`--acceptance-csv PATH` writes a flat acceptance-criteria
+    CSV at PATH. Single-attribute mode produces 1 row. The CSV
+    has the documented column names."""
+    import csv
+    output_html = tmp_path / "report.html"
+    csv_path = tmp_path / "acceptance.csv"
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(output_html),
+        "--acceptance-csv", str(csv_path),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    # The CSV file was written.
+    assert csv_path.exists()
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    # Single-attribute mode: exactly 1 row.
+    assert len(rows) == 1
+    # The columns include the documented fields.
+    expected_cols = {
+        "attribute", "condition", "supported_shelf_life_months",
+        "included_in_limiting_decision",
+    }
+    assert expected_cols.issubset(set(reader.fieldnames)), (
+        f"missing columns: {expected_cols - set(reader.fieldnames)}"
+    )
+    # The single row's values are the expected golden ones.
+    assert rows[0]["attribute"] == "assay"
+    assert rows[0]["condition"] == "25C/60RH"
+    assert rows[0]["included_in_limiting_decision"] in ("True", "true", "1")
+    # And the CLI prints the one-line summary on stdout.
+    assert "acceptance criteria: wrote 1 row(s)" in r.stdout
+
+
+def test_cli_acceptance_csv_multi_attribute_writes_csv(tmp_path):
+    """Multi-attribute mode: `--acceptance-csv` produces one row
+    per analyzed attribute."""
+    import csv
+    output_html = tmp_path / "report.html"
+    csv_path = tmp_path / "acceptance_multi.csv"
+    multi_csv = ROOT / "examples" / "multi_attribute.csv"
+    cmd = _resolve_cli() + [
+        str(multi_csv), "--condition", "25C/60RH",
+        "--all-attributes", "--output", str(output_html),
+        "--acceptance-csv", str(csv_path),
+        "--source-epoch", "1700000000",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    assert csv_path.exists()
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    # The shipped multi_attribute fixture has 2 attributes.
+    assert len(rows) == 2
+    # The CLI prints a one-line summary with the row count.
+    assert "acceptance criteria: wrote 2 row(s)" in r.stdout

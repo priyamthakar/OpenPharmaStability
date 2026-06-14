@@ -793,3 +793,144 @@ def test_html_v051_fixed_model_omits_convergence_row(tmp_path):
     assert "Model effects" in body
     # The 'Model convergence' row is NOT present.
     assert "Model convergence" not in body
+
+
+# ---------------------------------------------------------------------------
+# v0.7.0 sensitivity + acceptance-criteria reporting tests (additive)
+# ---------------------------------------------------------------------------
+
+
+def _build_sensitivity_report(rows=None, summary="", baseline=17, notes=None):
+    """Build a minimal SensitivityReport for the reporting tests."""
+    from openpharmastability.contracts import (
+        SensitivityReport,
+        SensitivityRow,
+    )
+    if rows is None:
+        rows = [
+            SensitivityRow(
+                influential_row_index=13,
+                baseline_supported_shelf_life=17,
+                leave_one_out_supported_shelf_life=18,
+                leave_one_out_statistical_crossing_months=18.3,
+                diff_supported_shelf_life_months=1,
+                note="",
+            ),
+            SensitivityRow(
+                influential_row_index=24,
+                baseline_supported_shelf_life=17,
+                leave_one_out_supported_shelf_life=17,
+                leave_one_out_statistical_crossing_months=17.5,
+                diff_supported_shelf_life_months=0,
+                note="",
+            ),
+        ]
+    return SensitivityReport(
+        rows=rows, summary=summary, baseline_supported_shelf_life=baseline,
+        notes=list(notes or []),
+    )
+
+
+def test_record_v070_has_sensitivity_report() -> None:
+    """Single-attribute JSON record must expose the v0.7.0
+    ``sensitivity_report`` and ``acceptance_criteria`` keys. The
+    defaults (no ``--sensitivity``) leave the sensitivity key
+    as ``None`` and the acceptance key as a one-element list
+    mirroring the single result."""
+    result = _make_stability_result()
+    rec = to_decision_record(result)
+    assert "sensitivity_report" in rec
+    # Default (no --sensitivity): None.
+    assert rec["sensitivity_report"] is None
+    # The acceptance-criteria list is always present and has
+    # exactly 1 row (the single-attribute result).
+    assert "acceptance_criteria" in rec
+    assert isinstance(rec["acceptance_criteria"], list)
+    assert len(rec["acceptance_criteria"]) == 1
+    row = rec["acceptance_criteria"][0]
+    for key in (
+        "attribute", "condition", "model", "poolability",
+        "supported_shelf_life_months",
+        "statistical_crossing_months",
+        "observed_data_months",
+        "extrapolation_flag",
+        "included_in_limiting_decision",
+    ):
+        assert key in row, f"missing {key!r} in acceptance row {row!r}"
+    # The single-attribute row is always marked as included
+    # (the limiting decision at the single-attribute level
+    # has no other attribute to compete with).
+    assert row["included_in_limiting_decision"] is True
+    # And the row mirrors the result's headline numbers.
+    assert row["attribute"] == "assay"
+    assert row["condition"] == "25C/60RH"
+    assert row["supported_shelf_life_months"] == 24
+    # JSON-serializable.
+    json.dumps(rec)
+
+
+def test_record_v070_round_trips_populated_sensitivity() -> None:
+    """A populated :class:`SensitivityReport` round-trips through
+    the JSON record losslessly."""
+    result = _make_stability_result()
+    object.__setattr__(
+        result, "sensitivity_report", _build_sensitivity_report(),
+    )
+    rec = to_decision_record(result)
+    assert rec["sensitivity_report"] is not None
+    assert "rows" in rec["sensitivity_report"]
+    assert len(rec["sensitivity_report"]["rows"]) == 2
+    # Each row carries the documented fields.
+    for r in rec["sensitivity_report"]["rows"]:
+        for key in (
+            "influential_row_index",
+            "baseline_supported_shelf_life",
+            "leave_one_out_supported_shelf_life",
+            "leave_one_out_statistical_crossing_months",
+            "diff_supported_shelf_life_months",
+            "note",
+        ):
+            assert key in r, f"missing {key!r} in sensitivity row {r!r}"
+    # And the JSON round-trips losslessly.
+    text = json.dumps(rec)
+    roundtrip = json.loads(text)
+    assert roundtrip == rec
+
+
+def test_html_v070_sensitivity_section_appears_when_present(tmp_path):
+    """When the result carries a populated ``sensitivity_report``,
+    the HTML report includes the 'Sensitivity analysis' section
+    header AND the summary text."""
+    result = _make_stability_result()
+    object.__setattr__(
+        result, "sensitivity_report",
+        _build_sensitivity_report(
+            summary="max delta 1 mo; 1 point changes the shelf life",
+        ),
+    )
+    out = tmp_path / "report_v070.html"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    body = out.read_text(encoding="utf-8")
+    # The section header is present (gated on sensitivity_present).
+    assert "Sensitivity analysis (leave-one-out" in body
+    # And the summary text appears.
+    assert "max delta 1 mo" in body
+    # And the column header for the row table appears.
+    assert "Influential row" in body
+    assert "Baseline shelf (mo)" in body
+    assert "Leave-one-out shelf (mo)" in body
+
+
+def test_html_v070_no_sensitivity_section_by_default(tmp_path):
+    """A default result (``sensitivity_report is None``) must NOT
+    include the 'Sensitivity analysis' section header. The
+    section is gated on the v0.7.0 ``sensitivity_present`` flag."""
+    result = _make_stability_result()
+    # Defensive: confirm the fixture really is the default state.
+    assert getattr(result, "sensitivity_report", None) is None
+    out = tmp_path / "report_v070_silent.html"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    body = out.read_text(encoding="utf-8")
+    # The gated section header is NOT present.
+    assert "Sensitivity analysis (leave-one-out" not in body
+    assert "Influential row" not in body

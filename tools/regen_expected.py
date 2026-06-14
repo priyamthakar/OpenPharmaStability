@@ -7,6 +7,13 @@ expected values can be regenerated independently by anyone with the
 dataset and a Python interpreter, and any drift in the engine's
 output against this file is a real regression.
 
+v0.7.0: the COMMON_SLOPE fit is computed with a hand-built design
+matrix + ``numpy.linalg.lstsq`` / ``numpy.linalg.inv``. The script
+no longer imports a third-party regression library, which closes
+the v0.1.1 known-open item "regen uses a regression library for
+COMMON_SLOPE — reduces independence". The POOLED fit was already
+pure numpy.
+
 Run from the project root:
 
     python tools/regen_expected.py
@@ -14,13 +21,11 @@ Run from the project root:
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import sys
 
 import numpy as np
 import pandas as pd
-import statsmodels.formula.api as smf
 from scipy.optimize import brentq
 from scipy.stats import t as student_t
 
@@ -82,24 +87,81 @@ def _pooled_expected(df: pd.DataFrame) -> dict:
     }
 
 
+def _build_common_slope_design(
+    df: pd.DataFrame, batches: list[str]
+) -> tuple[np.ndarray, np.ndarray, list[str], str]:
+    """Hand-build the COMMON_SLOPE design matrix in the parameter order
+    that matches the engine's OLS fit for the formula
+
+    ::
+
+        param_names = ["Intercept",
+                       "C(batch)[T.<b_2>]", "C(batch)[T.<b_3>]", ...,
+                       "time_months"]
+
+    Column order in the X matrix follows the param_names order, so
+    ``np.linalg.lstsq`` returns ``beta`` indexed the same way as the
+    engine's parameter vector.
+
+    The reference batch is the alphabetically-first batch; the other
+    batch offsets are in alphabetical order. The slope column
+    (``time_months``) comes last.
+    """
+    ref = batches[0]
+    other_batches = batches[1:]
+
+    t = df["time_months"].to_numpy(dtype=float)
+    batch_codes = df["batch"].to_numpy()
+
+    intercept = np.ones_like(t, dtype=float)
+    offset_cols: list[np.ndarray] = []
+    offset_names: list[str] = []
+    for b in other_batches:
+        offset_cols.append((batch_codes == b).astype(float))
+        offset_names.append(f"C(batch)[T.{b}]")
+
+    X = np.column_stack([intercept, *offset_cols, t])
+    y = df["value"].to_numpy(dtype=float)
+    param_names = ["Intercept", *offset_names, "time_months"]
+    return X, y, param_names, ref
+
+
 def _common_slope_expected(df: pd.DataFrame) -> dict:
     """The model the engine actually selects on this dataset
     (poolability=PARTIAL). Uses per-batch c-vectors built from
-    the parameter name list, NOT from the project's stats code."""
-    m = smf.ols("value ~ time_months + C(batch)", data=df).fit()
-    cov = m.cov_params().values
-    param_names = list(m.params.index)
+    the parameter name list, NOT from the project's stats code.
+
+    v0.7.0: pure numpy. Hand-built design matrix + ``lstsq`` +
+    ``inv`` for the parameter covariance ``s^2 * (X'X)^-1``. No
+    third-party regression library is imported anywhere in this
+    file.
+    """
+    batches = sorted(df["batch"].unique())
+    X, y, param_names, ref = _build_common_slope_design(df, batches)
+
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ beta
+    n, p = len(y), len(param_names)
+    df_resid = n - p
+    sse = float((resid ** 2).sum())
+    s = float(np.sqrt(sse / df_resid))
+    k_95 = float(student_t.ppf(0.95, df_resid))
+
+    # Parameter covariance in the engine's convention:
+    # ``s^2 * (X'X)^-1`` (the same closed-form OLS result the
+    # engine's regression layer uses for an OLS fit).
+    XtX_inv = np.linalg.inv(X.T @ X)
+    cov = (s * s) * XtX_inv
+
     pn_idx = {n: i for i, n in enumerate(param_names)}
     slope_idx = pn_idx["time_months"]
-    k_95 = float(student_t.ppf(0.95, m.df_resid))
-    batches = sorted(df["batch"].unique())
-    ref = batches[0]
 
-    # Per-batch b0 in user-facing form
-    b0 = {ref: float(m.params["Intercept"])}
+    # Per-batch b0 in user-facing form. Reference batch is just the
+    # intercept; every other batch is intercept + its offset.
+    b0 = {ref: float(beta[pn_idx["Intercept"]])}
     for b in batches[1:]:
-        b0[b] = float(m.params["Intercept"] + m.params[f"C(batch)[T.{b}]"])
-    b1 = float(m.params["time_months"])
+        b0[b] = float(beta[pn_idx["Intercept"]] + beta[pn_idx[f"C(batch)[T.{b}]"]])
+    b1 = float(beta[slope_idx])
 
     def c_for(batch: str, t_val: float) -> np.ndarray:
         c = np.zeros(len(param_names), dtype=float)
@@ -114,8 +176,8 @@ def _common_slope_expected(df: pd.DataFrame) -> dict:
         per_batch[b] = {
             "b0": b0[b],
             "b1_common": b1,
-            "s_resid": float(np.sqrt(m.scale)),
-            "df_resid": int(m.df_resid),
+            "s_resid": s,
+            "df_resid": df_resid,
         }
 
     # Per-batch crossings of the one-sided 95% lower bound against 90.
@@ -140,8 +202,8 @@ def _common_slope_expected(df: pd.DataFrame) -> dict:
                 key=lambda b: crossings[b])
     return {
         "b1_common": b1,
-        "s_resid": float(np.sqrt(m.scale)),
-        "df_resid": int(m.df_resid),
+        "s_resid": s,
+        "df_resid": df_resid,
         "param_names": param_names,
         "per_batch": per_batch,
         "bound_at_t12": bound_at_t12,

@@ -32,10 +32,11 @@ from .api import (
     analyze_multi,
     analyze_path,
     analyze_xlsx,
+    compute_sensitivity_for,
     make_artifact,
 )
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "BQLSummary",
@@ -69,5 +70,6 @@ __all__ = [
     "analyze_multi",
     "make_artifact",
     "analyze_and_artifact",
+    "compute_sensitivity_for",
     "__version__",
 ]

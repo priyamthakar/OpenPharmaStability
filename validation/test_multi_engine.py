@@ -9,9 +9,12 @@ single-attribute math is already covered by ``test_engine.py``.
 """
 from __future__ import annotations
 
+import os
 import re
+import tempfile
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from openpharmastability.contracts import (
@@ -238,3 +241,253 @@ def test_multi_engine_threads_arrhenius_flag() -> None:
             )
         # model_effects stays "fixed" (random_effects not passed)
         assert ar.result.model_effects == "fixed"
+
+
+# ---------------------------------------------------------------------------
+# 9-13. v0.7.0 — AttributeMetadata.lower_spec / upper_spec override is
+#        threaded through the per-attribute analysis end-to-end. These
+#        tests close the long-standing v0.2.1 CHANGELOG claim
+#        "metadata override is now applied to per-attribute analysis".
+# ---------------------------------------------------------------------------
+
+
+def _write_temp_metadata_csv(rows: list[dict]) -> str:
+    """Write an in-memory metadata table to a temp CSV; return its path.
+
+    Used by the v0.7.0 spec-override tests so the metadata table can
+    be constructed on the fly without committing more fixtures to
+    ``examples/``. The caller is responsible for ``os.unlink``-ing
+    the returned path.
+    """
+    df = pd.DataFrame(rows)
+    tmp = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".csv", delete=False, encoding="utf-8",
+    )
+    df.to_csv(tmp.name, index=False)
+    tmp.close()
+    return tmp.name
+
+
+def test_metadata_lower_spec_override_changes_supported_shelf_life() -> None:
+    """An ``upper_spec`` override on ``impurity_a`` (tighter than the
+    data-derived 0.5) changes the per-attribute supported shelf life
+    AND is recorded on the per-attribute :class:`StabilityResult`.
+
+    The test name carries a small naming legacy from the v0.2.1
+    CHANGELOG — the action is an ``upper_spec`` override (a
+    tightened spec limit), which is the only spec the engine
+    actually evaluates for the ``INCREASING`` ``impurity_a``
+    attribute.
+    """
+    baseline = analyze_many(
+        path=str(DATA_CSV),
+        condition="25C/60RH",
+        attributes=["assay", "impurity_a"],
+    )
+    by_name = {a.metadata.attribute: a for a in baseline.attributes}
+    baseline_supported = by_name["impurity_a"].result.supported_shelf_life_months
+    assert baseline_supported is not None and baseline_supported == 7
+
+    # 0.2 is much tighter than the data-derived 0.5; the upper bound
+    # on the impurity_a mean response crosses 0.2 at ~1.9 months,
+    # so the supported shelf life drops from 7 months to 1 month.
+    meta_path = _write_temp_metadata_csv([
+        {"attribute": "impurity_a", "upper_spec": 0.2},
+    ])
+    try:
+        tightened = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            attributes=["assay", "impurity_a"],
+            metadata_path=meta_path,
+        )
+    finally:
+        os.unlink(meta_path)
+
+    by_name2 = {a.metadata.attribute: a for a in tightened.attributes}
+    impurity = by_name2["impurity_a"]
+    assert impurity.result.supported_shelf_life_months is not None
+    # Tighter spec -> earlier or equal crossing -> smaller or equal
+    # supported shelf life. The override (0.2) is tight enough that
+    # the supported shelf life strictly drops from 7 to 1.
+    assert impurity.result.supported_shelf_life_months < baseline_supported
+    # The override is recorded on the result for the report / JSON.
+    assert impurity.result.upper_spec == 0.2
+    # And the other field stays None (no override on lower_spec).
+    assert impurity.result.lower_spec is None
+    # Assay is untouched: no override in the metadata -> both
+    # spec fields on its result stay None and its supported shelf
+    # life is unchanged.
+    assay = by_name2["assay"]
+    assert assay.result.upper_spec is None
+    assert assay.result.lower_spec is None
+    assert assay.result.supported_shelf_life_months == (
+        by_name["assay"].result.supported_shelf_life_months
+    )
+
+
+def test_metadata_upper_spec_override_recorded_on_result() -> None:
+    """An ``upper_spec`` override on ``assay`` is recorded on the
+    per-attribute :class:`StabilityResult`. The data-derived spec
+    is 110.0; the override is 95.0.
+
+    The crossing math for ``assay`` (``DECREASING``) is determined
+    by the lower spec, not the upper one — so tightening the upper
+    spec does not change the supported shelf life. The test
+    nevertheless asserts the override is recorded, which is the
+    v0.2.1 CHANGELOG claim that v0.7.0 closes.
+    """
+    meta_path = _write_temp_metadata_csv([
+        {"attribute": "assay", "upper_spec": 95.0},
+    ])
+    try:
+        multi = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            attributes=["assay", "impurity_a"],
+            metadata_path=meta_path,
+        )
+    finally:
+        os.unlink(meta_path)
+
+    by_name = {a.metadata.attribute: a for a in multi.attributes}
+    # The override is recorded on the assay per-attribute result.
+    assert by_name["assay"].result.upper_spec == 95.0
+    # The lower spec is not overridden; it stays None on the result.
+    assert by_name["assay"].result.lower_spec is None
+    # Impurity_a is not in the metadata -> both spec fields stay
+    # None on its per-attribute result.
+    assert by_name["impurity_a"].result.upper_spec is None
+    assert by_name["impurity_a"].result.lower_spec is None
+
+
+def test_no_metadata_override_preserves_v020_behavior() -> None:
+    """Without a metadata table, the per-attribute results have
+    ``lower_spec is None`` and ``upper_spec is None`` (the v0.7.0
+    default for hand-built results). The shipped multi-attribute
+    fixture still picks ``impurity_a`` as limiting at 7 months —
+    the v0.2.0 byte-equivalent path is preserved.
+    """
+    multi = analyze_many(
+        path=str(DATA_CSV),
+        condition="25C/60RH",
+        attributes=["assay", "impurity_a"],
+    )
+    assert multi.limiting_attribute == "impurity_a"
+    assert multi.supported_shelf_life_months == 7
+
+    by_name = {a.metadata.attribute: a for a in multi.attributes}
+    for ar in multi.attributes:
+        # No metadata override -> both spec fields on the result
+        # stay at the v0.7.0 default of None. (The data-derived
+        # specs are still in the per-attribute ValidatedData that
+        # the engine used; we just do not echo them onto the
+        # StabilityResult when no override is supplied.)
+        assert ar.result.lower_spec is None
+        assert ar.result.upper_spec is None
+
+
+def test_metadata_override_only_lower() -> None:
+    """A metadata row that supplies only ``lower_spec`` (no
+    ``upper_spec``) is recorded on the per-attribute result as
+    ``lower_spec = override`` and ``upper_spec = None``.
+
+    The override also flows through the data layer: a looser
+    ``lower_spec`` lets the assay drop further before crossing,
+    so the supported shelf life goes UP.
+    """
+    meta_path = _write_temp_metadata_csv([
+        {"attribute": "assay", "lower_spec": 80.0},
+    ])
+    try:
+        multi = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            attributes=["assay", "impurity_a"],
+            metadata_path=meta_path,
+        )
+    finally:
+        os.unlink(meta_path)
+
+    by_name = {a.metadata.attribute: a for a in multi.attributes}
+    assay = by_name["assay"]
+    # The override is recorded on the assay per-attribute result.
+    assert assay.result.lower_spec == 80.0
+    # The upper spec is not overridden; it stays None on the result.
+    assert assay.result.upper_spec is None
+    # The override is threaded through the data layer: the
+    # crossing solver sees the looser lower_spec, so the
+    # supported shelf life is larger than the v0.2.0 baseline.
+    assert assay.result.supported_shelf_life_months is not None
+    assert assay.result.supported_shelf_life_months > 16
+    # Impurity_a is not in the metadata -> both spec fields stay
+    # None on its per-attribute result.
+    assert by_name["impurity_a"].result.lower_spec is None
+    assert by_name["impurity_a"].result.upper_spec is None
+
+
+def test_metadata_override_applied_to_data_layer() -> None:
+    """Verify the per-attribute temp CSV actually has the overridden
+    spec and the supported shelf life is consistent with the
+    override.
+
+    Case A: ``impurity_a.upper_spec = 0.5`` (matches the data-
+    derived 0.5) — the override is a no-op for the math but the
+    field is still recorded. Supported shelf life stays at 7
+    months, statistical crossing time stays at ~7.93 months.
+
+    Case B: ``impurity_a.upper_spec = 0.2`` (tighter than the
+    data-derived 0.5) — the supported shelf life drops below the
+    Case A number, demonstrating the override flows through the
+    data layer end-to-end. The relationship is monotonic: a
+    tighter spec yields an earlier or equal crossing, which
+    yields a smaller or equal supported shelf life.
+    """
+    # Case A: override == data-derived
+    meta_path_equal = _write_temp_metadata_csv([
+        {"attribute": "impurity_a", "upper_spec": 0.5},
+    ])
+    try:
+        equal = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            attributes=["impurity_a"],
+            metadata_path=meta_path_equal,
+        )
+    finally:
+        os.unlink(meta_path_equal)
+
+    equal_result = equal.attributes[0].result
+    # The override is recorded on the result.
+    assert equal_result.upper_spec == 0.5
+    # Override == data-derived -> supported shelf life is the
+    # v0.2.0 baseline (7 months).
+    assert equal_result.supported_shelf_life_months == 7
+    # And the statistical crossing time is the v0.2.0 baseline
+    # (~7.93 months), confirming the per-attribute temp CSV
+    # actually carried the override.
+    assert equal_result.statistical_crossing_months is not None
+    assert abs(equal_result.statistical_crossing_months - 7.934) < 0.01
+
+    # Case B: tighter override
+    meta_path_tight = _write_temp_metadata_csv([
+        {"attribute": "impurity_a", "upper_spec": 0.2},
+    ])
+    try:
+        tight = analyze_many(
+            path=str(DATA_CSV),
+            condition="25C/60RH",
+            attributes=["impurity_a"],
+            metadata_path=meta_path_tight,
+        )
+    finally:
+        os.unlink(meta_path_tight)
+
+    tight_result = tight.attributes[0].result
+    # The override is recorded on the result.
+    assert tight_result.upper_spec == 0.2
+    # Tighter spec -> smaller or equal supported shelf life.
+    assert tight_result.supported_shelf_life_months is not None
+    assert tight_result.supported_shelf_life_months < (
+        equal_result.supported_shelf_life_months
+    )

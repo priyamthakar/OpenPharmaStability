@@ -520,3 +520,42 @@ def test_mkt_with_empty_temp_c_emits_warning(tmp_path) -> None:
     assert any(
         "no finite values" in w for w in result.warnings
     ), f"expected an MKT-empty-temp_c warning in {result.warnings!r}"
+
+
+# ---------------------------------------------------------------------------
+# 13. v0.7.0 — leave-one-out sensitivity analysis (regression test)
+# ---------------------------------------------------------------------------
+
+
+def test_golden_v070_sensitivity_attaches_report() -> None:
+    """``run_sensitivity=True`` attaches a populated
+    :class:`~openpharmastability.contracts.SensitivityReport` to
+    the result. The default path (no flag) leaves the field at
+    ``None`` so v0.6.x callers and hand-built fixtures continue
+    to work unchanged.
+    """
+    # Default path: no flag -> sensitivity_report stays None.
+    default_result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+    )
+    assert default_result.sensitivity_report is None
+    # Opt-in path: --sensitivity equivalent -> a populated
+    # report is attached.
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        run_sensitivity=True,
+    )
+    assert result.sensitivity_report is not None
+    # The golden fixture has 4 Cook's-distance influential
+    # points; the sensitivity helper produces one row per
+    # influential point.
+    assert len(result.sensitivity_report.rows) >= 1
+    # And the baseline shelf life is echoed.
+    assert (
+        result.sensitivity_report.baseline_supported_shelf_life
+        == result.supported_shelf_life_months
+    )
