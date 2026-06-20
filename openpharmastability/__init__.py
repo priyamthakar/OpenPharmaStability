@@ -30,7 +30,10 @@ from .contracts import (
 from .regulatory.profile import (
     DEFAULT_PROFILE,
     GuidanceProfile,
+    PROFILES,
     Q1AE,
+    Q1_CONSOLIDATED_DRAFT,
+    resolve_profile,
 )
 from .api import (
     analyze_and_artifact,
@@ -73,7 +76,10 @@ __all__ = [
     "ValidatedData",
     "GuidanceProfile",
     "Q1AE",
+    "Q1_CONSOLIDATED_DRAFT",
     "DEFAULT_PROFILE",
+    "PROFILES",
+    "resolve_profile",
     "analyze_csv",
     "analyze_xlsx",
     "analyze_path",
