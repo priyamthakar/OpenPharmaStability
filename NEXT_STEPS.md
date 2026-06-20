@@ -2318,6 +2318,15 @@ consolidated Q1 ships, add a `Q1_CONSOLIDATED` profile and a
 new golden file. Keep both profiles available for
 comparison/audit.
 
+> **STATUS (v0.11.0): the guidance-profile abstraction is now COMPLETE.**
+> The registry (`PROFILES`), `resolve_profile()`, the `--guidance` CLI
+> flag, the `profile_name` audit field on `StabilityResult`, JSON + HTML
+> surfacing, and a non-default-profile threading test all shipped in
+> v0.11.0. The only remaining step when ICH Q1 reaches Step 4 is: edit
+> the `Q1_CONSOLIDATED_DRAFT` values in `regulatory/profile.py` in place,
+> optionally switch `DEFAULT_PROFILE` to it, regenerate the golden file,
+> and bump MAJOR. No algorithm rewrite, no contract re-plumbing.
+
 ### 10.3 Versioning strategy (SemVer)
 
 - **PATCH (`0.1.x`):** bug fixes, doc/test additions, warning-text
@@ -2349,7 +2358,8 @@ comparison/audit.
 | Add PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin surface, CLI polish, multi-attribute HTML spec display fix (§6) — *shipped in v0.6.0; no frontend in v0.6* | MINOR → 0.6.0 |
 | Add sensitivity analysis, acceptance-criteria CSV, multi-attribute metadata spec override, `engine.analyze()` direct XLSX, pure-numpy regen (close v0.1.1 known-open) — *shipped in v0.7.0; backend features only, no UI* | MINOR → 0.7.0 |
 | Add Arrhenius-driven shelf-life prediction, leave-one-batch-out sensitivity (`--sensitivity-mode batch`), cross-platform `Makefile` — *shipped in v0.8.0; more backend features, no UI* | MINOR → 0.8.0 |
-| Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped in v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
+| Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
+| Finish GuidanceProfile abstraction (registry + `--guidance` + `profile_name` audit + threading test) — *shipped v0.11.0* | MINOR → 0.11.0 |
 | UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 1.0 |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |

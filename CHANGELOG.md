@@ -4,6 +4,51 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [0.11.0] — 2026-06-20 — GuidanceProfile abstraction completed (CLI + audit + tests)
+
+### Theme
+Pure backend release, no UI changes. Completes the v0.10.0
+GuidanceProfile seam: the active profile is now selectable from the
+CLI, recorded as an audit fact on the result, surfaced in the JSON
+and HTML reports, and proven to actually drive engine output via a
+non-default-profile test. The default path is byte-identical to
+v0.10.0; the golden file is unchanged.
+
+### Added
+- **Profile registry + `resolve_profile()`** (`regulatory/profile.py`).
+  `PROFILES = {"q1ae": Q1AE, "q1-consolidated-draft": Q1_CONSOLIDATED_DRAFT}`;
+  case-insensitive lookup; unknown names raise `ValueError` with the
+  available keys. Exported from the package top level.
+- **`Q1_CONSOLIDATED_DRAFT` profile** — a PROVISIONAL placeholder
+  pending ICH Q1 consolidated Step 4. Its values mirror Q1AE so
+  selecting it is numerically inert until the final numbers are
+  confirmed; edit the values at Step 4 and bump MAJOR.
+- **`--guidance` CLI flag** (`cli.py`). Default `q1ae`; choices
+  `q1ae`, `q1-consolidated-draft`. Forwarded to both `analyze` and
+  `analyze_many` via `_engine_kwargs`; unknown names exit 2 with a
+  one-line ERROR.
+- **`StabilityResult.profile_name`** (`contracts.py`) — additive
+  field defaulting to `"Q1A_R2+Q1E"`; set by the engine from
+  `profile.name`.
+- **`guidance_profile` in the JSON decision record** (`record.py`,
+  `multi_record.py`) and the **HTML report** (`html.py`,
+  `report.html.j2` assumptions table).
+- **Tests** (16 new): registry/resolver (6), `profile_name` field (2),
+  engine `profile_name` recording + non-default-quantile threading
+  proof (3), CLI `--guidance` (unknown→exit 2, q1ae==default,
+  draft→profile_name) (3), JSON + HTML audit surfacing (2).
+
+### Changed
+- `--assay-change-threshold` default is now `None`, resolved from
+  the active profile's `assay_change_threshold_pct` (5.0 for Q1AE)
+  when not explicitly set. Default behavior unchanged.
+- `TOOL_VERSION` bumped to `0.11.0` (three locations).
+
+### Notes
+- The golden file is unchanged — v0.11 only adds opt-in selection
+  and audit; the default `analyze()` path is bit-identical to v0.10.0.
+- `python tools/regen_expected.py --check` still exits 0.
+
 ## [0.10.0] — 2026-06-14 — GuidanceProfile abstraction + bidirectional quantile fix
 
 ### Theme
