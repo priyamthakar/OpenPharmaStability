@@ -335,9 +335,9 @@ def _build_parser() -> argparse.ArgumentParser:
              "Pass the empty string to skip the gate for this run.",
     )
     a.add_argument(
-        "--assay-change-threshold", type=float, default=5.0,
-        help="Percent change in assay that counts as significant "
-             "(default: 5.0).",
+        "--assay-change-threshold", type=float, default=None,
+        help="Percent change in assay that counts as significant. "
+             "Defaults to the active guidance profile's value (5.0 for Q1AE).",
     )
     a.add_argument(
         "--no-significant-change-gate", action="store_true", default=False,
@@ -471,6 +471,14 @@ def _build_parser() -> argparse.ArgumentParser:
              "decision.",
     )
 
+    # ---- v0.11.0 guidance-profile selection ----
+    a.add_argument(
+        "--guidance", default=None,
+        help="Active guidance profile (default: 'q1ae' = ICH Q1A(R2)+Q1E). "
+             "Choices: q1ae, q1-consolidated-draft (PROVISIONAL, pending "
+             "ICH Q1 Step 4 — numerically inert until then).",
+    )
+
     return p
 
 
@@ -502,6 +510,17 @@ def _parse_attributes(raw: str | None) -> list[str]:
 
 def _engine_kwargs(args: argparse.Namespace) -> dict[str, Any]:
     """The kwargs common to both the single and multi analyze calls."""
+    # v0.11.0: resolve the active guidance profile from --guidance. An
+    # unknown name exits 2 with a one-line ERROR (usage-error contract)
+    # rather than propagating a ValueError traceback from inside the
+    # runner. ``profile`` is forwarded to both ``analyze`` and
+    # ``analyze_many`` (both accept ``profile=``); the multi runner pops
+    # only the single-only kwargs, not ``profile``.
+    from openpharmastability.regulatory.profile import resolve_profile
+    try:
+        profile = resolve_profile(args.guidance)
+    except ValueError as exc:
+        _exit_error(f"ERROR: {exc}", code=2)
     return dict(
         product_type=args.product_type,
         horizon=args.horizon,
@@ -512,8 +531,17 @@ def _engine_kwargs(args: argparse.Namespace) -> dict[str, Any]:
         source_epoch=args.source_epoch,
         accelerated_condition=_optstr_to_none(args.accelerated_condition),
         intermediate_condition=_optstr_to_none(args.intermediate_condition),
-        assay_change_threshold=float(args.assay_change_threshold),
+        # v0.11.0: default (None) resolves to the active profile's
+        # assay_change_threshold_pct (5.0 for Q1AE), preserving the
+        # v0.10.0 default behavior.
+        assay_change_threshold=(
+            float(args.assay_change_threshold)
+            if args.assay_change_threshold is not None
+            else float(profile.assay_change_threshold_pct)
+        ),
         no_significant_change_gate=bool(args.no_significant_change_gate),
+        # v0.11.0: the active guidance profile, forwarded to both engines.
+        profile=profile,
         run_arrhenius=bool(args.arrhenius),
         arrhenius_storage_temp_C=float(args.arrhenius_storage_temp),
         run_mkt=bool(args.mkt),

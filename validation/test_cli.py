@@ -587,3 +587,32 @@ def test_cli_acceptance_csv_multi_attribute_writes_csv(tmp_path):
     assert len(rows) == 2
     # The CLI prints a one-line summary with the row count.
     assert "acceptance criteria: wrote 2 row(s)" in r.stdout
+
+
+# ---------------------------------------------------------------------------
+# v0.11.0 — --guidance flag
+# ---------------------------------------------------------------------------
+
+
+def test_cli_guidance_unknown_exits_2(tmp_path):
+    cmd = _resolve_cli() + [
+        str(CSV), "--condition", "25C/60RH",
+        "--attribute", "assay", "--output", str(tmp_path / "o.html"),
+        "--guidance", "bogus",
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    assert r.returncode == 2
+    assert "unknown guidance profile" in r.stderr
+
+
+def test_cli_guidance_q1ae_matches_default(tmp_path):
+    a = _run_cli("--source-epoch", "1700000000", output_dir=tmp_path / "a")
+    b = _run_cli("--guidance", "q1ae", "--source-epoch", "1700000000",
+                 output_dir=tmp_path / "b")
+    assert a == b
+
+
+def test_cli_guidance_draft_records_profile_name(tmp_path):
+    data = _run_cli("--guidance", "q1-consolidated-draft",
+                    "--source-epoch", "1700000000", output_dir=tmp_path)
+    assert data["guidance_profile"] == "Q1_consolidated_draft"
