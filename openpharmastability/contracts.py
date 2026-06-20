@@ -273,6 +273,11 @@ class StabilityResult:
     # is supplied; otherwise they are the data-derived spec limits.
     lower_spec: Optional[float] = None
     upper_spec: Optional[float] = None
+    # v0.11.0: the active guidance profile's name (an immutable audit fact
+    # for the run). Defaults to the Q1AE profile name so hand-built fixtures
+    # and v0.10.x callers keep working unchanged. Set by the engine from
+    # ``profile.name``; surfaced in the JSON record and HTML report.
+    profile_name: str = "Q1A_R2+Q1E"
     # v0.7.0: optional sensitivity report. None when --sensitivity
     # is not requested; a `SensitivityReport` dataclass instance
     # otherwise. The report records, for each Cook's-distance
