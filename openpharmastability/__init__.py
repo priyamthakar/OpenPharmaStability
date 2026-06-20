@@ -1,6 +1,6 @@
 """OpenPharmaStability — ICH Q1E-inspired stability analysis toolkit."""
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from .contracts import (
     BQLSummary,

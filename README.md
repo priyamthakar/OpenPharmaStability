@@ -1,7 +1,7 @@
 # OpenPharmaStability
 
 ICH Q1E-inspired stability analysis and shelf-life reporting toolkit for
-pharmaceutical development. **v1.0.0** is the current release. The v0.1
+pharmaceutical development. **v1.0.1** is the current release. The v0.1
 baseline (one attribute, one long-term condition, fixed-effect ANCOVA,
 one-sided 95% bound, lower-spec crossing) has grown into a Python-first
 analysis/reporting engine with multi-attribute analysis, XLSX input,
@@ -337,7 +337,7 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The full suite is expected to collect **469 tests** after v1.0.0
+The full suite is expected to collect **483 tests** after v1.0.0
 (plus PDF-backend tests that skip cleanly on hosts without weasyprint/pdfkit).
 Use the project venv on Windows:
 
@@ -388,7 +388,7 @@ validation/            # pytest suites
 
 ## Limitations / out of scope (current and future)
 
-v1.0.0 is the current release. The stats engine remains in Python
+v1.0.1 is the current release. The stats engine remains in Python
 and ICH Q1E-style fixed-effect by default; the opt-in advanced
 features (Arrhenius, MKT, reduced designs, random effects,
 sensitivity, acceptance-criteria CSV) are clearly labelled

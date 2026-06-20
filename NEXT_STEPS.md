@@ -1,6 +1,6 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v1.0.0 SHIPPED (local UI + UI service manifest).** v1.0.0
+> **STATUS: v1.0.1 CURRENT; v1.0.0 UI SHIPPED.** v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
 > v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
@@ -20,8 +20,8 @@
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
 > before you touch any code. §§1–6 are historical (shipped). §11
-> (the future UI pass) is the only forward section that has not
-> shipped as v1.0.0. §10 is the ongoing regulatory watch + versioning
+> (hosted deployment/polish) is the forward UI section that remains
+> after the v1.0.0 local UI shipment. §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -136,7 +136,7 @@ openpharmastability/
     templates/report.html.j2 + multi_report.html.j2
 tools/
   regen_expected.py      # independent numpy/scipy validator (+ --check)
-validation/              # 469 collected pytest tests expected at v1.0.0
+validation/              # 483 collected pytest tests expected at v1.0.0
   conftest.py            # v0.5 module hard-require fail-fast (v0.5.1)
 examples/
   assay_3batch.csv             # golden input
@@ -1940,7 +1940,7 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v1.0.0: `469 collected` and a full green run with host-dependent
+Expected at v1.0.0: `483 collected` and a full green run with host-dependent
 PDF skips (see §8.3 for the exact
 expectation and how to treat drift). Earlier releases had different
 counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
@@ -2003,7 +2003,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`469 collected` at v1.0.0; see §8.3
+prints the current expected count (`483 collected` at v1.0.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2063,9 +2063,9 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v1.0.0): **`469 collected`** and a full green run
+Expected today (v1.0.0): **`483 collected`** and a full green run
 with host-dependent PDF-backend skips. Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
-254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 469 (v1.0.0). Then run the end-to-end smoke:
+254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 483 (v1.0.0). Then run the end-to-end smoke:
 
 ```bash
 openpharmastability analyze examples/assay_3batch.csv \

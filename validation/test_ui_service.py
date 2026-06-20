@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import pathlib
 
+import openpharmastability
 from openpharmastability.ui_service import UIAnalysisOptions, analyze_for_ui
 
 
@@ -28,7 +29,7 @@ def test_analyze_for_ui_single_manifest(tmp_path):
 
     assert data["status"] == "ok"
     assert data["mode"] == "single"
-    assert data["version"] == "1.0.0"
+    assert data["version"] == openpharmastability.__version__
     assert data["guidance_profile"] == "Q1A_R2+Q1E"
     assert data["summary"]["supported_shelf_life_months"] == 17
     assert data["summary"]["limiting_attribute"] == "assay"

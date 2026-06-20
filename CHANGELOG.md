@@ -1,8 +1,22 @@
 # Changelog
 
 All notable changes to OpenPharmaStability are documented here.
-Versions follow [SemVer](https://semver.org/); the project is
-pre-1.0 so breaking changes may appear in minor versions.
+Versions follow [SemVer](https://semver.org/). v1.x releases keep the
+Python statistics engine authoritative and treat UI/API additions as thin
+surfaces over generated artifacts.
+
+## [1.0.1] — 2026-06-20 — release documentation truth sync
+
+### Changed
+- Bumped package/tool version markers to `1.0.1`.
+- Updated README, HANDOVER, and NEXT_STEPS to reflect the live v1.0.0+
+  state: local UI shipped, hosted UI work remains future polish, and the
+  current test collection count is 483.
+- Removed stale handover language that still described the UI pass as future
+  v0.7/v1.0 work.
+
+### Notes
+- No statistics, report-generation, CLI behavior, or UI runtime behavior changed.
 
 ## [1.0.0] — 2026-06-20 — v1 local UI workspace + UI service manifest
 

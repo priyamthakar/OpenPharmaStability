@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "1.0.0"
+TOOL_VERSION: str = "1.0.1"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (

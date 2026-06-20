@@ -59,7 +59,7 @@ verbatim in every HTML report.
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
-| Test count | **469 collected tests** expected after v1.0.0 UI-service tests (confirm via `pytest --collect-only -q`); PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
+| Test count | **483 collected tests** expected after v1.0.0 UI/service/browser-boundary tests (confirm via `pytest --collect-only -q`); PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
 | Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for`; v1 adds `openpharmastability.ui_service.analyze_for_ui` |
@@ -138,12 +138,12 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-469 passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
+483 passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
 ```
 
 Pass criteria:
 
-- The expected collection count is **469** after v1.0.0 (the per-file collection map is in
+- The expected collection count is **483** after v1.0.0 (the per-file collection map is in
   the `pytest --collect-only -q` output; ~33 test files under
   `validation/`).
 - `validation/conftest.py` must import cleanly. If any of the v0.5
@@ -417,12 +417,11 @@ question.
    state, hard rules, open warnings.
 2. **`CHANGELOG.md`** — every release entry from v0.1.0 through
    v0.6.0; what each minor/patch added; backward-compatibility notes.
-3. **`NEXT_STEPS.md`** — the forward plan. v0.6.0 is the current
-   release; the **next** focus is the UI pass (Cloudflare Pages +
-   Claude Design) for v0.7.0+ or v1.0, plus a possible v0.6.x
-   hotfix if the audit surfaces anything. Read §7 (pycache/env
-   integrity) and §8 (agent handover protocol) first, before
-   touching any code.
+3. **`NEXT_STEPS.md`** — the forward plan. v1.0.1 is the current
+   release; the local UI pass has shipped, and the next UI work is
+   hosted deployment/polish over the existing Python-owned stats
+   engine. Read §7 (pycache/env integrity) and §8 (agent handover
+   protocol) first, before touching any code.
 4. **`AGENTS.md`** — the v0.1 build plan, wave structure, and the
    authoritative math in §5. Read-only reference now.
 5. **`OpenPharmaStability.md`** — the product spec / source of truth
@@ -432,10 +431,10 @@ question.
    every module imports from. Do not edit unilaterally; additive
    only.
 
-If you are picking up **v0.9.0+ / v1.0 UI work** (Cloudflare Pages +
-Claude Design), read `NEXT_STEPS.md` §11 in full and the v0.8.0
-entry in `CHANGELOG.md` before opening an editor. The Python stats
-engine is the authoritative implementation; the UI is a thin
-client that posts CSV/XLSX to a thin API and renders the HTML
-report inline. Do not reimplement the statistical core in
-JavaScript / TypeScript.
+If you are picking up **post-v1 UI work** (hosted deployment, browser
+polish, or workflow hardening), read `NEXT_STEPS.md` §11 in full and
+the v1.0.0 entry in `CHANGELOG.md` before opening an editor. The
+Python stats engine is the authoritative implementation; the UI is a
+thin client that posts CSV/XLSX to a thin API and renders the HTML
+report inline. Do not reimplement the statistical core in JavaScript /
+TypeScript.
