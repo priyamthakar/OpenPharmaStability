@@ -86,6 +86,15 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
         "condition": result.condition,
         "product_type": result.product_type,
         "deliverable_term": result.deliverable_term,
+        # v0.11.0: the active guidance profile's name. All per-attribute
+        # results in one run share the same profile (forwarded by
+        # ``analyze_many``); read it from the first attribute's result.
+        # ``getattr`` keeps this robust against hand-built fixtures that
+        # predate the ``profile_name`` field.
+        "guidance_profile": (
+            getattr(result.attributes[0].result, "profile_name", "Q1A_R2+Q1E")
+            if result.attributes else "Q1A_R2+Q1E"
+        ),
         "supported_shelf_life_months": result.supported_shelf_life_months,
         "statistical_crossing_months": result.statistical_crossing_months,
         "limiting_attribute": result.limiting_attribute,

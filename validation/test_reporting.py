@@ -995,3 +995,29 @@ def test_disclaimer_verbatim_in_html(tmp_path):
     assert DISCLAIMER in body, (
         "HTML report does not contain contracts.DISCLAIMER verbatim"
     )
+
+
+# ---------------------------------------------------------------------------
+# v0.11.0 — guidance_profile surfacing in JSON + HTML
+# ---------------------------------------------------------------------------
+
+
+def test_record_carries_guidance_profile():
+    result = _make_stability_result()
+    rec = to_decision_record(result)
+    assert rec["guidance_profile"] == "Q1A_R2+Q1E"
+    # A custom profile_name flows through the record builder.
+    result.profile_name = "custom_profile"
+    assert to_decision_record(result)["guidance_profile"] == "custom_profile"
+
+
+def test_render_html_contains_guidance_profile(tmp_path):
+    result = _make_stability_result()
+    out = tmp_path / "report.html"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    body = out.read_text(encoding="utf-8")
+    assert "Q1A_R2+Q1E" in body
+    # A custom profile_name flows through to the rendered HTML.
+    result.profile_name = "custom_profile"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    assert "custom_profile" in out.read_text(encoding="utf-8")

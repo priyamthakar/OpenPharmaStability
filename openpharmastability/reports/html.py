@@ -297,6 +297,11 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "p_value_intercepts": p_intercepts_str,
         "poolability_alpha": float(pool.alpha),
         "poolability_alpha_ref": float(POOLABILITY_ALPHA),
+        # v0.11.0: the active guidance profile's name, surfaced in the
+        # assumptions table. ``getattr`` keeps the renderer
+        # forward-compatible with hand-built fixtures that predate the
+        # ``profile_name`` field.
+        "guidance_profile": getattr(result, "profile_name", "Q1A_R2+Q1E"),
         "poolability_notes": list(pool.notes or []),
         # Fit summary
         "fit_params": result.fit.params,
