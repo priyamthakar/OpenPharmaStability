@@ -4,6 +4,43 @@ All notable changes to OpenPharmaStability are documented here.
 Versions follow [SemVer](https://semver.org/); the project is
 pre-1.0 so breaking changes may appear in minor versions.
 
+## [1.0.0] — 2026-06-20 — v1 local UI workspace + UI service manifest
+
+### Theme
+First v1 usability release. The mature Python statistics/reporting engine
+remains authoritative, and the UI is a thin local client over Python-generated
+HTML, JSON, plots, and artifact bundles. No statistical logic was reimplemented
+in JavaScript.
+
+### Added
+- **Local v1 UI server** (`openpharmastability.ui_server`) plus the
+  `openpharmastability-ui` console script. It serves a stdlib-only local
+  web workspace for uploading CSV/XLSX data, selecting condition/attributes,
+  choosing product type and guidance profile, toggling advanced options, and
+  previewing/downloading generated report artifacts.
+- **UI-facing service manifest** (`openpharmastability.ui_service`):
+  `UIAnalysisOptions`, `UIAnalysisManifest`, `UIArtifactFile`, and
+  `analyze_for_ui()`. This wraps the existing Python API and standardizes
+  HTML/JSON/plot/PDF artifact metadata, SHA-256 values, warnings, guidance
+  profile, limiting attribute, and supported shelf-life/retest-period summary.
+- **Static v1 workspace assets** under `openpharmastability/ui/static/`.
+  The first screen is the usable analysis workflow, not a marketing page.
+- **Tests** for the UI manifest single-attribute and multi-attribute paths.
+
+### Changed
+- `analyze_and_artifact()` now forwards `replicate_policy` and `bql_policy`
+  into the actual analysis call as well as the plot-rendering validation path.
+  Multi-attribute calls continue to treat single-attribute-only options
+  (sensitivity, Arrhenius shelf-life prediction, per-batch Arrhenius) as
+  no-ops, matching CLI behavior.
+- `TOOL_VERSION` bumped to `1.0.0` (three locations).
+
+### Notes
+- The regulatory disclaimer remains unchanged. v1 is still
+  decision-support / educational software, not a validated GxP or 21 CFR
+  Part 11 system.
+- `.hermes/` remains untracked local workspace state.
+
 ## [0.11.0] — 2026-06-20 — GuidanceProfile abstraction completed (CLI + audit + tests)
 
 ### Theme

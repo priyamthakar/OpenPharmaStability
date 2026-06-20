@@ -156,7 +156,7 @@ def test_cli_substance(tmp_path):
 def test_cli_version():
     r = subprocess.run(_resolve_version_cli(),
                        capture_output=True, text=True, check=True)
-    assert re.match(r"openpharmastability 0\.\d+\.\d+", r.stdout.strip())
+    assert re.match(r"openpharmastability \d+\.\d+\.\d+", r.stdout.strip())
 
 
 # ---------------------------------------------------------------------------

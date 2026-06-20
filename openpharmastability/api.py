@@ -368,14 +368,28 @@ def analyze_and_artifact(
     """
     replicate_policy = str(kwargs.pop("replicate_policy", "individual"))
     bql_policy = str(kwargs.pop("bql_policy", "exclude"))
+    analysis_kwargs = {
+        **kwargs,
+        "replicate_policy": replicate_policy,
+        "bql_policy": bql_policy,
+    }
 
     use_multi = all_attributes or (
         attributes is not None and len(attributes) > 1
     )
     if use_multi:
+        multi_analysis_kwargs = dict(analysis_kwargs)
+        # These options are single-attribute only today. Match the CLI's
+        # behavior: silently no-op them in multi-attribute mode instead of
+        # leaking unsupported keywords into analyze_many().
+        multi_analysis_kwargs.pop("run_sensitivity", None)
+        multi_analysis_kwargs.pop("sensitivity_mode", None)
+        multi_analysis_kwargs.pop("run_arrhenius_shelf_life", None)
+        multi_analysis_kwargs.pop("arrhenius_shelf_life_storage_temp_C", None)
+        multi_analysis_kwargs.pop("run_arrhenius_per_batch", None)
         result = analyze_multi(
             path, condition, attributes, all_attributes,
-            metadata_path, data_sheet, metadata_sheet, **kwargs,
+            metadata_path, data_sheet, metadata_sheet, **multi_analysis_kwargs,
         )
         plot_paths = _render_multi_plots(
             result, path, condition, out_dir,
@@ -385,7 +399,7 @@ def analyze_and_artifact(
         )
     else:
         attr = attribute if attributes is None else attributes[0]
-        result = analyze_path(path, condition, attr, data_sheet, **kwargs)
+        result = analyze_path(path, condition, attr, data_sheet, **analysis_kwargs)
         # ``analyze_path`` may have routed through a temp CSV; we
         # always re-render from the original path so the plot is
         # written to the canonical location.

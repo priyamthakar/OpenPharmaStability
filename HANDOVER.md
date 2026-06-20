@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v0.10.0 on a fresh machine.**
+> **You are picking up OpenPharmaStability v1.0.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,7 +9,7 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v0.10.0** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v1.0.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
@@ -32,7 +32,9 @@ driven shelf-life prediction, leave-one-batch-out sensitivity,
 cross-platform `Makefile`), and v0.9 (more backend features:
 Holm-corrected poolability p-values, multi-engine XLSX dispatch,
 per-batch Arrhenius rate diagnostic with outlier flagging, multi-
-attribute `unit` + `report_order` surfacing). It is a **decision-support /
+attribute `unit` + `report_order` surfacing), v0.10/v0.11
+(GuidanceProfile + profile audit), and v1.0.0 (local UI workspace
+and UI service manifest). It is a **decision-support /
 educational** tool: not a regulatory submission tool, not
 submission-ready, and **not** a validated GxP / 21 CFR Part 11
 system. The mandatory disclaimer lives at
@@ -46,20 +48,21 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `0.9.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `1.0.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
 | Build (cross-platform) | `make fresh` (Linux / macOS / WSL / git-bash) or the PowerShell script in `NEXT_STEPS.md` §7.1 (native Windows) |
 | CLI entry point | `openpharmastability` (console script) |
+| Local UI entry point | `openpharmastability-ui --host 127.0.0.1 --port 8765` |
 | CLI invocation | `openpharmastability analyze <csv-or-xlsx> --condition "25C/60RH" --attribute assay --output report.html [--pdf report.pdf] [--artifact-dir build/bundle] [--sensitivity --sensitivity-mode {row,batch}] [--acceptance-csv acceptance.csv] [--arrhenius-shelf-life] [--arrhenius-per-batch] [--quiet]` |
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
-| Test count | **451** pytest tests across the files in `validation/` (count via `pytest --collect-only`); 4 PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
+| Test count | **469 collected tests** expected after v1.0.0 UI-service tests (confirm via `pytest --collect-only -q`); PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
-| Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for` (re-exported from the top-level package) |
+| Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for`; v1 adds `openpharmastability.ui_service.analyze_for_ui` |
 | Report artifact | `contracts.ReportArtifact` — self-contained bundle (HTML with inlined plot, JSON, plots, optional PDF) with SHA-256 digests and byte sizes |
 | Sensitivity report | `contracts.SensitivityReport` — leave-one-out (row-level or batch-level, via `--sensitivity-mode`) over Cook's-distance outliers, attached when `--sensitivity` is set |
 | Acceptance-criteria CSV | `--acceptance-csv PATH` flag emits a flat CSV (one row per analyzed attribute) for LIMS / regulatory-tracking ingestion |
@@ -71,7 +74,10 @@ verbatim in every HTML report.
 
 | Version | Theme | What it added |
 |---|---|---|
-| `0.9.0` (current) | Backend features (no UI) | `PoolabilityResult.p_slopes_holm` / `p_intercepts_holm` (Holm-Bonferroni corrected p-values for the two-step poolability test); `analyze_many` now accepts XLSX / XLSM directly via the v0.7.0 `load_table` dispatcher (symmetry with the single-attribute path); `--arrhenius-per-batch` flag + per-batch Arrhenius rate dict + outlier-batches list with robust z-score detection; multi-attribute `unit` + `report_order` surfaced in the per-attribute HTML block, the overview table, and a new top-level `attribute_order` key in the multi JSON record. **No frontend** — UI pass remains deferred. |
+| `1.0.0` (current) | Local v1 UI + service manifest | `openpharmastability-ui` local workspace, packaged static UI, `ui_service.analyze_for_ui()` manifest, artifact preview/download flow. Python engine remains authoritative; UI does not reimplement statistics. |
+| `0.11.0` | Guidance profile completion | `--guidance`, profile registry/resolver, `StabilityResult.profile_name`, JSON + HTML guidance audit, non-default-profile threading tests. |
+| `0.10.0` | GuidanceProfile abstraction + bidirectional fix | `GuidanceProfile`, two-sided bidirectional 0.975 quantile, `CrossingResult.governing_side`, additional §9 tests. |
+| `0.9.0` | Backend features (no UI) | `PoolabilityResult.p_slopes_holm` / `p_intercepts_holm` (Holm-Bonferroni corrected p-values for the two-step poolability test); `analyze_many` now accepts XLSX / XLSM directly via the v0.7.0 `load_table` dispatcher (symmetry with the single-attribute path); `--arrhenius-per-batch` flag + per-batch Arrhenius rate dict + outlier-batches list with robust z-score detection; multi-attribute `unit` + `report_order` surfaced in the per-attribute HTML block, the overview table, and a new top-level `attribute_order` key in the multi JSON record. |
 | `0.8.0` | Backend features (no UI) | `stats.arrhenius_shelf_life.predict_arrhenius_shelf_life` (Arrhenius-driven shelf-life prediction; `--arrhenius-shelf-life` flag); `compute_sensitivity` now accepts `mode={row,batch}` for leave-one-batch-out (`--sensitivity-mode {row,batch}` flag); cross-platform `Makefile` (`make fresh / test / regen-check`). |
 | `0.7.0` | Backend features (no UI) | `stats.sensitivity.compute_sensitivity` (leave-one-out over Cook's-distance outliers, `--sensitivity` flag); `to_acceptance_criteria` + `--acceptance-csv PATH` (LIMS-friendly flat CSV); `StabilityResult.lower_spec` / `upper_spec` (the spec limits the engine used); `load_table` dispatcher in `data/io.py` so `engine.analyze()` accepts CSV / XLSX / XLSM directly; multi-attribute metadata `lower_spec` / `upper_spec` override now actually applied (v0.2.1 CHANGELOG claim honored at last); `tools/regen_expected.py` is now pure-numpy (the v0.1.1 "regen uses statsmodels" known-open item is finally closed). |
 | `0.6.0` | Export + API foundation | `reports/pdf.py` (weasyprint primary, pdfkit fallback); `reports/artifacts.py` (`make_report_artifact` with inlined plot); `api.py` thin programmatic surface; new CLI flags `--pdf`, `--no-html`, `--json-only`, `--artifact-dir`, `--quiet`; improved error messages + non-zero exit codes; multi-attribute HTML spec display fix. |
@@ -132,12 +138,12 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-447 passed, 4 skipped in <Xs>  (11 deprecation warnings — see §6)
+469 passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
 ```
 
 Pass criteria:
 
-- The exact count is **447** (the per-file collection map is in
+- The expected collection count is **469** after v1.0.0 (the per-file collection map is in
   the `pytest --collect-only -q` output; ~33 test files under
   `validation/`).
 - `validation/conftest.py` must import cleanly. If any of the v0.5

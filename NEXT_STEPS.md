@@ -1,33 +1,27 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v0.9.0 SHIPPED (more backend features, no UI).** v0.9.0
-> added Holm-Bonferroni corrected poolability p-values, multi-
-> engine XLSX dispatch, per-batch Arrhenius rate diagnostic with
-> outlier flagging, and multi-attribute `unit` + `report_order`
-> surfacing. v0.8.0 added Arrhenius-driven shelf-life prediction,
-> a leave-one-batch-out sensitivity variant, and a cross-platform
-> `Makefile`. v0.7.0 closed two long-open items and added
-> sensitivity analysis and acceptance-criteria CSV export.
-> v0.6.0 added PDF export, report artifacts, the Python API,
-> and CLI polish. v0.5.0 + v0.5.1 added advanced statistics and
-> the v0.5.0 audit patch. Read `HANDOVER.md` and `CHANGELOG.md`
-> first.
+> **STATUS: v1.0.0 SHIPPED (local UI + UI service manifest).** v1.0.0
+> adds the `openpharmastability-ui` local workspace and a stable
+> `ui_service.analyze_for_ui()` manifest over the existing Python engine.
+> v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
+> GuidanceProfile abstraction and bidirectional quantile fix; v0.9.0 added
+> Holm-corrected poolability p-values, multi-engine XLSX dispatch,
+> per-batch Arrhenius diagnostics, and multi-attribute ordering/units.
+> Read `HANDOVER.md` and `CHANGELOG.md` first.
 >
-> §§1–6 are now historical (all shipped). **The next focus is
-> more backend features** (per the user's "features first, website
-> last" reshape). The UI pass (Cloudflare Pages + Claude Design)
-> remains deferred to v1.0. The Python stats engine stays
-> authoritative; the UI is a thin client. **Do not reimplement
-> the statistical core in JS/TS.**
+> §§1–6 are historical (all shipped). The first v1 UI pass has now
+> shipped as a local thin client. The Python stats engine stays
+> authoritative; the UI consumes Python-generated HTML/JSON/plots.
+> **Do not reimplement the statistical core in JS/TS.**
 
-**Comprehensive expansion plan: v0.1.0 → v0.9.0 (shipped) → v1.0 (next)**
+**Comprehensive expansion plan: v0.1.0 → v0.11.0 (backend) → v1.0.0 (local UI shipped)**
 
 > **Audience:** the next engineer/agent, starting cold. You have never seen
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
 > before you touch any code. §§1–6 are historical (shipped). §11
 > (the future UI pass) is the only forward section that has not
-> shipped yet. §10 is the ongoing regulatory watch + versioning
+> shipped as v1.0.0. §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -56,34 +50,30 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v1.0 (future) |
+| 11 | **UI pass (local workspace + future hosted polish)** | v1.0.0 shipped / hosted future |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v0.9.0 is):
+> §1–§11, but the *execution* order on a fresh checkout at v1.0.0 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
 > releases that have already shipped. The env setup and handover
-> protocol must happen before any code change; §11 is the future
-> UI hot list (Cloudflare Pages + Claude Design; do not reimplement
-> the statistical core in JS/TS).
+> protocol must happen before any code change; §11 now records the
+> local UI shipped in v1.0.0 plus hosted/UI-polish follow-ups.
 
 ---
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `0.9.0` (declared in three places that must stay in
+**Current version:** `1.0.0` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v0.9.0 is the **more backend features** release:
-Holm-corrected poolability p-values, multi-engine XLSX dispatch,
-per-batch Arrhenius rate diagnostic with outlier flagging, and
-multi-attribute `unit` + `report_order` surfacing. **No frontend
-in v0.9** — the UI pass is deferred to v1.0. The default analyze
-path is byte-equivalent to v0.8.0; v0.9.x added opt-in features
-and small bug-fixes only.
+`pyproject.toml`). v1.0.0 is the **local UI + UI service manifest**
+release over the mature Python backend. The default analysis math is
+unchanged from v0.11.0; the UI is a thin client over Python-generated
+reports and artifacts.
 
-**Module map (what exists today at v0.9.0):**
+**Module map (what exists today at v1.0.0):**
 
 ```
 openpharmastability/
@@ -95,6 +85,9 @@ openpharmastability/
                          #           attribute unit + report_order on AttributeResult
   cli.py                 # argparse CLI: `analyze` subcommand only
                          #   v0.9.0: --arrhenius-per-batch, --metadata-csv flags
+  ui_service.py          # v1.0.0 UI-facing analysis manifest
+  ui_server.py           # v1.0.0 stdlib local UI server
+  ui/static/             # v1.0.0 packaged local UI assets
   data/
     io.py                # load_csv() / load_table() — CSV + XLSX dispatch
     xlsx.py              # XLSX loader (v0.2.0)
@@ -143,7 +136,7 @@ openpharmastability/
     templates/report.html.j2 + multi_report.html.j2
 tools/
   regen_expected.py      # independent numpy/scipy validator (+ --check)
-validation/              # 447 pytest tests (testpaths = ["validation"])
+validation/              # 469 collected pytest tests expected at v1.0.0
   conftest.py            # v0.5 module hard-require fail-fast (v0.5.1)
 examples/
   assay_3batch.csv             # golden input
@@ -1947,7 +1940,8 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.10.0: `462 passed, 4 skipped` (see §8.3 for the exact
+Expected at v1.0.0: `469 collected` and a full green run with host-dependent
+PDF skips (see §8.3 for the exact
 expectation and how to treat drift). Earlier releases had different
 counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
 v0.5.0 = 341, v0.5.1 = 365, v0.6.0 = 390, v0.7.0 = 421, v0.8.0 = 437.
@@ -2009,7 +2003,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`462 passed, 4 skipped` at v0.10.0; see §8.3
+prints the current expected count (`469 collected` at v1.0.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2069,10 +2063,9 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.10.0): **`462 passed, 4 skipped`** (+15 new §9 tests
-added in v0.10.0; 4 skips are PDF-backend tests on hosts without
-weasyprint/pdfkit). Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
-254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0). Then run the end-to-end smoke:
+Expected today (v1.0.0): **`469 collected`** and a full green run
+with host-dependent PDF-backend skips. Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
+254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 469 (v1.0.0). Then run the end-to-end smoke:
 
 ```bash
 openpharmastability analyze examples/assay_3batch.csv \
@@ -2102,7 +2095,7 @@ values.
 | HTML timestamp makes byte output non-identical run-to-run (numbers identical) | **known-open** (Fix 1.1) | Not a blocker. Numeric determinism holds. |
 | `schema._infer_direction_from_spec` false-positive warning when both specs present AND direction declared consistently | **known-open** (Fix 1.2) | Cosmetic; warning noise only. |
 | `regen_expected.py` uses statsmodels for COMMON_SLOPE fit (not pure numpy) | **resolved** (Fix 1.3) | `test_script_does_not_import_statsmodels` locks this. |
-| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v0.10.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
+| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v1.0.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
 | `pytest` not green / `regen --check` nonzero | **BLOCKER** | Stop and fix before new work. |
 | `apply_extrapolation_caps` drops a new `StabilityResult` field | **BLOCKER if introduced** | See Preamble + §9.9 test. |
 
@@ -2360,7 +2353,8 @@ comparison/audit.
 | Add Arrhenius-driven shelf-life prediction, leave-one-batch-out sensitivity (`--sensitivity-mode batch`), cross-platform `Makefile` — *shipped in v0.8.0; more backend features, no UI* | MINOR → 0.8.0 |
 | Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
 | Finish GuidanceProfile abstraction (registry + `--guidance` + `profile_name` audit + threading test) — *shipped v0.11.0* | MINOR → 0.11.0 |
-| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 1.0 |
+| Local UI pass + UI service manifest (§11) — *shipped v1.0.0* | MAJOR → 1.0.0 |
+| Hosted/Cloudflare Pages polish over the Python engine (§11 follow-up) | future |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 
