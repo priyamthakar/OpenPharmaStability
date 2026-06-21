@@ -1,6 +1,6 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v1.0.1 CURRENT; v1.0.0 UI SHIPPED.** v1.0.0
+> **STATUS: v1.0.2 CURRENT; v1.0.0 UI SHIPPED.** v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
 > v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
@@ -55,7 +55,7 @@
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v1.0.0 is):
+> §1–§11, but the *execution* order on a fresh checkout at v1.0.2 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
 > releases that have already shipped. The env setup and handover
 > protocol must happen before any code change; §11 now records the
@@ -65,15 +65,15 @@
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `1.0.0` (declared in three places that must stay in
+**Current version:** `1.0.2` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v1.0.0 is the **local UI + UI service manifest**
-release over the mature Python backend. The default analysis math is
+`pyproject.toml`). v1.0.2 is the current patch release over the
+v1.0.0 **local UI + UI service manifest** milestone. The default analysis math is
 unchanged from v0.11.0; the UI is a thin client over Python-generated
 reports and artifacts.
 
-**Module map (what exists today at v1.0.0):**
+**Module map (what exists today at v1.0.2):**
 
 ```
 openpharmastability/
@@ -159,12 +159,10 @@ examples/
   default-compatible.
 - `StabilityResult` (`contracts.py:172`) is **single-attribute** today.
   §2 extends it; do it additively (new optional fields with defaults).
-- `apply_extrapolation_caps()` manually re-copies every `StabilityResult`
-  field (`extrapolation.py:51-69`). **Any new field added to
-  `StabilityResult` MUST be added to that copy block** or it will be
-  silently dropped. This is the single most common future bug. See §9.9
-  for the regression test that catches it. Recommended fix: refactor the
-  copy block to `dataclasses.replace(result, ...)`.
+- `apply_extrapolation_caps()` now returns via `dataclasses.replace(...)`
+  and `validation/test_extrapolation.py::test_extrapolation_caps_preserves_all_result_fields`
+  guards every immutable `StabilityResult` field. Any new field should still
+  be covered by that preservation test.
 - t-quantile selection is centralized in `bounds.py:_quantile_for` (line
   54) and `bounds.py:_bound_multiplier` (line 216). One-sided 95% uses
   `ONE_SIDED_T_QUANTILE = 0.95`; two-sided uses `TWO_SIDED_T_QUANTILE =
@@ -1347,8 +1345,9 @@ none provided — defaulting to no extrapolation."`.
 
 ### 4.5 Updated `extrapolation_flag` + new `StabilityResult` fields
 
-Add (additive, with defaults, **and update the `extrapolation.py`
-copy block / switch to `dataclasses.replace`**):
+Add (additive, with defaults; the live `extrapolation.py` path already
+uses `dataclasses.replace`, so new fields are protected by the preservation
+test):
 
 ```python
 # StabilityResult — additive fields
@@ -2151,9 +2150,10 @@ values.
    dataclass fields **with defaults**, new enum members, new
    constants. Changing a value (e.g. `POOLABILITY_ALPHA`) is a
    breaking change requiring a major bump and golden regeneration.
-3. **Do NOT add a `StabilityResult` field without updating the
-   copy block in `extrapolation.py:51-69`.** (Better: refactor
-   that to `dataclasses.replace` — see §9.10.)
+3. **Do NOT add a `StabilityResult` field without extending the
+   preservation tests that exercise `apply_extrapolation_caps()`.**
+   The live implementation uses `dataclasses.replace`; the test is the
+   guard that proves new fields are not dropped.
 4. **Do NOT write zeros into the `value` column for BQL/missing
    data.** That is a regulatory landmine; `bql.py` documents this
    explicitly.
@@ -2184,7 +2184,7 @@ Add all of these alongside the §1 fixes. Target: bring 173 → ~185+.
 | 9.7 | `test_unknown_direction_warns_not_silent` | `test_engine.py` | Data with neither spec finite → `Direction.UNKNOWN`; `analyze` surfaces a warning AND `find_crossing` raises `ValueError` (no spec) rather than returning a bogus shelf life. |
 | 9.8 | `test_bidirectional_direction_behavior_explicit` | `test_stats_crossing.py` | With both specs + `BIDIRECTIONAL`, the current heuristic (`bounds._spec_for_direction`, line 251) picks `candidates[0]` (lower). Lock this behavior with an explicit test so the v0.2 bidirectional rewrite (§2.4) is a *deliberate* change, not a silent one. |
 | 9.9 | `test_extrapolation_caps_preserves_all_result_fields` | `test_extrapolation.py` | Build a `StabilityResult`, run `apply_extrapolation_caps`, assert **every** field is preserved/copied. This is the regression guard for the Preamble copy-block hazard. |
-| 9.10 | `test_dataclasses_replace_refactor` (optional) | `test_extrapolation.py` | After refactoring `extrapolation.py:51-69` to `dataclasses.replace(result, warnings=..., extrapolation_flag=..., supported_shelf_life_months=...)`, assert identical output to the manual copy. **Recommended refactor** — eliminates the copy-block bug class permanently. |
+| 9.10 | `dataclasses.replace` refactor | `extrapolation.py` / `test_extrapolation.py` | **Shipped.** `apply_extrapolation_caps()` returns via `dataclasses.replace(...)`, and `test_extrapolation_caps_preserves_all_result_fields` guards unchanged fields. |
 | 9.11 | `test_replicate_unknown_policy_raises` | `test_data_*` | `apply_replicate_policy(df, "bogus")` raises `ValueError`. |
 | 9.12 | `test_flat_slope_status` / `test_fail_at_baseline` / `test_no_crossing` | `test_stats_crossing.py` | Confirm all four `CrossingStatus` values are each hit by at least one test (audit found edge-status coverage thin). |
 | 9.13 | `test_single_batch_warns` | `test_engine.py` | `n_batches < 3` produces the Q1E warning (`engine.py:214`). |
@@ -2239,7 +2239,7 @@ def test_extrapolation_caps_preserves_all_result_fields():
 
 **Acceptance criterion for §9.** All listed tests present and
 passing; `pytest -q` green; `dataclasses.replace` refactor (9.10)
-merged so future field additions cannot be dropped; the BQL
+is merged and field-preservation coverage remains active; the BQL
 "never write zero" guard (9.18) is in place as a hard invariant.
 
 ---
@@ -2381,10 +2381,10 @@ When regulatory guidance changes, before editing
 
 ## Appendix A — Cross-cutting hazards (memorize)
 
-1. **`extrapolation.py` copy block** — every `StabilityResult`
-   field added in §§2/4/5 must be copied there, or refactor to
-   `dataclasses.replace` (§9.10). This is the #1 silent-bug
-   source.
+1. **`extrapolation.py` result preservation** — the live code uses
+   `dataclasses.replace` (§9.10). Keep the all-fields preservation test
+   active whenever `StabilityResult` grows, because this used to be the
+   #1 silent-bug source.
 2. **t-quantile** — only `bounds.py:54` (`_quantile_for`) and
    `bounds.py:216` (`_bound_multiplier`) decide 0.95 vs 0.975.
    The bidirectional work (§2.4) must make `_bound_multiplier`

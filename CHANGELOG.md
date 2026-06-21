@@ -5,6 +5,18 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## [1.0.2] — 2026-06-21 — handover and roadmap orientation sync
+
+### Changed
+- Bumped package/tool version markers to `1.0.2`.
+- Updated HANDOVER and NEXT_STEPS current-version orientation from
+  v1.0.0/v1.0.1 wording to the live v1.0.2 state.
+- Marked the `apply_extrapolation_caps()` `dataclasses.replace` refactor
+  as already shipped, matching the live implementation and regression test.
+
+### Notes
+- No statistics, report-generation, CLI behavior, or UI runtime behavior changed.
+
 ## [1.0.1] — 2026-06-20 — release documentation truth sync
 
 ### Changed

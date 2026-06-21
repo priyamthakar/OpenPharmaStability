@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v1.0.0 on a fresh machine.**
+> **You are picking up OpenPharmaStability v1.0.2 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,7 +9,7 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v1.0.0** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v1.0.2** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
@@ -48,7 +48,7 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `1.0.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `1.0.2` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
@@ -74,7 +74,9 @@ verbatim in every HTML report.
 
 | Version | Theme | What it added |
 |---|---|---|
-| `1.0.0` (current) | Local v1 UI + service manifest | `openpharmastability-ui` local workspace, packaged static UI, `ui_service.analyze_for_ui()` manifest, artifact preview/download flow. Python engine remains authoritative; UI does not reimplement statistics. |
+| `1.0.2` (current) | Handover + roadmap orientation sync | Current-version docs now match the live package markers; `NEXT_STEPS.md` no longer describes the completed `dataclasses.replace` extrapolation refactor as open work. |
+| `1.0.1` | Release documentation truth sync | README/HANDOVER/NEXT_STEPS synchronized after the local UI shipment; expected test collection corrected to 483. |
+| `1.0.0` | Local v1 UI + service manifest | `openpharmastability-ui` local workspace, packaged static UI, `ui_service.analyze_for_ui()` manifest, artifact preview/download flow. Python engine remains authoritative; UI does not reimplement statistics. |
 | `0.11.0` | Guidance profile completion | `--guidance`, profile registry/resolver, `StabilityResult.profile_name`, JSON + HTML guidance audit, non-default-profile threading tests. |
 | `0.10.0` | GuidanceProfile abstraction + bidirectional fix | `GuidanceProfile`, two-sided bidirectional 0.975 quantile, `CrossingResult.governing_side`, additional §9 tests. |
 | `0.9.0` | Backend features (no UI) | `PoolabilityResult.p_slopes_holm` / `p_intercepts_holm` (Holm-Bonferroni corrected p-values for the two-step poolability test); `analyze_many` now accepts XLSX / XLSM directly via the v0.7.0 `load_table` dispatcher (symmetry with the single-attribute path); `--arrhenius-per-batch` flag + per-batch Arrhenius rate dict + outlier-batches list with robust z-score detection; multi-attribute `unit` + `report_order` surfaced in the per-attribute HTML block, the overview table, and a new top-level `attribute_order` key in the multi JSON record. |
@@ -417,7 +419,7 @@ question.
    state, hard rules, open warnings.
 2. **`CHANGELOG.md`** — every release entry from v0.1.0 through
    v0.6.0; what each minor/patch added; backward-compatibility notes.
-3. **`NEXT_STEPS.md`** — the forward plan. v1.0.1 is the current
+3. **`NEXT_STEPS.md`** — the forward plan. v1.0.2 is the current
    release; the local UI pass has shipped, and the next UI work is
    hosted deployment/polish over the existing Python-owned stats
    engine. Read §7 (pycache/env integrity) and §8 (agent handover
