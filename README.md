@@ -1,19 +1,15 @@
 # OpenPharmaStability
 
 ICH Q1E-inspired stability analysis and shelf-life reporting toolkit for
-pharmaceutical development. **v0.7.0** is the current release. The v0.1
+pharmaceutical development. **v1.0.2** is the current release. The v0.1
 baseline (one attribute, one long-term condition, fixed-effect ANCOVA,
-one-sided 95% bound, lower-spec crossing) has been extended with multi-
-attribute analysis, XLSX input, data-quality auditing, real BQL policies,
-transform-candidate evidence, ICH Q1A(R2) significant-change gating,
-opt-in advanced statistics (Arrhenius, MKT, reduced-design detection,
-random-effects mixed model), a Python API + report artifacts (PDF +
-self-contained HTML bundles), and a v0.7.0 backend-features layer
-(sensitivity analysis, acceptance-criteria CSV export, multi-attribute
-metadata spec override, direct XLSX support in the engine, pure-numpy
-regen). **No frontend** — the UI pass (Cloudflare Pages + Claude
-Design) is deferred to a future release per the user's "features first,
-website last" reshape.
+one-sided 95% bound, lower-spec crossing) has grown into a Python-first
+analysis/reporting engine with multi-attribute analysis, XLSX input,
+data-quality auditing, real BQL policies, transform-candidate evidence,
+ICH Q1A(R2) significant-change gating, opt-in advanced statistics,
+GuidanceProfile audit support, a Python API, portable report artifacts,
+and a local v1 web workspace. The UI is a thin client over the Python
+engine; it does not reimplement shelf-life statistics in JavaScript.
 
 - CSV or XLSX input (single or multi attribute, single long-term condition)
 - N-batch fixed-effect ANCOVA poolability at alpha = 0.25
@@ -24,6 +20,7 @@ website last" reshape.
 - Optional Arrhenius / MKT / reduced-design / random-effects opt-ins
 - HTML report + machine-readable JSON decision record
 - Confidence-bound plot with extrapolation shading
+- Local v1 UI workspace via `openpharmastability-ui`
 
 > **Decision-support / educational only.** This is not a regulatory-approval
 > tool, not submission-ready, and not a validated GxP / 21 CFR Part 11 system.
@@ -46,7 +43,7 @@ openpharmastability analyze examples/assay_3batch.csv \
     --output build/report.html
 ```
 
-## v0.9.0 quick start
+## v1.0.0 quick start
 
 ### Single-attribute (v0.1 back-compat)
 
@@ -226,7 +223,7 @@ openpharmastability analyze multi_temp.csv \
     --arrhenius-shelf-life \
     --arrhenius-shelf-life-storage-temp 25.0 \
     --output build/report.html
-```
+
 # v0.9.0: per-batch Arrhenius rate diagnostic (flags outlier
 # batches via robust z-score; per-batch kinetics).
 openpharmastability analyze multi_temp.csv \
@@ -251,6 +248,29 @@ print(multi.limiting_attribute, multi.supported_shelf_life_months)
 
 artifact = make_artifact(result, "build/bundle")
 print(artifact.html_sha256)   # byte-portable HTML
+```
+
+### Local v1 UI workspace
+
+```bash
+openpharmastability-ui --host 127.0.0.1 --port 8765
+```
+
+Then open `http://127.0.0.1:8765`. The workspace uploads CSV/XLSX
+data, selects condition and one/many attributes, chooses product type
+and guidance profile, exposes advanced opt-ins, and renders the
+Python-generated HTML/JSON/plot artifacts. The same UI-facing surface
+is available programmatically:
+
+```python
+from openpharmastability import UIAnalysisOptions, analyze_for_ui
+
+manifest = analyze_for_ui(
+    "examples/assay_3batch.csv",
+    "build/ui_bundle",
+    UIAnalysisOptions(condition="25C/60RH", attribute="assay"),
+)
+print(manifest.summary["supported_shelf_life_months"])
 ```
 
 ### Reproducible reports (v0.1.1+)
@@ -281,7 +301,16 @@ and an INFO entry for a row whose `condition` doesn't match the
 requested one. The engine still runs (the audit reports, it does
 not gate).
 
-## What v0.9.0 adds over v0.8.0
+## What v1.0.0 adds over v0.11.0
+
+| Area | v0.11.0 | v1.0.0 |
+|---|---|---|
+| UI | No UI; backend/API/report artifacts only. | Local web workspace served by `openpharmastability-ui`; upload data, configure analysis, run the Python engine, preview/download artifacts. |
+| UI service | Downstream callers consumed engine/API objects directly. | `ui_service.analyze_for_ui()` returns a stable manifest: summary, warnings, guidance profile, artifact paths/URLs, sizes, and hashes. |
+| Packaging | CLI script only. | Adds `openpharmastability-ui` and packaged static UI assets. |
+| Analysis behavior | Guidance profile selectable; default path unchanged. | Statistics remain Python-owned; UI consumes generated HTML/JSON/plots and does not duplicate math. |
+
+## What v0.9.0 added over v0.8.0
 
 | Area | v0.8.0 | v0.9.0 (more backend features) |
 |---|---|---|
@@ -308,7 +337,16 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The full suite is **451 passing** (plus 4 PDF-backend tests that
+The full suite is expected to collect **483 tests** after v1.0.0
+(plus PDF-backend tests that skip cleanly on hosts without weasyprint/pdfkit).
+Use the project venv on Windows:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest --collect-only -q
+.\.venv\Scripts\python.exe -m pytest -q > build\pytest.out 2>&1
+```
+
+Earlier v0.9.0 documentation reported **451 passing** (plus 4 PDF-backend tests that
 skip cleanly on hosts without weasyprint/pdfkit). The golden-file
 test in `validation/test_golden.py` locks slope, intercept,
 residual SE, one-sided 95% bound, statistical crossing, and rounded
@@ -339,26 +377,26 @@ openpharmastability/
   reports/             # HTML + JSON decision record (single + multi)
                        #   + pdf (v0.6) + artifacts (v0.6)
   api.py               # v0.6.0 thin programmatic surface
+  ui_service.py        # v1.0.0 UI-facing manifest wrapper
+  ui_server.py         # v1.0.0 local web UI server
+  ui/static/           # v1.0.0 packaged local UI assets
   plots/               # confidence-bound plot
   cli.py               # console entry point
 examples/              # sample CSV/XLSX fixtures + expected.json
-validation/            # pytest suites (conftest + 421 tests)
+validation/            # pytest suites
 ```
 
 ## Limitations / out of scope (current and future)
 
-v0.9.0 is the current release. The stats engine remains in Python
+v1.0.2 is the current release. The stats engine remains in Python
 and ICH Q1E-style fixed-effect by default; the opt-in advanced
 features (Arrhenius, MKT, reduced designs, random effects,
 sensitivity, acceptance-criteria CSV) are clearly labelled
-exploratory. **No frontend in v0.6 or v0.7** — the UI pass
-(Cloudflare Pages + Claude Design) is deferred to a future
-release (v0.8.0+ or v1.0) per the user's "features first, website
-last" reshape. When it lands, the UI is a thin client over the
-existing Python engine; the math and the JSON decision record
-stay authoritative.
+exploratory. The v1 UI is local and thin: the math and the JSON
+decision record stay authoritative, and no GxP / 21 CFR Part 11
+validation claim is made.
 
-Out of scope for the current release: web UI, REST API,
+Out of scope for the current release: hosted/cloud UI, production REST API,
 multi-condition shelf-life selection (the engine reports per
 long-term condition, not the limiting one), and any GxP / 21 CFR
 Part 11 validation claim.

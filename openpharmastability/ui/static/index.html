@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenPharmaStability</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>OpenPharmaStability</h1>
+        <p>ICH Q1E-inspired stability analysis workspace</p>
+      </div>
+      <div class="version" id="version">v1.0.0</div>
+    </header>
+
+    <main class="workspace">
+      <aside class="setup-panel" aria-label="Analysis setup">
+        <form id="analysis-form">
+          <section class="panel-section">
+            <h2>Input</h2>
+            <label class="dropzone">
+              <span id="file-label">Select CSV or XLSX stability data</span>
+              <input id="file" name="file" type="file" accept=".csv,.xlsx,.xlsm,.xls" required>
+            </label>
+            <label>
+              <span>Condition</span>
+              <input id="condition" name="condition" value="25C/60RH" required>
+            </label>
+          </section>
+
+          <section class="panel-section">
+            <h2>Attributes</h2>
+            <div class="segmented" role="group" aria-label="Attribute mode">
+              <button type="button" class="segment active" data-mode="single">Single</button>
+              <button type="button" class="segment" data-mode="list">List</button>
+              <button type="button" class="segment" data-mode="all">All</button>
+            </div>
+            <label id="single-attribute-row">
+              <span>Attribute</span>
+              <input id="attribute" name="attribute" value="assay">
+            </label>
+            <label id="attribute-list-row" hidden>
+              <span>Attributes</span>
+              <input id="attributes" name="attributes" placeholder="assay, impurity_a">
+            </label>
+          </section>
+
+          <section class="panel-section">
+            <h2>Decision Context</h2>
+            <label>
+              <span>Product type</span>
+              <select id="product-type" name="product_type">
+                <option value="product">Drug product - shelf life</option>
+                <option value="substance">Drug substance - retest period</option>
+              </select>
+            </label>
+            <label>
+              <span>Guidance profile</span>
+              <select id="guidance" name="guidance">
+                <option value="q1ae">Q1A(R2)+Q1E</option>
+                <option value="q1-consolidated-draft">Q1 consolidated draft</option>
+              </select>
+            </label>
+            <label>
+              <span>BQL policy</span>
+              <select id="bql-policy" name="bql_policy">
+                <option value="exclude">Exclude</option>
+                <option value="flag">Flag</option>
+                <option value="substitute_loq">Substitute LOQ</option>
+                <option value="substitute_loq_half">Substitute half LOQ</option>
+                <option value="manual_review">Manual review</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="panel-section">
+            <h2>Advanced</h2>
+            <label class="check-row"><input type="checkbox" id="assess-transforms"> Transform evidence</label>
+            <label class="check-row"><input type="checkbox" id="sensitivity"> Sensitivity</label>
+            <label class="check-row"><input type="checkbox" id="arrhenius"> Arrhenius evidence</label>
+            <label class="check-row"><input type="checkbox" id="arrhenius-shelf-life"> Arrhenius shelf life</label>
+            <label class="check-row"><input type="checkbox" id="arrhenius-per-batch"> Per-batch Arrhenius</label>
+            <label class="check-row"><input type="checkbox" id="random-effects"> Random-effects exploration</label>
+          </section>
+
+          <button class="run-button" type="submit">Run Analysis</button>
+        </form>
+      </aside>
+
+      <section class="result-panel" aria-live="polite">
+        <div class="status-row">
+          <div>
+            <h2 id="status-title">Ready for analysis</h2>
+            <p id="status-copy">Upload a stability table and run the Python engine. Results appear here.</p>
+          </div>
+          <span id="status-pill" class="status-pill idle">Idle</span>
+        </div>
+
+        <div class="summary-grid">
+          <div class="metric">
+            <span>Supported decision</span>
+            <strong id="metric-supported">-</strong>
+          </div>
+          <div class="metric">
+            <span>Limiting attribute</span>
+            <strong id="metric-limiting">-</strong>
+          </div>
+          <div class="metric">
+            <span>Guidance profile</span>
+            <strong id="metric-guidance">-</strong>
+          </div>
+          <div class="metric">
+            <span>Model</span>
+            <strong id="metric-model">-</strong>
+          </div>
+        </div>
+
+        <section class="preview">
+          <div class="preview-header">
+            <h2>Report Preview</h2>
+            <a id="report-link" href="#" target="_blank" rel="noreferrer" hidden>Open HTML</a>
+          </div>
+          <iframe id="report-frame" title="HTML report preview"></iframe>
+          <div id="empty-preview" class="empty-preview">The rendered report will appear after a successful run.</div>
+        </section>
+
+        <section class="warnings">
+          <h2>Warnings</h2>
+          <ul id="warnings-list">
+            <li>No analysis warnings yet.</li>
+          </ul>
+        </section>
+      </section>
+
+      <aside class="artifact-panel" aria-label="Artifacts and audit">
+        <section>
+          <h2>Artifacts</h2>
+          <div id="artifact-list" class="artifact-list">
+            <p class="muted">HTML, JSON, plots, and optional PDF will be listed here.</p>
+          </div>
+        </section>
+        <section>
+          <h2>Audit Facts</h2>
+          <dl class="audit-list">
+            <dt>Status</dt><dd id="audit-status">Not run</dd>
+            <dt>Mode</dt><dd id="audit-mode">-</dd>
+            <dt>Observed data</dt><dd id="audit-observed">-</dd>
+            <dt>Crossing</dt><dd id="audit-crossing">-</dd>
+          </dl>
+        </section>
+        <section class="disclaimer">
+          <h2>Disclaimer</h2>
+          <p id="disclaimer-text"></p>
+        </section>
+      </aside>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

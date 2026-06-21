@@ -1,33 +1,27 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v0.9.0 SHIPPED (more backend features, no UI).** v0.9.0
-> added Holm-Bonferroni corrected poolability p-values, multi-
-> engine XLSX dispatch, per-batch Arrhenius rate diagnostic with
-> outlier flagging, and multi-attribute `unit` + `report_order`
-> surfacing. v0.8.0 added Arrhenius-driven shelf-life prediction,
-> a leave-one-batch-out sensitivity variant, and a cross-platform
-> `Makefile`. v0.7.0 closed two long-open items and added
-> sensitivity analysis and acceptance-criteria CSV export.
-> v0.6.0 added PDF export, report artifacts, the Python API,
-> and CLI polish. v0.5.0 + v0.5.1 added advanced statistics and
-> the v0.5.0 audit patch. Read `HANDOVER.md` and `CHANGELOG.md`
-> first.
+> **STATUS: v1.0.2 CURRENT; v1.0.0 UI SHIPPED.** v1.0.0
+> adds the `openpharmastability-ui` local workspace and a stable
+> `ui_service.analyze_for_ui()` manifest over the existing Python engine.
+> v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
+> GuidanceProfile abstraction and bidirectional quantile fix; v0.9.0 added
+> Holm-corrected poolability p-values, multi-engine XLSX dispatch,
+> per-batch Arrhenius diagnostics, and multi-attribute ordering/units.
+> Read `HANDOVER.md` and `CHANGELOG.md` first.
 >
-> §§1–6 are now historical (all shipped). **The next focus is
-> more backend features** (per the user's "features first, website
-> last" reshape). The UI pass (Cloudflare Pages + Claude Design)
-> remains deferred to v1.0. The Python stats engine stays
-> authoritative; the UI is a thin client. **Do not reimplement
-> the statistical core in JS/TS.**
+> §§1–6 are historical (all shipped). The first v1 UI pass has now
+> shipped as a local thin client. The Python stats engine stays
+> authoritative; the UI consumes Python-generated HTML/JSON/plots.
+> **Do not reimplement the statistical core in JS/TS.**
 
-**Comprehensive expansion plan: v0.1.0 → v0.9.0 (shipped) → v1.0 (next)**
+**Comprehensive expansion plan: v0.1.0 → v0.11.0 (backend) → v1.0.0 (local UI shipped)**
 
 > **Audience:** the next engineer/agent, starting cold. You have never seen
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
 > before you touch any code. §§1–6 are historical (shipped). §11
-> (the future UI pass) is the only forward section that has not
-> shipped yet. §10 is the ongoing regulatory watch + versioning
+> (hosted deployment/polish) is the forward UI section that remains
+> after the v1.0.0 local UI shipment. §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -56,34 +50,30 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (Cloudflare Pages + Claude Design)** | v1.0 (future) |
+| 11 | **UI pass (local workspace + future hosted polish)** | v1.0.0 shipped / hosted future |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v0.9.0 is):
+> §1–§11, but the *execution* order on a fresh checkout at v1.0.2 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
 > releases that have already shipped. The env setup and handover
-> protocol must happen before any code change; §11 is the future
-> UI hot list (Cloudflare Pages + Claude Design; do not reimplement
-> the statistical core in JS/TS).
+> protocol must happen before any code change; §11 now records the
+> local UI shipped in v1.0.0 plus hosted/UI-polish follow-ups.
 
 ---
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `0.9.0` (declared in three places that must stay in
+**Current version:** `1.0.2` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v0.9.0 is the **more backend features** release:
-Holm-corrected poolability p-values, multi-engine XLSX dispatch,
-per-batch Arrhenius rate diagnostic with outlier flagging, and
-multi-attribute `unit` + `report_order` surfacing. **No frontend
-in v0.9** — the UI pass is deferred to v1.0. The default analyze
-path is byte-equivalent to v0.8.0; v0.9.x added opt-in features
-and small bug-fixes only.
+`pyproject.toml`). v1.0.2 is the current patch release over the
+v1.0.0 **local UI + UI service manifest** milestone. The default analysis math is
+unchanged from v0.11.0; the UI is a thin client over Python-generated
+reports and artifacts.
 
-**Module map (what exists today at v0.9.0):**
+**Module map (what exists today at v1.0.2):**
 
 ```
 openpharmastability/
@@ -95,6 +85,9 @@ openpharmastability/
                          #           attribute unit + report_order on AttributeResult
   cli.py                 # argparse CLI: `analyze` subcommand only
                          #   v0.9.0: --arrhenius-per-batch, --metadata-csv flags
+  ui_service.py          # v1.0.0 UI-facing analysis manifest
+  ui_server.py           # v1.0.0 stdlib local UI server
+  ui/static/             # v1.0.0 packaged local UI assets
   data/
     io.py                # load_csv() / load_table() — CSV + XLSX dispatch
     xlsx.py              # XLSX loader (v0.2.0)
@@ -143,7 +136,7 @@ openpharmastability/
     templates/report.html.j2 + multi_report.html.j2
 tools/
   regen_expected.py      # independent numpy/scipy validator (+ --check)
-validation/              # 447 pytest tests (testpaths = ["validation"])
+validation/              # 483 collected pytest tests expected at v1.0.0
   conftest.py            # v0.5 module hard-require fail-fast (v0.5.1)
 examples/
   assay_3batch.csv             # golden input
@@ -166,12 +159,10 @@ examples/
   default-compatible.
 - `StabilityResult` (`contracts.py:172`) is **single-attribute** today.
   §2 extends it; do it additively (new optional fields with defaults).
-- `apply_extrapolation_caps()` manually re-copies every `StabilityResult`
-  field (`extrapolation.py:51-69`). **Any new field added to
-  `StabilityResult` MUST be added to that copy block** or it will be
-  silently dropped. This is the single most common future bug. See §9.9
-  for the regression test that catches it. Recommended fix: refactor the
-  copy block to `dataclasses.replace(result, ...)`.
+- `apply_extrapolation_caps()` now returns via `dataclasses.replace(...)`
+  and `validation/test_extrapolation.py::test_extrapolation_caps_preserves_all_result_fields`
+  guards every immutable `StabilityResult` field. Any new field should still
+  be covered by that preservation test.
 - t-quantile selection is centralized in `bounds.py:_quantile_for` (line
   54) and `bounds.py:_bound_multiplier` (line 216). One-sided 95% uses
   `ONE_SIDED_T_QUANTILE = 0.95`; two-sided uses `TWO_SIDED_T_QUANTILE =
@@ -1354,8 +1345,9 @@ none provided — defaulting to no extrapolation."`.
 
 ### 4.5 Updated `extrapolation_flag` + new `StabilityResult` fields
 
-Add (additive, with defaults, **and update the `extrapolation.py`
-copy block / switch to `dataclasses.replace`**):
+Add (additive, with defaults; the live `extrapolation.py` path already
+uses `dataclasses.replace`, so new fields are protected by the preservation
+test):
 
 ```python
 # StabilityResult — additive fields
@@ -1947,7 +1939,8 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v0.10.0: `462 passed, 4 skipped` (see §8.3 for the exact
+Expected at v1.0.0: `483 collected` and a full green run with host-dependent
+PDF skips (see §8.3 for the exact
 expectation and how to treat drift). Earlier releases had different
 counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
 v0.5.0 = 341, v0.5.1 = 365, v0.6.0 = 390, v0.7.0 = 421, v0.8.0 = 437.
@@ -2009,7 +2002,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`462 passed, 4 skipped` at v0.10.0; see §8.3
+prints the current expected count (`483 collected` at v1.0.0; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2069,10 +2062,9 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v0.10.0): **`462 passed, 4 skipped`** (+15 new §9 tests
-added in v0.10.0; 4 skips are PDF-backend tests on hosts without
-weasyprint/pdfkit). Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
-254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0). Then run the end-to-end smoke:
+Expected today (v1.0.0): **`483 collected`** and a full green run
+with host-dependent PDF-backend skips. Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
+254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 483 (v1.0.0). Then run the end-to-end smoke:
 
 ```bash
 openpharmastability analyze examples/assay_3batch.csv \
@@ -2102,7 +2094,7 @@ values.
 | HTML timestamp makes byte output non-identical run-to-run (numbers identical) | **known-open** (Fix 1.1) | Not a blocker. Numeric determinism holds. |
 | `schema._infer_direction_from_spec` false-positive warning when both specs present AND direction declared consistently | **known-open** (Fix 1.2) | Cosmetic; warning noise only. |
 | `regen_expected.py` uses statsmodels for COMMON_SLOPE fit (not pure numpy) | **resolved** (Fix 1.3) | `test_script_does_not_import_statsmodels` locks this. |
-| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v0.10.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
+| Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v1.0.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
 | `pytest` not green / `regen --check` nonzero | **BLOCKER** | Stop and fix before new work. |
 | `apply_extrapolation_caps` drops a new `StabilityResult` field | **BLOCKER if introduced** | See Preamble + §9.9 test. |
 
@@ -2158,9 +2150,10 @@ values.
    dataclass fields **with defaults**, new enum members, new
    constants. Changing a value (e.g. `POOLABILITY_ALPHA`) is a
    breaking change requiring a major bump and golden regeneration.
-3. **Do NOT add a `StabilityResult` field without updating the
-   copy block in `extrapolation.py:51-69`.** (Better: refactor
-   that to `dataclasses.replace` — see §9.10.)
+3. **Do NOT add a `StabilityResult` field without extending the
+   preservation tests that exercise `apply_extrapolation_caps()`.**
+   The live implementation uses `dataclasses.replace`; the test is the
+   guard that proves new fields are not dropped.
 4. **Do NOT write zeros into the `value` column for BQL/missing
    data.** That is a regulatory landmine; `bql.py` documents this
    explicitly.
@@ -2191,7 +2184,7 @@ Add all of these alongside the §1 fixes. Target: bring 173 → ~185+.
 | 9.7 | `test_unknown_direction_warns_not_silent` | `test_engine.py` | Data with neither spec finite → `Direction.UNKNOWN`; `analyze` surfaces a warning AND `find_crossing` raises `ValueError` (no spec) rather than returning a bogus shelf life. |
 | 9.8 | `test_bidirectional_direction_behavior_explicit` | `test_stats_crossing.py` | With both specs + `BIDIRECTIONAL`, the current heuristic (`bounds._spec_for_direction`, line 251) picks `candidates[0]` (lower). Lock this behavior with an explicit test so the v0.2 bidirectional rewrite (§2.4) is a *deliberate* change, not a silent one. |
 | 9.9 | `test_extrapolation_caps_preserves_all_result_fields` | `test_extrapolation.py` | Build a `StabilityResult`, run `apply_extrapolation_caps`, assert **every** field is preserved/copied. This is the regression guard for the Preamble copy-block hazard. |
-| 9.10 | `test_dataclasses_replace_refactor` (optional) | `test_extrapolation.py` | After refactoring `extrapolation.py:51-69` to `dataclasses.replace(result, warnings=..., extrapolation_flag=..., supported_shelf_life_months=...)`, assert identical output to the manual copy. **Recommended refactor** — eliminates the copy-block bug class permanently. |
+| 9.10 | `dataclasses.replace` refactor | `extrapolation.py` / `test_extrapolation.py` | **Shipped.** `apply_extrapolation_caps()` returns via `dataclasses.replace(...)`, and `test_extrapolation_caps_preserves_all_result_fields` guards unchanged fields. |
 | 9.11 | `test_replicate_unknown_policy_raises` | `test_data_*` | `apply_replicate_policy(df, "bogus")` raises `ValueError`. |
 | 9.12 | `test_flat_slope_status` / `test_fail_at_baseline` / `test_no_crossing` | `test_stats_crossing.py` | Confirm all four `CrossingStatus` values are each hit by at least one test (audit found edge-status coverage thin). |
 | 9.13 | `test_single_batch_warns` | `test_engine.py` | `n_batches < 3` produces the Q1E warning (`engine.py:214`). |
@@ -2246,7 +2239,7 @@ def test_extrapolation_caps_preserves_all_result_fields():
 
 **Acceptance criterion for §9.** All listed tests present and
 passing; `pytest -q` green; `dataclasses.replace` refactor (9.10)
-merged so future field additions cannot be dropped; the BQL
+is merged and field-preservation coverage remains active; the BQL
 "never write zero" guard (9.18) is in place as a hard invariant.
 
 ---
@@ -2318,6 +2311,15 @@ consolidated Q1 ships, add a `Q1_CONSOLIDATED` profile and a
 new golden file. Keep both profiles available for
 comparison/audit.
 
+> **STATUS (v0.11.0): the guidance-profile abstraction is now COMPLETE.**
+> The registry (`PROFILES`), `resolve_profile()`, the `--guidance` CLI
+> flag, the `profile_name` audit field on `StabilityResult`, JSON + HTML
+> surfacing, and a non-default-profile threading test all shipped in
+> v0.11.0. The only remaining step when ICH Q1 reaches Step 4 is: edit
+> the `Q1_CONSOLIDATED_DRAFT` values in `regulatory/profile.py` in place,
+> optionally switch `DEFAULT_PROFILE` to it, regenerate the golden file,
+> and bump MAJOR. No algorithm rewrite, no contract re-plumbing.
+
 ### 10.3 Versioning strategy (SemVer)
 
 - **PATCH (`0.1.x`):** bug fixes, doc/test additions, warning-text
@@ -2349,8 +2351,10 @@ comparison/audit.
 | Add PDF export, `ReportArtifact` bundles, `openpharmastability.api` thin surface, CLI polish, multi-attribute HTML spec display fix (§6) — *shipped in v0.6.0; no frontend in v0.6* | MINOR → 0.6.0 |
 | Add sensitivity analysis, acceptance-criteria CSV, multi-attribute metadata spec override, `engine.analyze()` direct XLSX, pure-numpy regen (close v0.1.1 known-open) — *shipped in v0.7.0; backend features only, no UI* | MINOR → 0.7.0 |
 | Add Arrhenius-driven shelf-life prediction, leave-one-batch-out sensitivity (`--sensitivity-mode batch`), cross-platform `Makefile` — *shipped in v0.8.0; more backend features, no UI* | MINOR → 0.8.0 |
-| Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped in v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
-| UI pass: Cloudflare Pages + Claude Design polish (§11) | MINOR → 1.0 |
+| Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
+| Finish GuidanceProfile abstraction (registry + `--guidance` + `profile_name` audit + threading test) — *shipped v0.11.0* | MINOR → 0.11.0 |
+| Local UI pass + UI service manifest (§11) — *shipped v1.0.0* | MAJOR → 1.0.0 |
+| Hosted/Cloudflare Pages polish over the Python engine (§11 follow-up) | future |
 | Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 
@@ -2377,10 +2381,10 @@ When regulatory guidance changes, before editing
 
 ## Appendix A — Cross-cutting hazards (memorize)
 
-1. **`extrapolation.py` copy block** — every `StabilityResult`
-   field added in §§2/4/5 must be copied there, or refactor to
-   `dataclasses.replace` (§9.10). This is the #1 silent-bug
-   source.
+1. **`extrapolation.py` result preservation** — the live code uses
+   `dataclasses.replace` (§9.10). Keep the all-fields preservation test
+   active whenever `StabilityResult` grows, because this used to be the
+   #1 silent-bug source.
 2. **t-quantile** — only `bounds.py:54` (`_quantile_for`) and
    `bounds.py:216` (`_bound_multiplier`) decide 0.95 vs 0.975.
    The bidirectional work (§2.4) must make `_bound_multiplier`

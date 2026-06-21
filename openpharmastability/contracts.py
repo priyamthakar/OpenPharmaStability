@@ -48,7 +48,7 @@ EXTRAPOLATION_MAX_FACTOR: float = 2.0
 EXTRAPOLATION_MAX_MONTHS_BEYOND: float = 12.0
 
 # Tool version (mirrors __init__.__version__).
-TOOL_VERSION: str = "0.10.0"
+TOOL_VERSION: str = "1.0.2"
 
 # Mandatory disclaimer (verbatim from the spec §"Regulatory Report Mode").
 DISCLAIMER: str = (
@@ -273,6 +273,11 @@ class StabilityResult:
     # is supplied; otherwise they are the data-derived spec limits.
     lower_spec: Optional[float] = None
     upper_spec: Optional[float] = None
+    # v0.11.0: the active guidance profile's name (an immutable audit fact
+    # for the run). Defaults to the Q1AE profile name so hand-built fixtures
+    # and v0.10.x callers keep working unchanged. Set by the engine from
+    # ``profile.name``; surfaced in the JSON record and HTML report.
+    profile_name: str = "Q1A_R2+Q1E"
     # v0.7.0: optional sensitivity report. None when --sensitivity
     # is not requested; a `SensitivityReport` dataclass instance
     # otherwise. The report records, for each Cook's-distance

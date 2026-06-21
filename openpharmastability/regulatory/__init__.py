@@ -10,7 +10,10 @@ from openpharmastability.contracts import SignificantChange
 from openpharmastability.regulatory.profile import (
     DEFAULT_PROFILE,
     GuidanceProfile,
+    PROFILES,
     Q1AE,
+    Q1_CONSOLIDATED_DRAFT,
+    resolve_profile,
 )
 from openpharmastability.regulatory.significant_change import (
     evaluate_significant_change,
@@ -27,5 +30,8 @@ __all__ = [
     # v0.10.0 guidance-profile abstraction
     "GuidanceProfile",
     "Q1AE",
+    "Q1_CONSOLIDATED_DRAFT",
     "DEFAULT_PROFILE",
+    "PROFILES",
+    "resolve_profile",
 ]

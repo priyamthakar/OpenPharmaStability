@@ -560,6 +560,11 @@ def analyze(
         product_type=product_type,
         plot_filename="confidence_plot.png",
         bql_summary=data.bql_summary,
+        # v0.11.0: record the active guidance profile's name as an
+        # immutable audit fact for the run. Sourced from ``profile.name``
+        # so the JSON record and HTML report can surface which guidance
+        # governed the decision.
+        profile_name=profile.name,
     )
 
     # v0.3.0: surface the data-quality audit summary in the result

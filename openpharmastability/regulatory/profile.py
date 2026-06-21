@@ -130,4 +130,45 @@ Q1AE = GuidanceProfile(
 DEFAULT_PROFILE = Q1AE
 
 
-__all__ = ["GuidanceProfile", "Q1AE", "DEFAULT_PROFILE"]
+# PROVISIONAL — pending the consolidated ICH Q1 reaching Step 4
+# (NEXT_STEPS.md §10.1). Values MIRROR Q1AE so selecting this profile is
+# numerically inert until the consolidated guideline's final numbers are
+# confirmed. When Step 4 lands, edit the values below (keep the name),
+# regenerate the golden file, and bump MAJOR. Do not change
+# DEFAULT_PROFILE without that bump.
+Q1_CONSOLIDATED_DRAFT = GuidanceProfile(
+    name="Q1_consolidated_draft",
+    poolability_alpha=POOLABILITY_ALPHA,
+    confidence=CONFIDENCE,
+    one_sided_quantile=ONE_SIDED_T_QUANTILE,
+    two_sided_quantile=TWO_SIDED_T_QUANTILE,
+    extrapolation_max_factor=EXTRAPOLATION_MAX_FACTOR,
+    extrapolation_max_months_beyond=EXTRAPOLATION_MAX_MONTHS_BEYOND,
+    assay_change_threshold_pct=5.0,
+)
+
+#: Registry of selectable guidance profiles, keyed by CLI ``--guidance`` name.
+PROFILES: dict[str, GuidanceProfile] = {
+    "q1ae": Q1AE,
+    "q1-consolidated-draft": Q1_CONSOLIDATED_DRAFT,
+}
+
+
+def resolve_profile(name: str | None) -> GuidanceProfile:
+    """Resolve a ``--guidance`` name to a :class:`GuidanceProfile`.
+
+    ``None`` or the empty string returns :data:`DEFAULT_PROFILE`. Lookup is
+    case-insensitive. Unknown names raise ``ValueError`` listing the
+    available keys so the CLI can surface a one-line error.
+    """
+    if not name:
+        return DEFAULT_PROFILE
+    key = name.strip().lower()
+    if key not in PROFILES:
+        raise ValueError(
+            f"unknown guidance profile {name!r}; available: {sorted(PROFILES)}"
+        )
+    return PROFILES[key]
+
+
+__all__ = ["GuidanceProfile", "Q1AE", "Q1_CONSOLIDATED_DRAFT", "DEFAULT_PROFILE", "PROFILES", "resolve_profile"]

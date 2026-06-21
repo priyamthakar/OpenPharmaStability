@@ -1,8 +1,116 @@
 # Changelog
 
 All notable changes to OpenPharmaStability are documented here.
-Versions follow [SemVer](https://semver.org/); the project is
-pre-1.0 so breaking changes may appear in minor versions.
+Versions follow [SemVer](https://semver.org/). v1.x releases keep the
+Python statistics engine authoritative and treat UI/API additions as thin
+surfaces over generated artifacts.
+
+## [1.0.2] — 2026-06-21 — handover and roadmap orientation sync
+
+### Changed
+- Bumped package/tool version markers to `1.0.2`.
+- Updated HANDOVER and NEXT_STEPS current-version orientation from
+  v1.0.0/v1.0.1 wording to the live v1.0.2 state.
+- Marked the `apply_extrapolation_caps()` `dataclasses.replace` refactor
+  as already shipped, matching the live implementation and regression test.
+
+### Notes
+- No statistics, report-generation, CLI behavior, or UI runtime behavior changed.
+
+## [1.0.1] — 2026-06-20 — release documentation truth sync
+
+### Changed
+- Bumped package/tool version markers to `1.0.1`.
+- Updated README, HANDOVER, and NEXT_STEPS to reflect the live v1.0.0+
+  state: local UI shipped, hosted UI work remains future polish, and the
+  current test collection count is 483.
+- Removed stale handover language that still described the UI pass as future
+  v0.7/v1.0 work.
+
+### Notes
+- No statistics, report-generation, CLI behavior, or UI runtime behavior changed.
+
+## [1.0.0] — 2026-06-20 — v1 local UI workspace + UI service manifest
+
+### Theme
+First v1 usability release. The mature Python statistics/reporting engine
+remains authoritative, and the UI is a thin local client over Python-generated
+HTML, JSON, plots, and artifact bundles. No statistical logic was reimplemented
+in JavaScript.
+
+### Added
+- **Local v1 UI server** (`openpharmastability.ui_server`) plus the
+  `openpharmastability-ui` console script. It serves a stdlib-only local
+  web workspace for uploading CSV/XLSX data, selecting condition/attributes,
+  choosing product type and guidance profile, toggling advanced options, and
+  previewing/downloading generated report artifacts.
+- **UI-facing service manifest** (`openpharmastability.ui_service`):
+  `UIAnalysisOptions`, `UIAnalysisManifest`, `UIArtifactFile`, and
+  `analyze_for_ui()`. This wraps the existing Python API and standardizes
+  HTML/JSON/plot/PDF artifact metadata, SHA-256 values, warnings, guidance
+  profile, limiting attribute, and supported shelf-life/retest-period summary.
+- **Static v1 workspace assets** under `openpharmastability/ui/static/`.
+  The first screen is the usable analysis workflow, not a marketing page.
+- **Tests** for the UI manifest single-attribute and multi-attribute paths.
+
+### Changed
+- `analyze_and_artifact()` now forwards `replicate_policy` and `bql_policy`
+  into the actual analysis call as well as the plot-rendering validation path.
+  Multi-attribute calls continue to treat single-attribute-only options
+  (sensitivity, Arrhenius shelf-life prediction, per-batch Arrhenius) as
+  no-ops, matching CLI behavior.
+- `TOOL_VERSION` bumped to `1.0.0` (three locations).
+
+### Notes
+- The regulatory disclaimer remains unchanged. v1 is still
+  decision-support / educational software, not a validated GxP or 21 CFR
+  Part 11 system.
+- `.hermes/` remains untracked local workspace state.
+
+## [0.11.0] — 2026-06-20 — GuidanceProfile abstraction completed (CLI + audit + tests)
+
+### Theme
+Pure backend release, no UI changes. Completes the v0.10.0
+GuidanceProfile seam: the active profile is now selectable from the
+CLI, recorded as an audit fact on the result, surfaced in the JSON
+and HTML reports, and proven to actually drive engine output via a
+non-default-profile test. The default path is byte-identical to
+v0.10.0; the golden file is unchanged.
+
+### Added
+- **Profile registry + `resolve_profile()`** (`regulatory/profile.py`).
+  `PROFILES = {"q1ae": Q1AE, "q1-consolidated-draft": Q1_CONSOLIDATED_DRAFT}`;
+  case-insensitive lookup; unknown names raise `ValueError` with the
+  available keys. Exported from the package top level.
+- **`Q1_CONSOLIDATED_DRAFT` profile** — a PROVISIONAL placeholder
+  pending ICH Q1 consolidated Step 4. Its values mirror Q1AE so
+  selecting it is numerically inert until the final numbers are
+  confirmed; edit the values at Step 4 and bump MAJOR.
+- **`--guidance` CLI flag** (`cli.py`). Default `q1ae`; choices
+  `q1ae`, `q1-consolidated-draft`. Forwarded to both `analyze` and
+  `analyze_many` via `_engine_kwargs`; unknown names exit 2 with a
+  one-line ERROR.
+- **`StabilityResult.profile_name`** (`contracts.py`) — additive
+  field defaulting to `"Q1A_R2+Q1E"`; set by the engine from
+  `profile.name`.
+- **`guidance_profile` in the JSON decision record** (`record.py`,
+  `multi_record.py`) and the **HTML report** (`html.py`,
+  `report.html.j2` assumptions table).
+- **Tests** (16 new): registry/resolver (6), `profile_name` field (2),
+  engine `profile_name` recording + non-default-quantile threading
+  proof (3), CLI `--guidance` (unknown→exit 2, q1ae==default,
+  draft→profile_name) (3), JSON + HTML audit surfacing (2).
+
+### Changed
+- `--assay-change-threshold` default is now `None`, resolved from
+  the active profile's `assay_change_threshold_pct` (5.0 for Q1AE)
+  when not explicitly set. Default behavior unchanged.
+- `TOOL_VERSION` bumped to `0.11.0` (three locations).
+
+### Notes
+- The golden file is unchanged — v0.11 only adds opt-in selection
+  and audit; the default `analyze()` path is bit-identical to v0.10.0.
+- `python tools/regen_expected.py --check` still exits 0.
 
 ## [0.10.0] — 2026-06-14 — GuidanceProfile abstraction + bidirectional quantile fix
 

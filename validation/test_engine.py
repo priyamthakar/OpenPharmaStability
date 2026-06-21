@@ -15,11 +15,18 @@ import pandas as pd
 import pytest
 
 from openpharmastability.contracts import (
+    CONFIDENCE,
     CrossingStatus,
+    EXTRAPOLATION_MAX_FACTOR,
+    EXTRAPOLATION_MAX_MONTHS_BEYOND,
     ModelKind,
+    ONE_SIDED_T_QUANTILE,
+    POOLABILITY_ALPHA,
     Poolability,
     TOOL_VERSION,
+    TWO_SIDED_T_QUANTILE,
 )
+from openpharmastability.regulatory.profile import GuidanceProfile
 from openpharmastability.shelf_life.engine import analyze
 
 
@@ -449,3 +456,60 @@ def test_engine_handles_negative_time(tmp_path):
     assert neg_warnings, (
         f"Expected a negative-time warning; got warnings: {result.warnings}"
     )
+
+
+# ---------------------------------------------------------------------------
+# v0.11.0 — guidance-profile audit + threading
+# ---------------------------------------------------------------------------
+
+
+def _profile(name, **overrides):
+    """Build a GuidanceProfile with Q1AE base values, applying overrides.
+
+    Used to prove constants flow profile -> bounds -> crossing solver with
+    no algorithm change (Task 4) and to record a custom profile name (Task 3).
+    """
+    base = dict(
+        poolability_alpha=POOLABILITY_ALPHA,
+        confidence=CONFIDENCE,
+        one_sided_quantile=ONE_SIDED_T_QUANTILE,
+        two_sided_quantile=TWO_SIDED_T_QUANTILE,
+        extrapolation_max_factor=EXTRAPOLATION_MAX_FACTOR,
+        extrapolation_max_months_beyond=EXTRAPOLATION_MAX_MONTHS_BEYOND,
+    )
+    base.update(overrides)
+    return GuidanceProfile(name=name, **base)
+
+
+def test_engine_records_default_profile_name():
+    result = analyze(path=str(CSV), condition="25C/60RH", attribute="assay")
+    assert result.profile_name == "Q1A_R2+Q1E"
+
+
+def test_engine_records_custom_profile_name():
+    result = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        profile=_profile("custom_test"),
+    )
+    assert result.profile_name == "custom_test"
+
+
+def test_engine_looser_quantile_delays_crossing():
+    # A one-sided 0.90 bound sits HIGHER than 0.95 for a decreasing
+    # attribute, so the lower-spec crossing happens LATER. This proves
+    # constants flow profile -> bounds -> crossing solver with no
+    # algorithm change.
+    r_default = analyze(path=str(CSV), condition="25C/60RH", attribute="assay")
+    r_loose = analyze(
+        path=str(CSV),
+        condition="25C/60RH",
+        attribute="assay",
+        profile=_profile("loose_q90", one_sided_quantile=0.90),
+    )
+    assert r_loose.profile_name == "loose_q90"
+    assert r_loose.statistical_crossing_months is not None
+    assert r_default.statistical_crossing_months is not None
+    assert r_loose.statistical_crossing_months != r_default.statistical_crossing_months
+    assert r_loose.statistical_crossing_months > r_default.statistical_crossing_months

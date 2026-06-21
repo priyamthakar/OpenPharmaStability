@@ -303,6 +303,11 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         "confidence_bound": _confidence_bound_label(result.direction),
         "confidence_level": float(CONFIDENCE),
         "poolability_alpha_reference": float(POOLABILITY_ALPHA),
+        # v0.11.0: the active guidance profile's name — an immutable
+        # audit fact for the run. ``getattr`` keeps the record builder
+        # forward-compatible with hand-built fixtures that predate the
+        # ``profile_name`` field.
+        "guidance_profile": getattr(result, "profile_name", "Q1A_R2+Q1E"),
         "observed_long_term_months": float(result.observed_data_months),
         "extrapolation": _extrapolation_status(result.extrapolation_flag),
         "warnings": [str(w) for w in (result.warnings or [])],
