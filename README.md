@@ -71,6 +71,8 @@ npx -y -p playwright node tools/website-qa.mjs --dev
 
 ### Cloudflare Pages
 
+**Live site:** https://openpharmastability.pages.dev
+
 | Setting | Value |
 |---------|-------|
 | Framework preset | None / Static |

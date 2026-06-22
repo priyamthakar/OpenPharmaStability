@@ -8,6 +8,9 @@
  * Authoring source (--dev) — serve repo root first:
  *   python -m http.server 8766
  *   npx -y -p playwright node tools/website-qa.mjs --dev
+ *
+ * Production (--base) — no local server required:
+ *   npx -y -p playwright node tools/website-qa.mjs --base https://openpharmastability.pages.dev
  */
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -18,10 +21,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'qa-output');
 const DEV = process.argv.includes('--dev');
-const ORIGIN = 'http://127.0.0.1:8766';
-const BASE = DEV
-  ? `${ORIGIN}/OpenPharmaStability.dc.html`
-  : `${ORIGIN}/`;
+const baseArgIdx = process.argv.indexOf('--base');
+const REMOTE_BASE = baseArgIdx !== -1 ? process.argv[baseArgIdx + 1]?.replace(/\/$/, '') : null;
+const LOCAL_ORIGIN = 'http://127.0.0.1:8766';
+const ORIGIN = REMOTE_BASE || LOCAL_ORIGIN;
+const BASE = REMOTE_BASE
+  ? `${REMOTE_BASE}/`
+  : DEV
+    ? `${LOCAL_ORIGIN}/OpenPharmaStability.dc.html`
+    : `${LOCAL_ORIGIN}/`;
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -145,7 +153,8 @@ async function runInteractions(page) {
       log(`Sample link ${lc.label}`, false, `href=${href}`);
       continue;
     }
-    const resp = await page.request.get(`${ORIGIN}/${lc.href}`);
+    const assetUrl = REMOTE_BASE ? `${REMOTE_BASE}/${lc.href}` : `${ORIGIN}/${lc.href}`;
+    const resp = await page.request.get(assetUrl);
     const statusOk = resp.ok();
     let contentOk = statusOk;
     if (statusOk && lc.expect && !lc.href.endsWith('.png')) {
