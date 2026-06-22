@@ -143,10 +143,16 @@ def test_regen_is_idempotent(tmp_path):
     new_path = tmp_path / "expected.json"
     with open(new_path, "w") as f:
         json.dump(new, f, indent=2)
-    # The freshly regenerated file should match the committed one.
+    # The freshly regenerated file should match the committed one. We
+    # compare with the script's own tolerance-aware comparator (rtol
+    # 1e-9) rather than ``==`` so that last-ULP float drift from a
+    # different numpy / scipy / BLAS build does not fail the test while
+    # still catching any genuine regression.
     with open(EXPECTED) as f:
         committed = json.load(f)
-    assert new == committed, "regen output differs from committed expected.json"
+    assert mod._values_match(new, committed), (
+        "regen output differs from committed expected.json beyond 1e-9 tolerance"
+    )
 
 
 # ---------------------------------------------------------------------------

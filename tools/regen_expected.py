@@ -21,6 +21,7 @@ Run from the project root:
 from __future__ import annotations
 
 import json
+import math
 import pathlib
 import sys
 
@@ -215,6 +216,40 @@ def _common_slope_expected(df: pd.DataFrame) -> dict:
     }
 
 
+def _values_match(new, old, *, rtol: float = 1e-9, atol: float = 1e-12) -> bool:
+    """Recursively compare regenerated values against committed values.
+
+    Floats are compared with a relative + absolute tolerance so that
+    last-ULP drift from a different numpy / scipy / BLAS build does not
+    masquerade as a real regression. ``rtol=1e-9`` still catches any
+    genuine change (the engine's golden test asserts on the same 1e-9
+    scale) while absorbing platform float noise such as
+    ``0.3312058496592973`` vs ``0.3312058496592972``. All non-float
+    values (ints, strings, structure, ``None``) are compared exactly so
+    that, e.g., the rounded-down shelf-life integer must match to the
+    month.
+    """
+    if isinstance(new, dict) and isinstance(old, dict):
+        if set(new) != set(old):
+            return False
+        return all(_values_match(new[k], old[k], rtol=rtol, atol=atol) for k in new)
+    if isinstance(new, (list, tuple)) and isinstance(old, (list, tuple)):
+        if len(new) != len(old):
+            return False
+        return all(
+            _values_match(a, b, rtol=rtol, atol=atol) for a, b in zip(new, old)
+        )
+    # ``bool`` is a subclass of ``int``; compare it exactly, never via
+    # the numeric tolerance path.
+    if isinstance(new, bool) or isinstance(old, bool):
+        return new == old
+    if isinstance(new, float) or isinstance(old, float):
+        if new is None or old is None:
+            return new == old
+        return math.isclose(float(new), float(old), rel_tol=rtol, abs_tol=atol)
+    return new == old
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = argv or sys.argv[1:]
     if argv and argv[0] == "--check":
@@ -236,12 +271,12 @@ def main(argv: list[str] | None = None) -> int:
         new = _build_expected(df)
         with open(target) as f:
             old = json.load(f)
-        if new == old:
-            print(f"{target} matches regenerated values.")
+        if _values_match(new, old):
+            print(f"{target} matches regenerated values (within 1e-9 tolerance).")
             return 0
         print(f"{target} DIFFERS from regenerated values:")
         for k in sorted(set(new) | set(old)):
-            if new.get(k) != old.get(k):
+            if not _values_match(new.get(k), old.get(k)):
                 print(f"  {k}:")
                 print(f"    old: {old.get(k)!r}")
                 print(f"    new: {new.get(k)!r}")

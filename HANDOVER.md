@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v1.0.2 on a fresh machine.**
+> **You are picking up OpenPharmaStability v1.0.3 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -48,7 +48,7 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `1.0.2` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `1.0.3` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
@@ -74,7 +74,8 @@ verbatim in every HTML report.
 
 | Version | Theme | What it added |
 |---|---|---|
-| `1.0.2` (current) | Handover + roadmap orientation sync | Current-version docs now match the live package markers; `NEXT_STEPS.md` no longer describes the completed `dataclasses.replace` extrapolation refactor as open work. |
+| `1.0.3` (current) | Toolchain-robust validation | `tools/regen_expected.py --check` now compares against the golden `expected.json` with `rtol=1e-9` / `atol=1e-12` instead of exact float equality (last-ULP drift on modern numpy/scipy/BLAS no longer fails `--check` or the regen tests); the random-effects 2-batch boundary test accepts `converged=False` as well as `boundary=True` (newer statsmodels reports the degenerate fixture as non-convergence). Suite is green on a clean modern install (479 passed / 4 host-dependent PDF skips). No analysis-math, golden-value, report, CLI, or UI behavior changed. |
+| `1.0.2` | Handover + roadmap orientation sync | Current-version docs now match the live package markers; `NEXT_STEPS.md` no longer describes the completed `dataclasses.replace` extrapolation refactor as open work. |
 | `1.0.1` | Release documentation truth sync | README/HANDOVER/NEXT_STEPS synchronized after the local UI shipment; expected test collection corrected to 483. |
 | `1.0.0` | Local v1 UI + service manifest | `openpharmastability-ui` local workspace, packaged static UI, `ui_service.analyze_for_ui()` manifest, artifact preview/download flow. Python engine remains authoritative; UI does not reimplement statistics. |
 | `0.11.0` | Guidance profile completion | `--guidance`, profile registry/resolver, `StabilityResult.profile_name`, JSON + HTML guidance audit, non-default-profile threading tests. |

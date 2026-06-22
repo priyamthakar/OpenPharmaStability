@@ -534,30 +534,35 @@ def test_random_path_records_convergence_subblock() -> None:
 def test_random_path_detects_boundary_on_2_batch_frame() -> None:
     """With only 2 distinct batches and a near-perfect (identical)
     line, the random-effect variance may collapse or the
-    residual-variance ratio may go to extremes; in either case the
-    convergence sub-block must report ``boundary=True`` and the
-    message must mention ``"boundary"``.
+    residual-variance ratio may go to extremes; in any case the
+    convergence sub-block must flag the fit as untrustworthy — either
+    ``boundary=True`` or ``converged=False``.
 
     The 2-batch fixture in this test module uses IDENTICAL values
     for both batches (``value = 100.0 - 0.25 * t`` for every
     (batch, t) pair), so the random intercept is degenerate: the
-    fit reduces to a fixed-effect OLS. The detection logic flags
-    this either via the ``Group Var < 1e-10`` rule or the
-    ``Group Var / scale > 1e6`` ratio rule (statsmodels lands on
-    a degenerate estimate that triggers at least one of the two on
-    this fixture).
+    fit reduces to a fixed-effect OLS. Depending on the statsmodels
+    version, the degenerate optimum is reported either as a boundary
+    hit (``Group Var < 1e-10`` or ``Group Var / scale > 1e6``) or as
+    an outright non-convergence. Both are valid "do not trust this
+    random-effects fit" signals; what must NOT happen is a silent
+    ``converged=True, boundary=False`` on a degenerate fixture.
     """
     v = _decreasing_assay_2batch()
     fits = fit_models(v, random_effects=True)
     pooled = fits[ModelKind.POOLED]
     conv = pooled.design.get("convergence")
     assert conv is not None
-    # The POOLED model on a 2-batch identical-value fixture hits
-    # the boundary condition.
-    assert conv["boundary"] is True, (
-        f"expected boundary=True on 2-batch identical-value fixture; "
-        f"got conv={conv!r}; random_effects={pooled.design.get('random_effects')!r}"
+    # The POOLED model on a 2-batch identical-value fixture must be
+    # flagged as problematic: boundary OR non-convergence.
+    flagged = (conv["boundary"] is True) or (conv["converged"] is False)
+    assert flagged, (
+        f"expected boundary=True or converged=False on 2-batch "
+        f"identical-value fixture; got conv={conv!r}; "
+        f"random_effects={pooled.design.get('random_effects')!r}"
     )
-    assert "boundary" in conv["message"].lower(), (
-        f"message should mention 'boundary'; got: {conv['message']!r}"
+    msg = conv["message"].lower()
+    assert ("boundary" in msg) or ("converge" in msg), (
+        f"message should mention 'boundary' or 'converge'; "
+        f"got: {conv['message']!r}"
     )
