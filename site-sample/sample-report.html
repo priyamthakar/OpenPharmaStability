@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="OpenPharmaStability v1.0.2">
+  <title>Stability Analysis Report &mdash; assay @ 25C/60RH</title>
+  <style>
+    :root {
+      --fg: #1a1a1a;
+      --muted: #666;
+      --accent: #1f5fbf;
+      --ok: #1b7d3a;
+      --warn: #a36100;
+      --fail: #b3261e;
+      --bg: #fafafa;
+      --card: #ffffff;
+      --border: #e2e2e2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      margin: 0;
+      line-height: 1.45;
+    }
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+    header .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    h2 {
+      margin-top: 28px;
+      font-size: 1.15rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 8px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 10px 0 18px;
+    }
+    table.summary {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    table.summary th, table.summary td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 0.95rem;
+    }
+    table.summary th {
+      width: 38%;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge.ok    { background: #e6f4ea; color: var(--ok); }
+    .badge.fail  { background: #fde8e7; color: var(--fail); }
+    .badge.warn  { background: #fff3e0; color: var(--warn); }
+    .badge.info  { background: #e8f0fe; color: var(--accent); }
+    .decision-shelf-life { color: var(--accent); font-weight: 700; }
+    .plot {
+      text-align: center;
+      margin: 12px 0;
+    }
+    .plot img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+    }
+    .plot-caption {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 6px;
+    }
+    ul.notes {
+      margin: 6px 0 0 18px;
+      padding: 0;
+    }
+    ul.notes li { margin: 2px 0; }
+    ul.warnings li {
+      color: var(--warn);
+    }
+    .disclaimer {
+      background: #f3f3f3;
+      border-left: 4px solid var(--muted);
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      color: #333;
+      margin-top: 32px;
+    }
+    .disclaimer strong { color: var(--fg); }
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <h1>Stability Analysis Report</h1>
+      <div class="subtitle">
+        Attribute <strong>assay</strong> &middot;
+        Condition <strong>25C/60RH</strong> &middot;
+        Direction <strong>decreasing</strong> &middot;
+        Deliverable term <strong>shelf life</strong>
+ (product type: product)      </div>
+    </header>
+
+    <h2>Headline Result</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Supported shelf life</th>
+          <td class="decision-shelf-life">17 months</td>
+        </tr>
+        <tr>
+          <th>Statistical crossing</th>
+          <td>18.0 months
+              (rounded down to the nearest whole month)</td>
+        </tr>
+        <tr>
+          <th>Observed long-term data</th>
+          <td>24.0 months</td>
+        </tr>
+        <tr>
+          <th>Limiting attribute</th>
+          <td>assay</td>
+        </tr>
+        <tr>
+          <th>Condition</th>
+          <td>25C/60RH</td>
+        </tr>
+        <tr>
+          <th>Model selected</th>
+          <td>Common slope, batch-specific intercepts <span class="badge info">common_slope_batch_intercepts</span></td>
+        </tr>
+        <tr>
+          <th>Poolability alpha</th>
+          <td>0.25</td>
+        </tr>
+        <tr>
+          <th>Confidence bound</th>
+          <td>Lower one-sided 95% confidence bound on the mean response
+              <span class="badge info">lower_one_sided_95_mean</span></td>
+        </tr>
+        <tr>
+          <th>Extrapolation</th>
+          <td>No — supported period is within observed data</td>
+        </tr>
+        <tr>
+          <th>Governing batch</th>
+          <td>B2</td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Dataset Summary</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Attribute</th>
+          <td>assay</td>
+        </tr>
+        <tr>
+          <th>Unit</th>
+          <td>
+&mdash;          </td>
+        </tr>
+        <tr>
+          <th>Condition</th>
+          <td>25C/60RH</td>
+        </tr>
+        <tr>
+          <th>Direction</th>
+          <td>decreasing</td>
+        </tr>
+        <tr>
+          <th>Number of batches</th>
+          <td>
+Not recorded in metadata          </td>
+        </tr>
+        <tr>
+          <th>Time points (months)</th>
+          <td>
+              Not recorded in metadata
+          </td>
+        </tr>
+        <tr>
+          <th>Row count used in fit</th>
+          <td>
+42
+          </td>
+        </tr>
+        <tr>
+          <th>Required-column validation</th>
+          <td>
+            <span class="badge ok">All required columns present (assumed)</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Model</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Model kind</th>
+          <td>Common slope, batch-specific intercepts
+              <span class="badge info">common_slope_batch_intercepts</span></td>
+        </tr>
+        <tr>
+          <th>Model formula</th>
+          <td><code class="mono">value ~ time + batch  (common slope, batch-specific intercepts)</code></td>
+        </tr>
+        <tr>
+          <th>Estimated parameters</th>
+          <td>
+            <code class="mono">{&#39;b0_B1&#39;: 99.86225457656116, &#39;b0_B2&#39;: 98.94860457656118, &#39;b0_B3&#39;: 100.80209743370403, &#39;b1&#39;: -0.48884697272122224}</code>
+          </td>
+        </tr>
+        <tr>
+          <th>Residual df</th>
+          <td>38</td>
+        </tr>
+        <tr>
+          <th>Residual standard error (s)</th>
+          <td>0.331206</td>
+        </tr>
+        <tr>
+          <th>Batches in fit</th>
+          <td>
+              <code class="mono">[&#39;B1&#39;, &#39;B2&#39;, &#39;B3&#39;]</code>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Poolability Test</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Decision</th>
+          <td>
+            Partial pooling (common slope, batch-specific intercepts)
+            <span class="badge info">partial</span>
+          </td>
+        </tr>
+        <tr>
+          <th>Alpha (significance level)</th>
+          <td>0.25
+              (ICH Q1E reference alpha = 0.25)</td>
+        </tr>
+        <tr>
+          <th>Guidance profile</th>
+          <td>Q1A_R2+Q1E</td>
+        </tr>
+        <tr>
+          <th>Step 1 &mdash; p-value (slopes)</th>
+          <td>
+            <code class="mono">0.9056</code>
+                &ge; alpha &rarr; proceed to intercept test
+          </td>
+        </tr>
+        <tr>
+          <th>Step 2 &mdash; p-value (intercepts)</th>
+          <td>
+            <code class="mono">1.658e-16</code>
+                &lt; alpha &rarr; intercepts differ &rarr; common slope
+          </td>
+        </tr>
+        <tr>
+          <th>Poolability notes</th>
+          <td>
+            <ul class="notes">
+<li>step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)</li><li>step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)</li>            </ul>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Shelf-Life Estimate</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Supported shelf life</th>
+          <td class="decision-shelf-life">17 months</td>
+        </tr>
+        <tr>
+          <th>Statistical crossing (months)</th>
+          <td>18.0</td>
+        </tr>
+        <tr>
+          <th>Observed long-term data (months)</th>
+          <td>24.0</td>
+        </tr>
+        <tr>
+          <th>Confidence bound used</th>
+          <td>Lower one-sided 95% confidence bound on the mean response
+              <span class="badge info">lower_one_sided_95_mean</span>
+              (level = 0.95)</td>
+        </tr>
+        <tr>
+          <th>Crossing status</th>
+          <td>Crossed specification within the evaluated horizon
+              <span class="badge info">crossed</span></td>
+        </tr>
+        <tr>
+          <th>Governing batch</th>
+          <td>B2</td>
+        </tr>
+        <tr>
+          <th>Extrapolation</th>
+          <td>No — supported period is within observed data</td>
+        </tr>
+      </table>
+      <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
+        The supported shelf life is rounded <em>down</em> to the
+        nearest whole month, per ICH Q1E.
+      </p>
+    </div>
+
+    <h2>Confidence-Bound Plot</h2>
+    <div class="card">
+        <div class="plot">
+          <img src="confidence_plot.png" alt="Confidence-bound plot for assay at 25C/60RH">
+          <div class="plot-caption">
+            Observed data by batch, fitted regression, the
+            lower one-sided 95% confidence bound on the mean response, and the relevant
+            specification limit. Crossing point and extrapolation region
+            are marked. Plot file: <code class="mono">confidence_plot.png</code>.
+          </div>
+        </div>
+    </div>
+
+    <h2>Diagnostics &amp; Assumptions</h2>
+    <div class="card">
+      <div class="two-col">
+        <div>
+          <p>
+            Linearity:
+              <span class="badge ok">ok</span>
+          </p>
+          <p>
+            Homoscedasticity:
+              <span class="badge ok">ok</span>
+          </p>
+          <p>
+            Normality of residuals:
+              <span class="badge ok">ok</span>
+          </p>
+          <p>
+            Influential points (Cook's d):
+            <span class="badge warn">
+              4
+            </span>
+          </p>
+        </div>
+        <div>
+            <strong>Diagnostic notes</strong>
+            <ul class="notes">
+<li>Influence check: 4 observation(s) have Cook&#39;s distance &gt; 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li>            </ul>
+        </div>
+      </div>
+    </div>
+
+    <h2>Warnings &amp; Limitations</h2>
+    <div class="card">
+        <ul class="notes warnings">
+<li>data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) — no &#39;replicate&#39; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)</li><li>step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)</li><li>Influence check: 4 observation(s) have Cook&#39;s distance &gt; 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li>        </ul>
+    </div>
+
+    <h2>Significant-change assessment (ICH Q1A)</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Accelerated condition</th>
+          <td>&amp;mdash;</td>
+        </tr>
+        <tr>
+          <th>Intermediate condition</th>
+          <td>&amp;mdash;</td>
+        </tr>
+        <tr>
+          <th>Extrapolation allowed</th>
+          <td>
+              <span class="badge ok">yes</span>
+          </td>
+        </tr>
+        <tr>
+          <th>Rationale</th>
+          <td><code class="mono">no accelerated data</code></td>
+        </tr>
+      </table>
+      <h3>Criteria fired</h3>
+      <table class="summary">
+        <tr>
+          <th>Criterion</th>
+          <th>First change (months)</th>
+          <th>Evidence</th>
+        </tr>
+        <tr>
+          <td>accelerated</td>
+          <td>
+              &mdash;
+          </td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>intermediate</td>
+          <td>
+              &mdash;
+          </td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+
+    <h2>Model effects</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Model</th>
+          <td><code class="mono">fixed</code>
+              (Q1E default — fixed-effect batch)
+          </td>
+        </tr>
+      </table>
+    </div>
+
+
+
+
+
+
+
+    <h2>Reproducibility</h2>
+    <div class="card">
+      <table class="summary">
+        <tr>
+          <th>Tool version</th>
+          <td><code class="mono">1.0.2</code></td>
+        </tr>
+        <tr>
+          <th>Analysis timestamp (ISO-8601)</th>
+          <td><code class="mono">2024-06-01T00:00:00Z</code></td>
+        </tr>
+        <tr>
+          <th>Input file SHA-256</th>
+          <td>
+              <code class="mono">65138b8343548cfcc775d822e124c556ed47e62fdec455bc4ccd7d946f8a497e</code>
+          </td>
+        </tr>
+        <tr>
+          <th>Random seed (if any)</th>
+          <td>
+              <em>none / deterministic core</em>
+          </td>
+        </tr>
+        <tr>
+          <th>Library versions</th>
+          <td>
+              <code class="mono">{&#39;python&#39;: &#39;3.12.10&#39;, &#39;pandas&#39;: &#39;3.0.3&#39;, &#39;numpy&#39;: &#39;2.4.6&#39;, &#39;scipy&#39;: &#39;1.17.1&#39;, &#39;statsmodels&#39;: &#39;0.14.6&#39;, &#39;matplotlib&#39;: &#39;3.11.0&#39;, &#39;jinja2&#39;: &#39;3.1.6&#39;}</code>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Disclaimer.</strong> This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.
+    </div>
+
+    <footer>
+      Generated by OpenPharmaStability v1.0.2 on
+      <code class="mono">2024-06-01T00:00:00Z</code>.
+      This report is intended for educational, exploratory, and reproducible
+      decision-support use; it is not a substitute for qualified regulatory,
+      statistical, or quality review.
+    </footer>
+
+  </div>
+</body>
+</html>
