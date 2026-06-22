@@ -50,3 +50,6 @@ htmlcov/
 *.swo
 .DS_Store
 Thumbs.db
+
+node_modules/
+qa-output/
