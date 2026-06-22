@@ -5,6 +5,37 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## [1.0.3] — 2026-06-22 — toolchain-robust golden/regen + mixed-model boundary checks
+
+### Fixed
+- `tools/regen_expected.py --check` now compares regenerated values to the
+  committed `examples/assay_3batch.expected.json` with a relative + absolute
+  tolerance (`rtol=1e-9`, `atol=1e-12`) instead of exact float equality. On a
+  modern toolchain (numpy 2.4 / scipy 1.18 / BLAS variant) the independent
+  recomputation drifts in the last floating-point digit
+  (e.g. `0.3312058496592973` vs `...72`), which previously made
+  `--check` exit non-zero and failed
+  `validation/test_regen.py::test_check_mode_returns_zero_when_matches` and
+  `::test_regen_is_idempotent` on a clean install. Integers (including the
+  rounded-down shelf-life month) and all non-numeric values are still compared
+  exactly, so a genuine regression is still caught.
+- `validation/test_stats_regression.py::test_random_path_detects_boundary_on_2_batch_frame`
+  now accepts either `boundary=True` **or** `converged=False` as a valid
+  "degenerate random-effects fit" signal. Newer statsmodels (0.14.6) reports
+  the identical-value 2-batch fixture as non-convergence rather than a boundary
+  hit; both outcomes correctly flag the fit as untrustworthy. The test still
+  forbids a silent `converged=True, boundary=False` on a degenerate fixture.
+
+### Changed
+- Bumped package/tool version markers to `1.0.3`.
+
+### Notes
+- No statistics, report-generation, CLI, or UI runtime behavior changed. These
+  are test/validation robustness fixes so the suite is green on a fresh modern
+  install (was 3 failed / 476 passed; now 479 passed / 4 host-dependent PDF
+  skips). The analysis math, golden values, and the verified shelf life
+  (17 months on the golden dataset) are unchanged.
+
 ## [1.0.2] — 2026-06-21 — handover and roadmap orientation sync
 
 ### Changed
