@@ -102,7 +102,7 @@ def _crossing_status_human(status: CrossingStatus) -> str:
 def _format_p(p: Optional[float]) -> str:
     """Render a p-value for the report; never raise on None."""
     if p is None:
-        return "—"
+        return "not run"
     try:
         return f"{float(p):.4g}"
     except (TypeError, ValueError):
@@ -111,7 +111,7 @@ def _format_p(p: Optional[float]) -> str:
 
 def _format_months(value: Optional[float], digits: int = 1) -> str:
     if value is None:
-        return "—"
+        return "not available"
     try:
         return f"{float(value):.{digits}f}"
     except (TypeError, ValueError):
@@ -120,8 +120,47 @@ def _format_months(value: Optional[float], digits: int = 1) -> str:
 
 def _format_int(value: Optional[int]) -> str:
     if value is None:
-        return "—"
+        return "not available"
     return f"{int(value)}"
+
+
+def _format_scalar(value: Any) -> str:
+    """Compact scalar formatting for report tables."""
+    if value is None:
+        return "not recorded"
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    return str(value)
+
+
+def _dict_rows(values: Any) -> list[dict[str, str]]:
+    """Render dict-like values as key/value rows instead of Python reprs."""
+    if not isinstance(values, dict):
+        return []
+    return [
+        {"key": str(key), "value": _format_scalar(value)}
+        for key, value in values.items()
+    ]
+
+
+def _list_display(values: Any) -> str:
+    """Render list-like metadata as clean comma-separated text."""
+    if not values:
+        return "not recorded"
+    if isinstance(values, (list, tuple, set)):
+        return ", ".join(_format_scalar(v) for v in values)
+    return str(values)
+
+
+def _clean_report_text(value: Any) -> str:
+    """Normalize report copy so generated HTML does not expose typographic dashes."""
+    text = str(value)
+    return (
+        text.replace("—", ";")
+        .replace("–", "-")
+        .replace(" &mdash; ", "; ")
+        .replace("&mdash;", "not recorded")
+    )
 
 
 def _format_sc_criterion_notes(details: Optional[dict]) -> list[dict]:
@@ -247,11 +286,11 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         supported_text = f"{int(result.supported_shelf_life_months)} months"
 
     if result.extrapolation_flag:
-        extrap_text = "Yes — supported period extends beyond observed data; flagged"
+        extrap_text = "Yes. Supported period extends beyond observed data and is flagged."
     else:
-        extrap_text = "No — supported period is within observed data"
+        extrap_text = "No. Supported period is within observed data."
 
-    governing = result.crossing.governing_batch or "—"
+    governing = result.crossing.governing_batch or "not limiting"
 
     # P-values: slopes always present, intercepts only if reached step 2.
     p_slopes_str = _format_p(pool.p_slopes)
@@ -283,7 +322,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "n_batches": n_batches,
         "time_points": time_points,
         "row_count": row_count,
-        "unit": unit if unit else "—",
+        "unit": unit if unit else "not recorded",
         "validation_status": val_status,
         "validation_status_css": val_css,
         # Model
@@ -305,9 +344,11 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "poolability_notes": list(pool.notes or []),
         # Fit summary
         "fit_params": result.fit.params,
+        "fit_param_rows": _dict_rows(result.fit.params),
         "fit_df_resid": result.fit.df_resid,
         "fit_s_resid": result.fit.s_resid,
         "fit_batches": list(result.fit.batches or []),
+        "fit_batches_display": _list_display(result.fit.batches or []),
         # Crossing / shelf life
         "crossing_status_value": result.crossing.status.value,
         "crossing_status_human": _crossing_status_human(result.crossing.status),
@@ -334,7 +375,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         # Plot
         "plot_src": _resolve_plot_src(plot_png_path),
         # Warnings
-        "warnings": [str(w) for w in (result.warnings or [])],
+        "warnings": [_clean_report_text(w) for w in (result.warnings or [])],
         # v0.4.0: ICH Q1A significant-change gating of extrapolation.
         "significant_change_accelerated": getattr(
             result, "significant_change_accelerated", None
@@ -450,6 +491,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "file_sha256": md.get("file_sha256"),
         "random_seed": md.get("random_seed"),
         "library_versions": _library_versions(result),
+        "library_version_rows": _dict_rows(_library_versions(result)),
         # Disclaimer (verbatim from contracts.DISCLAIMER)
         "disclaimer": DISCLAIMER,
     }

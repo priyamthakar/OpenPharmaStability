@@ -2,60 +2,169 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="generator" content="OpenPharmaStability v1.0.2">
-  <title>Stability Analysis Report &mdash; assay @ 25C/60RH</title>
+  <meta name="generator" content="OpenPharmaStability v1.0.3">
+  <title>Stability Analysis Report | assay at 25C/60RH</title>
   <style>
     :root {
-      --fg: #1a1a1a;
-      --muted: #666;
-      --accent: #1f5fbf;
-      --ok: #1b7d3a;
-      --warn: #a36100;
-      --fail: #b3261e;
-      --bg: #fafafa;
-      --card: #ffffff;
-      --border: #e2e2e2;
+      --ink: #26211e;
+      --muted: #6d625b;
+      --faint: #8a7e76;
+      --accent: #a6533b;
+      --accent-soft: #f4ddd3;
+      --sage: #5e745d;
+      --amber: #9b6b2f;
+      --fail: #9b3029;
+      --bg: #f7f1e8;
+      --paper: #fffaf2;
+      --surface: #fdf7ee;
+      --line: #ded0c1;
+      --line-strong: #bfae9c;
     }
     * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                   Helvetica, Arial, sans-serif;
-      color: var(--fg);
+      font-family: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
       background: var(--bg);
       margin: 0;
-      line-height: 1.45;
+      line-height: 1.5;
     }
     .container {
-      max-width: 920px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 24px 28px 60px;
+      padding: 34px 30px 64px;
     }
     header {
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #fffaf2 0%, #fbf2e7 100%);
+      padding: 28px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
     }
     header h1 {
-      margin: 0 0 4px;
-      font-size: 1.6rem;
-      color: var(--accent);
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+      color: var(--ink);
+      font-weight: 500;
     }
-    header .subtitle {
+    .report-kicker {
+      color: var(--accent);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .decision-block {
+      border-left: 2px solid var(--accent);
+      padding-left: 18px;
+      min-width: 210px;
+    }
+    .decision-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .decision-value {
+      display: block;
+      margin-top: 4px;
+      color: var(--accent);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 600;
+    }
+    .decision-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .subtitle {
       color: var(--muted);
       font-size: 0.95rem;
+      max-width: 760px;
+    }
+    .meta-strip {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-bottom: 20px;
+    }
+    .meta-item {
+      padding: 12px 14px;
+      border-right: 1px solid var(--line);
+    }
+    .meta-item:last-child { border-right: 0; }
+    .meta-label {
+      color: var(--faint);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .meta-value {
+      margin-top: 4px;
+      font-size: 0.94rem;
+      font-weight: 650;
     }
     h2 {
-      margin-top: 28px;
-      font-size: 1.15rem;
-      border-left: 3px solid var(--accent);
-      padding-left: 8px;
+      margin: 30px 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.55rem;
+      line-height: 1.15;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+    .section-lede {
+      color: var(--muted);
+      margin: 0 0 12px;
+      max-width: 780px;
+      font-size: 0.94rem;
     }
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 18px;
       margin: 10px 0 18px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .summary-cell {
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      min-height: 94px;
+    }
+    .summary-cell:nth-child(4n) { border-right: 0; }
+    .summary-cell strong {
+      display: block;
+      color: var(--faint);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .summary-cell span {
+      font-size: 1rem;
+      font-weight: 650;
     }
     table.summary {
       border-collapse: collapse;
@@ -63,76 +172,131 @@
     }
     table.summary th, table.summary td {
       text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border);
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
       vertical-align: top;
-      font-size: 0.95rem;
+      font-size: 0.93rem;
+    }
+    table.summary tr:last-child th,
+    table.summary tr:last-child td {
+      border-bottom: 0;
     }
     table.summary th {
-      width: 38%;
+      width: 34%;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 650;
     }
     .badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
       padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 4px;
+      vertical-align: middle;
     }
-    .badge.ok    { background: #e6f4ea; color: var(--ok); }
-    .badge.fail  { background: #fde8e7; color: var(--fail); }
-    .badge.warn  { background: #fff3e0; color: var(--warn); }
-    .badge.info  { background: #e8f0fe; color: var(--accent); }
-    .decision-shelf-life { color: var(--accent); font-weight: 700; }
+    .badge.ok    { background: #e8efe5; color: var(--sage); }
+    .badge.fail  { background: #f6d9d4; color: var(--fail); }
+    .badge.warn  { background: #f6ead7; color: var(--amber); }
+    .badge.info  { background: var(--accent-soft); color: var(--accent); }
+    .decision-shelf-life { color: var(--accent); font-weight: 800; }
     .plot {
       text-align: center;
-      margin: 12px 0;
+      margin: 4px 0;
     }
     .plot img {
       max-width: 100%;
       height: auto;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line-strong);
       border-radius: 4px;
       background: #fff;
     }
     .plot-caption {
       color: var(--muted);
       font-size: 0.85rem;
-      margin-top: 6px;
+      margin-top: 10px;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
     }
     ul.notes {
-      margin: 6px 0 0 18px;
+      margin: 8px 0 0 18px;
       padding: 0;
     }
-    ul.notes li { margin: 2px 0; }
+    ul.notes li { margin: 5px 0; }
+    ul.warnings {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
     ul.warnings li {
-      color: var(--warn);
+      border-left: 3px solid var(--amber);
+      background: #fbf0dd;
+      padding: 10px 12px;
+      color: #513b20;
     }
     .disclaimer {
-      background: #f3f3f3;
-      border-left: 4px solid var(--muted);
-      padding: 12px 16px;
-      font-size: 0.88rem;
-      color: #333;
+      background: #efe4d7;
+      border: 1px solid var(--line-strong);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      color: #3f3832;
       margin-top: 32px;
     }
-    .disclaimer strong { color: var(--fg); }
+    .disclaimer strong { color: var(--ink); }
     footer {
-      margin-top: 28px;
+      margin-top: 24px;
       color: var(--muted);
       font-size: 0.82rem;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
     }
-    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code, .mono {
+      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 0.9em;
+    }
+    .kv-table {
+      display: grid;
+      grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1fr);
+      border: 1px solid var(--line);
+      margin-top: 6px;
+    }
+    .kv-table div {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .kv-table div:nth-last-child(-n + 2) { border-bottom: 0; }
+    .kv-table .key {
+      color: var(--muted);
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      font-weight: 650;
+    }
     .two-col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
     }
-    @media (max-width: 640px) {
-      .two-col { grid-template-columns: 1fr; }
+    .muted { color: var(--muted); }
+    @media (max-width: 760px) {
+      .container { padding: 18px 14px 42px; }
+      header { grid-template-columns: 1fr; padding: 22px; }
+      .decision-block { border-left: 0; border-top: 2px solid var(--accent); padding: 14px 0 0; }
+      .meta-strip, .summary-grid, .two-col { grid-template-columns: 1fr; }
+      .meta-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .summary-cell { border-right: 0; }
+      table.summary th, table.summary td { display: block; width: 100%; }
+      table.summary th { border-bottom: 0; padding-bottom: 2px; }
+      table.summary td { padding-top: 2px; }
+      .kv-table { grid-template-columns: 1fr; }
+      .kv-table .key { border-right: 0; border-bottom: 0; }
     }
   </style>
 </head>
@@ -140,64 +304,82 @@
   <div class="container">
 
     <header>
-      <h1>Stability Analysis Report</h1>
-      <div class="subtitle">
-        Attribute <strong>assay</strong> &middot;
-        Condition <strong>25C/60RH</strong> &middot;
-        Direction <strong>decreasing</strong> &middot;
-        Deliverable term <strong>shelf life</strong>
- (product type: product)      </div>
+      <div>
+        <div class="report-kicker">OpenPharmaStability report</div>
+        <h1>Stability analysis</h1>
+        <div class="subtitle">
+          ICH Q1E inspired decision support for <strong>assay</strong>
+          at <strong>25C/60RH</strong>. The Python engine owns the model,
+          confidence bound, crossing estimate, reproducibility metadata, and artifact record.
+        </div>
+      </div>
+      <div class="decision-block">
+        <span class="decision-label">Supported shelf life</span>
+        <span class="decision-value">17 months</span>
+        <div class="decision-note">Statistical crossing 18.0 months. Rounded down to a whole month.</div>
+      </div>
     </header>
 
-    <h2>Headline Result</h2>
-    <div class="card">
-      <table class="summary">
-        <tr>
-          <th>Supported shelf life</th>
-          <td class="decision-shelf-life">17 months</td>
-        </tr>
-        <tr>
-          <th>Statistical crossing</th>
-          <td>18.0 months
-              (rounded down to the nearest whole month)</td>
-        </tr>
-        <tr>
-          <th>Observed long-term data</th>
-          <td>24.0 months</td>
-        </tr>
-        <tr>
-          <th>Limiting attribute</th>
-          <td>assay</td>
-        </tr>
-        <tr>
-          <th>Condition</th>
-          <td>25C/60RH</td>
-        </tr>
-        <tr>
-          <th>Model selected</th>
-          <td>Common slope, batch-specific intercepts <span class="badge info">common_slope_batch_intercepts</span></td>
-        </tr>
-        <tr>
-          <th>Poolability alpha</th>
-          <td>0.25</td>
-        </tr>
-        <tr>
-          <th>Confidence bound</th>
-          <td>Lower one-sided 95% confidence bound on the mean response
-              <span class="badge info">lower_one_sided_95_mean</span></td>
-        </tr>
-        <tr>
-          <th>Extrapolation</th>
-          <td>No — supported period is within observed data</td>
-        </tr>
-        <tr>
-          <th>Governing batch</th>
-          <td>B2</td>
-        </tr>
-      </table>
+    <div class="meta-strip">
+      <div class="meta-item">
+        <div class="meta-label">Attribute</div>
+        <div class="meta-value">assay</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Condition</div>
+        <div class="meta-value">25C/60RH</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Direction</div>
+        <div class="meta-value">decreasing</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Term</div>
+        <div class="meta-value">shelf life for product</div>
+      </div>
     </div>
 
-    <h2>Dataset Summary</h2>
+    <h2>Decision Summary</h2>
+    <p class="section-lede">
+      The headline decision is the earliest supported period implied by the selected model
+      and one sided confidence bound. Internal ids are retained in badges for audit traceability.
+    </p>
+    <div class="summary-grid">
+      <div class="summary-cell">
+        <strong>Supported shelf life</strong>
+        <span class="decision-shelf-life">17 months</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Statistical crossing</strong>
+        <span>18.0 months</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Observed data</strong>
+        <span>24.0 months</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Governing batch</strong>
+        <span>B2</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Model selected</strong>
+        <span>Common slope, batch-specific intercepts</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Poolability alpha</strong>
+        <span>0.25</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Confidence bound</strong>
+        <span>Lower one-sided 95% confidence bound on the mean response</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Extrapolation</strong>
+        <span>No. Supported period is within observed data.</span>
+      </div>
+    </div>
+
+    <h2>Dataset</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -207,7 +389,8 @@
         <tr>
           <th>Unit</th>
           <td>
-&mdash;          </td>
+            not recorded
+          </td>
         </tr>
         <tr>
           <th>Condition</th>
@@ -248,8 +431,7 @@ Not recorded in metadata          </td>
       <table class="summary">
         <tr>
           <th>Model kind</th>
-          <td>Common slope, batch-specific intercepts
-              <span class="badge info">common_slope_batch_intercepts</span></td>
+          <td>Common slope, batch-specific intercepts <span class="badge info">common_slope_batch_intercepts</span></td>
         </tr>
         <tr>
           <th>Model formula</th>
@@ -258,7 +440,16 @@ Not recorded in metadata          </td>
         <tr>
           <th>Estimated parameters</th>
           <td>
-            <code class="mono">{&#39;b0_B1&#39;: 99.86225457656116, &#39;b0_B2&#39;: 98.94860457656118, &#39;b0_B3&#39;: 100.80209743370403, &#39;b1&#39;: -0.48884697272122224}</code>
+              <div class="kv-table">
+                  <div class="key"><code class="mono">b0_B1</code></div>
+                  <div><code class="mono">99.8623</code></div>
+                  <div class="key"><code class="mono">b0_B2</code></div>
+                  <div><code class="mono">98.9486</code></div>
+                  <div class="key"><code class="mono">b0_B3</code></div>
+                  <div><code class="mono">100.802</code></div>
+                  <div class="key"><code class="mono">b1</code></div>
+                  <div><code class="mono">-0.488847</code></div>
+              </div>
           </td>
         </tr>
         <tr>
@@ -272,13 +463,13 @@ Not recorded in metadata          </td>
         <tr>
           <th>Batches in fit</th>
           <td>
-              <code class="mono">[&#39;B1&#39;, &#39;B2&#39;, &#39;B3&#39;]</code>
+              <code class="mono">B1, B2, B3</code>
           </td>
         </tr>
       </table>
     </div>
 
-    <h2>Poolability Test</h2>
+    <h2>Poolability</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -298,17 +489,17 @@ Not recorded in metadata          </td>
           <td>Q1A_R2+Q1E</td>
         </tr>
         <tr>
-          <th>Step 1 &mdash; p-value (slopes)</th>
+          <th>Step 1 p-value for slopes</th>
           <td>
             <code class="mono">0.9056</code>
-                &ge; alpha &rarr; proceed to intercept test
+                &ge; alpha, proceed to intercept test
           </td>
         </tr>
         <tr>
-          <th>Step 2 &mdash; p-value (intercepts)</th>
+          <th>Step 2 p-value for intercepts</th>
           <td>
             <code class="mono">1.658e-16</code>
-                &lt; alpha &rarr; intercepts differ &rarr; common slope
+                &lt; alpha, intercepts differ, common slope
           </td>
         </tr>
         <tr>
@@ -321,7 +512,7 @@ Not recorded in metadata          </td>
       </table>
     </div>
 
-    <h2>Shelf-Life Estimate</h2>
+    <h2>Shelf Life Estimate</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -353,7 +544,7 @@ Not recorded in metadata          </td>
         </tr>
         <tr>
           <th>Extrapolation</th>
-          <td>No — supported period is within observed data</td>
+          <td>No. Supported period is within observed data.</td>
         </tr>
       </table>
       <p style="font-size: 0.85rem; color: var(--muted); margin-top: 8px;">
@@ -362,7 +553,7 @@ Not recorded in metadata          </td>
       </p>
     </div>
 
-    <h2>Confidence-Bound Plot</h2>
+    <h2>Confidence Bound Plot</h2>
     <div class="card">
         <div class="plot">
           <img src="confidence_plot.png" alt="Confidence-bound plot for assay at 25C/60RH">
@@ -375,7 +566,7 @@ Not recorded in metadata          </td>
         </div>
     </div>
 
-    <h2>Diagnostics &amp; Assumptions</h2>
+    <h2>Diagnostics and Assumptions</h2>
     <div class="card">
       <div class="two-col">
         <div>
@@ -406,10 +597,10 @@ Not recorded in metadata          </td>
       </div>
     </div>
 
-    <h2>Warnings &amp; Limitations</h2>
+    <h2>Warnings and Limitations</h2>
     <div class="card">
         <ul class="notes warnings">
-<li>data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) — no &#39;replicate&#39; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)</li><li>step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)</li><li>Influence check: 4 observation(s) have Cook&#39;s distance &gt; 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li>        </ul>
+<li>data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) ; no &#39;replicate&#39; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)</li><li>step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)</li><li>Influence check: 4 observation(s) have Cook&#39;s distance &gt; 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li>        </ul>
     </div>
 
     <h2>Significant-change assessment (ICH Q1A)</h2>
@@ -417,11 +608,11 @@ Not recorded in metadata          </td>
       <table class="summary">
         <tr>
           <th>Accelerated condition</th>
-          <td>&amp;mdash;</td>
+          <td>not recorded</td>
         </tr>
         <tr>
           <th>Intermediate condition</th>
-          <td>&amp;mdash;</td>
+          <td>not recorded</td>
         </tr>
         <tr>
           <th>Extrapolation allowed</th>
@@ -444,14 +635,14 @@ Not recorded in metadata          </td>
         <tr>
           <td>accelerated</td>
           <td>
-              &mdash;
+              not recorded
           </td>
           <td></td>
         </tr>
         <tr>
           <td>intermediate</td>
           <td>
-              &mdash;
+              not recorded
           </td>
           <td></td>
         </tr>
@@ -464,7 +655,7 @@ Not recorded in metadata          </td>
         <tr>
           <th>Model</th>
           <td><code class="mono">fixed</code>
-              (Q1E default — fixed-effect batch)
+              (Q1E default fixed effect batch)
           </td>
         </tr>
       </table>
@@ -481,7 +672,7 @@ Not recorded in metadata          </td>
       <table class="summary">
         <tr>
           <th>Tool version</th>
-          <td><code class="mono">1.0.2</code></td>
+          <td><code class="mono">1.0.3</code></td>
         </tr>
         <tr>
           <th>Analysis timestamp (ISO-8601)</th>
@@ -502,7 +693,22 @@ Not recorded in metadata          </td>
         <tr>
           <th>Library versions</th>
           <td>
-              <code class="mono">{&#39;python&#39;: &#39;3.12.10&#39;, &#39;pandas&#39;: &#39;3.0.3&#39;, &#39;numpy&#39;: &#39;2.4.6&#39;, &#39;scipy&#39;: &#39;1.17.1&#39;, &#39;statsmodels&#39;: &#39;0.14.6&#39;, &#39;matplotlib&#39;: &#39;3.11.0&#39;, &#39;jinja2&#39;: &#39;3.1.6&#39;}</code>
+              <div class="kv-table">
+                  <div class="key"><code class="mono">python</code></div>
+                  <div><code class="mono">3.12.10</code></div>
+                  <div class="key"><code class="mono">pandas</code></div>
+                  <div><code class="mono">3.0.3</code></div>
+                  <div class="key"><code class="mono">numpy</code></div>
+                  <div><code class="mono">2.4.6</code></div>
+                  <div class="key"><code class="mono">scipy</code></div>
+                  <div><code class="mono">1.17.1</code></div>
+                  <div class="key"><code class="mono">statsmodels</code></div>
+                  <div><code class="mono">0.14.6</code></div>
+                  <div class="key"><code class="mono">matplotlib</code></div>
+                  <div><code class="mono">3.11.0</code></div>
+                  <div class="key"><code class="mono">jinja2</code></div>
+                  <div><code class="mono">3.1.6</code></div>
+              </div>
           </td>
         </tr>
       </table>
@@ -513,7 +719,7 @@ Not recorded in metadata          </td>
     </div>
 
     <footer>
-      Generated by OpenPharmaStability v1.0.2 on
+      Generated by OpenPharmaStability v1.0.3 on
       <code class="mono">2024-06-01T00:00:00Z</code>.
       This report is intended for educational, exploratory, and reproducible
       decision-support use; it is not a substitute for qualified regulatory,

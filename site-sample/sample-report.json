@@ -70,7 +70,7 @@
       "matplotlib": "3.11.0",
       "jinja2": "3.1.6"
     },
-    "tool_version": "1.0.2",
+    "tool_version": "1.0.3",
     "timestamp": "2024-06-01T00:00:00Z",
     "file_path": "examples\\assay_3batch.csv",
     "data_quality": {

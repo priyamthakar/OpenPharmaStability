@@ -3,59 +3,168 @@
 <head>
   <meta charset="utf-8">
   <meta name="generator" content="OpenPharmaStability v{{ tool_version }}">
-  <title>{{ title }} &mdash; {{ attribute }} @ {{ condition }}</title>
+  <title>{{ title }} | {{ attribute }} at {{ condition }}</title>
   <style>
     :root {
-      --fg: #1a1a1a;
-      --muted: #666;
-      --accent: #1f5fbf;
-      --ok: #1b7d3a;
-      --warn: #a36100;
-      --fail: #b3261e;
-      --bg: #fafafa;
-      --card: #ffffff;
-      --border: #e2e2e2;
+      --ink: #26211e;
+      --muted: #6d625b;
+      --faint: #8a7e76;
+      --accent: #a6533b;
+      --accent-soft: #f4ddd3;
+      --sage: #5e745d;
+      --amber: #9b6b2f;
+      --fail: #9b3029;
+      --bg: #f7f1e8;
+      --paper: #fffaf2;
+      --surface: #fdf7ee;
+      --line: #ded0c1;
+      --line-strong: #bfae9c;
     }
     * { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                   Helvetica, Arial, sans-serif;
-      color: var(--fg);
+      font-family: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
       background: var(--bg);
       margin: 0;
-      line-height: 1.45;
+      line-height: 1.5;
     }
     .container {
-      max-width: 920px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 24px 28px 60px;
+      padding: 34px 30px 64px;
     }
     header {
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #fffaf2 0%, #fbf2e7 100%);
+      padding: 28px;
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
     }
     header h1 {
-      margin: 0 0 4px;
-      font-size: 1.6rem;
-      color: var(--accent);
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3.8rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+      color: var(--ink);
+      font-weight: 500;
     }
-    header .subtitle {
+    .report-kicker {
+      color: var(--accent);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .decision-block {
+      border-left: 2px solid var(--accent);
+      padding-left: 18px;
+      min-width: 210px;
+    }
+    .decision-label {
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .decision-value {
+      display: block;
+      margin-top: 4px;
+      color: var(--accent);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 2.3rem;
+      line-height: 1;
+      font-weight: 600;
+    }
+    .decision-note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .subtitle {
       color: var(--muted);
       font-size: 0.95rem;
+      max-width: 760px;
+    }
+    .meta-strip {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-bottom: 20px;
+    }
+    .meta-item {
+      padding: 12px 14px;
+      border-right: 1px solid var(--line);
+    }
+    .meta-item:last-child { border-right: 0; }
+    .meta-label {
+      color: var(--faint);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .meta-value {
+      margin-top: 4px;
+      font-size: 0.94rem;
+      font-weight: 650;
     }
     h2 {
-      margin-top: 28px;
-      font-size: 1.15rem;
-      border-left: 3px solid var(--accent);
-      padding-left: 8px;
+      margin: 30px 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.55rem;
+      line-height: 1.15;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 0.95rem;
+      color: var(--ink);
+    }
+    .section-lede {
+      color: var(--muted);
+      margin: 0 0 12px;
+      max-width: 780px;
+      font-size: 0.94rem;
     }
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px 18px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 18px;
       margin: 10px 0 18px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .summary-cell {
+      padding: 16px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      min-height: 94px;
+    }
+    .summary-cell:nth-child(4n) { border-right: 0; }
+    .summary-cell strong {
+      display: block;
+      color: var(--faint);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .summary-cell span {
+      font-size: 1rem;
+      font-weight: 650;
     }
     table.summary {
       border-collapse: collapse;
@@ -63,76 +172,131 @@
     }
     table.summary th, table.summary td {
       text-align: left;
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--border);
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
       vertical-align: top;
-      font-size: 0.95rem;
+      font-size: 0.93rem;
+    }
+    table.summary tr:last-child th,
+    table.summary tr:last-child td {
+      border-bottom: 0;
     }
     table.summary th {
-      width: 38%;
+      width: 34%;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 650;
     }
     .badge {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
       padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 4px;
+      vertical-align: middle;
     }
-    .badge.ok    { background: #e6f4ea; color: var(--ok); }
-    .badge.fail  { background: #fde8e7; color: var(--fail); }
-    .badge.warn  { background: #fff3e0; color: var(--warn); }
-    .badge.info  { background: #e8f0fe; color: var(--accent); }
-    .decision-shelf-life { color: var(--accent); font-weight: 700; }
+    .badge.ok    { background: #e8efe5; color: var(--sage); }
+    .badge.fail  { background: #f6d9d4; color: var(--fail); }
+    .badge.warn  { background: #f6ead7; color: var(--amber); }
+    .badge.info  { background: var(--accent-soft); color: var(--accent); }
+    .decision-shelf-life { color: var(--accent); font-weight: 800; }
     .plot {
       text-align: center;
-      margin: 12px 0;
+      margin: 4px 0;
     }
     .plot img {
       max-width: 100%;
       height: auto;
-      border: 1px solid var(--border);
+      border: 1px solid var(--line-strong);
       border-radius: 4px;
       background: #fff;
     }
     .plot-caption {
       color: var(--muted);
       font-size: 0.85rem;
-      margin-top: 6px;
+      margin-top: 10px;
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
     }
     ul.notes {
-      margin: 6px 0 0 18px;
+      margin: 8px 0 0 18px;
       padding: 0;
     }
-    ul.notes li { margin: 2px 0; }
+    ul.notes li { margin: 5px 0; }
+    ul.warnings {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
     ul.warnings li {
-      color: var(--warn);
+      border-left: 3px solid var(--amber);
+      background: #fbf0dd;
+      padding: 10px 12px;
+      color: #513b20;
     }
     .disclaimer {
-      background: #f3f3f3;
-      border-left: 4px solid var(--muted);
-      padding: 12px 16px;
-      font-size: 0.88rem;
-      color: #333;
+      background: #efe4d7;
+      border: 1px solid var(--line-strong);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      color: #3f3832;
       margin-top: 32px;
     }
-    .disclaimer strong { color: var(--fg); }
+    .disclaimer strong { color: var(--ink); }
     footer {
-      margin-top: 28px;
+      margin-top: 24px;
       color: var(--muted);
       font-size: 0.82rem;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
     }
-    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code, .mono {
+      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 0.9em;
+    }
+    .kv-table {
+      display: grid;
+      grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1fr);
+      border: 1px solid var(--line);
+      margin-top: 6px;
+    }
+    .kv-table div {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .kv-table div:nth-last-child(-n + 2) { border-bottom: 0; }
+    .kv-table .key {
+      color: var(--muted);
+      background: var(--surface);
+      border-right: 1px solid var(--line);
+      font-weight: 650;
+    }
     .two-col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
     }
-    @media (max-width: 640px) {
-      .two-col { grid-template-columns: 1fr; }
+    .muted { color: var(--muted); }
+    @media (max-width: 760px) {
+      .container { padding: 18px 14px 42px; }
+      header { grid-template-columns: 1fr; padding: 22px; }
+      .decision-block { border-left: 0; border-top: 2px solid var(--accent); padding: 14px 0 0; }
+      .meta-strip, .summary-grid, .two-col { grid-template-columns: 1fr; }
+      .meta-item { border-right: 0; border-bottom: 1px solid var(--line); }
+      .summary-cell { border-right: 0; }
+      table.summary th, table.summary td { display: block; width: 100%; }
+      table.summary th { border-bottom: 0; padding-bottom: 2px; }
+      table.summary td { padding-top: 2px; }
+      .kv-table { grid-template-columns: 1fr; }
+      .kv-table .key { border-right: 0; border-bottom: 0; }
     }
   </style>
 </head>
@@ -140,65 +304,82 @@
   <div class="container">
 
     <header>
-      <h1>Stability Analysis Report</h1>
-      <div class="subtitle">
-        Attribute <strong>{{ attribute }}</strong> &middot;
-        Condition <strong>{{ condition }}</strong> &middot;
-        Direction <strong>{{ direction }}</strong> &middot;
-        Deliverable term <strong>{{ deliverable_term }}</strong>
-        {% if product_type %} (product type: {{ product_type }}){% endif %}
+      <div>
+        <div class="report-kicker">OpenPharmaStability report</div>
+        <h1>Stability analysis</h1>
+        <div class="subtitle">
+          ICH Q1E inspired decision support for <strong>{{ attribute }}</strong>
+          at <strong>{{ condition }}</strong>. The Python engine owns the model,
+          confidence bound, crossing estimate, reproducibility metadata, and artifact record.
+        </div>
+      </div>
+      <div class="decision-block">
+        <span class="decision-label">Supported {{ deliverable_term }}</span>
+        <span class="decision-value">{{ supported_shelf_life_text }}</span>
+        <div class="decision-note">Statistical crossing {{ statistical_crossing_months }} months. Rounded down to a whole month.</div>
       </div>
     </header>
 
-    <h2>Headline Result</h2>
-    <div class="card">
-      <table class="summary">
-        <tr>
-          <th>Supported {{ deliverable_term }}</th>
-          <td class="decision-shelf-life">{{ supported_shelf_life_text }}</td>
-        </tr>
-        <tr>
-          <th>Statistical crossing</th>
-          <td>{{ statistical_crossing_months }} months
-              (rounded down to the nearest whole month)</td>
-        </tr>
-        <tr>
-          <th>Observed long-term data</th>
-          <td>{{ observed_data_months }} months</td>
-        </tr>
-        <tr>
-          <th>Limiting attribute</th>
-          <td>{{ attribute }}</td>
-        </tr>
-        <tr>
-          <th>Condition</th>
-          <td>{{ condition }}</td>
-        </tr>
-        <tr>
-          <th>Model selected</th>
-          <td>{{ model_kind_human }} <span class="badge info">{{ model_kind_value }}</span></td>
-        </tr>
-        <tr>
-          <th>Poolability alpha</th>
-          <td>{{ poolability_alpha }}</td>
-        </tr>
-        <tr>
-          <th>Confidence bound</th>
-          <td>{{ confidence_bound_label }}
-              <span class="badge info">{{ confidence_bound_id }}</span></td>
-        </tr>
-        <tr>
-          <th>Extrapolation</th>
-          <td>{{ extrapolation_text }}</td>
-        </tr>
-        <tr>
-          <th>Governing batch</th>
-          <td>{{ governing_batch }}</td>
-        </tr>
-      </table>
+    <div class="meta-strip">
+      <div class="meta-item">
+        <div class="meta-label">Attribute</div>
+        <div class="meta-value">{{ attribute }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Condition</div>
+        <div class="meta-value">{{ condition }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Direction</div>
+        <div class="meta-value">{{ direction }}</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Term</div>
+        <div class="meta-value">{{ deliverable_term }}{% if product_type %} for {{ product_type }}{% endif %}</div>
+      </div>
     </div>
 
-    <h2>Dataset Summary</h2>
+    <h2>Decision Summary</h2>
+    <p class="section-lede">
+      The headline decision is the earliest supported period implied by the selected model
+      and one sided confidence bound. Internal ids are retained in badges for audit traceability.
+    </p>
+    <div class="summary-grid">
+      <div class="summary-cell">
+        <strong>Supported {{ deliverable_term }}</strong>
+        <span class="decision-shelf-life">{{ supported_shelf_life_text }}</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Statistical crossing</strong>
+        <span>{{ statistical_crossing_months }} months</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Observed data</strong>
+        <span>{{ observed_data_months }} months</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Governing batch</strong>
+        <span>{{ governing_batch }}</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Model selected</strong>
+        <span>{{ model_kind_human }}</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Poolability alpha</strong>
+        <span>{{ poolability_alpha }}</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Confidence bound</strong>
+        <span>{{ confidence_bound_label }}</span>
+      </div>
+      <div class="summary-cell">
+        <strong>Extrapolation</strong>
+        <span>{{ extrapolation_text }}</span>
+      </div>
+    </div>
+
+    <h2>Dataset</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -208,8 +389,7 @@
         <tr>
           <th>Unit</th>
           <td>
-            {% if unit is not none and unit != "—" %}{{ unit }}
-            {% else %}&mdash;{% endif %}
+            {{ unit }}
           </td>
         </tr>
         <tr>
@@ -231,7 +411,7 @@
           <th>Time points (months)</th>
           <td>
             {% if time_points %}
-              <code class="mono">{{ time_points }}</code>
+              <code class="mono">{{ time_points|join(", ") }}</code>
             {% else %}
               Not recorded in metadata
             {% endif %}
@@ -258,8 +438,7 @@
       <table class="summary">
         <tr>
           <th>Model kind</th>
-          <td>{{ model_kind_human }}
-              <span class="badge info">{{ model_kind_value }}</span></td>
+          <td>{{ model_kind_human }} <span class="badge info">{{ model_kind_value }}</span></td>
         </tr>
         <tr>
           <th>Model formula</th>
@@ -268,7 +447,16 @@
         <tr>
           <th>Estimated parameters</th>
           <td>
-            <code class="mono">{{ fit_params }}</code>
+            {% if fit_param_rows %}
+              <div class="kv-table">
+                {% for row in fit_param_rows %}
+                  <div class="key"><code class="mono">{{ row.key }}</code></div>
+                  <div><code class="mono">{{ row.value }}</code></div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <em>not recorded</em>
+            {% endif %}
           </td>
         </tr>
         <tr>
@@ -283,16 +471,16 @@
           <th>Batches in fit</th>
           <td>
             {% if fit_batches %}
-              <code class="mono">{{ fit_batches }}</code>
+              <code class="mono">{{ fit_batches_display }}</code>
             {% else %}
-              —
+              not recorded
             {% endif %}
           </td>
         </tr>
       </table>
     </div>
 
-    <h2>Poolability Test</h2>
+    <h2>Poolability</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -312,27 +500,27 @@
           <td>{{ guidance_profile }}</td>
         </tr>
         <tr>
-          <th>Step 1 &mdash; p-value (slopes)</th>
+          <th>Step 1 p-value for slopes</th>
           <td>
             <code class="mono">{{ p_value_slopes }}</code>
-            {% if p_value_slopes != "—" %}
+            {% if p_value_slopes != "not run" %}
               {% if p_value_slopes|float < poolability_alpha %}
-                &lt; alpha &rarr; slopes differ &rarr; no pooling
+                &lt; alpha, slopes differ, no pooling
               {% else %}
-                &ge; alpha &rarr; proceed to intercept test
+                &ge; alpha, proceed to intercept test
               {% endif %}
             {% endif %}
           </td>
         </tr>
         <tr>
-          <th>Step 2 &mdash; p-value (intercepts)</th>
+          <th>Step 2 p-value for intercepts</th>
           <td>
             <code class="mono">{{ p_value_intercepts }}</code>
-            {% if p_value_intercepts != "—" %}
+            {% if p_value_intercepts != "not run" %}
               {% if p_value_intercepts|float < poolability_alpha %}
-                &lt; alpha &rarr; intercepts differ &rarr; common slope
+                &lt; alpha, intercepts differ, common slope
               {% else %}
-                &ge; alpha &rarr; nothing rejected &rarr; full pooling
+                &ge; alpha, nothing rejected, full pooling
               {% endif %}
             {% else %}
               (not performed; slopes differ)
@@ -352,7 +540,7 @@
       </table>
     </div>
 
-    <h2>Shelf-Life Estimate</h2>
+    <h2>Shelf Life Estimate</h2>
     <div class="card">
       <table class="summary">
         <tr>
@@ -393,7 +581,7 @@
       </p>
     </div>
 
-    <h2>Confidence-Bound Plot</h2>
+    <h2>Confidence Bound Plot</h2>
     <div class="card">
       {% if plot_src %}
         <div class="plot">
@@ -411,7 +599,7 @@
       {% endif %}
     </div>
 
-    <h2>Diagnostics &amp; Assumptions</h2>
+    <h2>Diagnostics and Assumptions</h2>
     <div class="card">
       <div class="two-col">
         <div>
@@ -459,7 +647,7 @@
       </div>
     </div>
 
-    <h2>Warnings &amp; Limitations</h2>
+    <h2>Warnings and Limitations</h2>
     <div class="card">
       {% if warnings %}
         <ul class="notes warnings">
@@ -476,11 +664,11 @@
       <table class="summary">
         <tr>
           <th>Accelerated condition</th>
-          <td>{{ significant_change_accelerated or "&mdash;" }}</td>
+          <td>{{ significant_change_accelerated or "not recorded" }}</td>
         </tr>
         <tr>
           <th>Intermediate condition</th>
-          <td>{{ significant_change_intermediate or "&mdash;" }}</td>
+          <td>{{ significant_change_intermediate or "not recorded" }}</td>
         </tr>
         <tr>
           <th>Extrapolation allowed</th>
@@ -494,7 +682,7 @@
         </tr>
         <tr>
           <th>Rationale</th>
-          <td><code class="mono">{{ extrapolation_rationale or "&mdash;" }}</code></td>
+          <td><code class="mono">{{ extrapolation_rationale or "not recorded" }}</code></td>
         </tr>
       </table>
       {% if extrapolation_criterion_notes %}
@@ -512,7 +700,7 @@
             {% if row.first_t is not none %}
               {{ "%.2f"|format(row.first_t) }}
             {% else %}
-              &mdash;
+              not recorded
             {% endif %}
           </td>
           <td>{{ row.evidence }}</td>
@@ -530,9 +718,9 @@
           <th>Model</th>
           <td><code class="mono">{{ model_effects }}</code>
             {% if model_effects_is_random %}
-              <em>(random-effects / mixed model — not the ICH Q1E default; exploratory only)</em>
+              <em>(random effects or mixed model; not the ICH Q1E default; exploratory only)</em>
             {% else %}
-              (Q1E default — fixed-effect batch)
+              (Q1E default fixed effect batch)
             {% endif %}
           </td>
         </tr>
@@ -633,7 +821,7 @@
     {% endif %}
 
     {% if sensitivity_present %}
-    <h2>Sensitivity analysis (leave-one-out over Cook's-distance outliers)</h2>
+    <h2>Sensitivity analysis over Cook's distance outliers</h2>
     <div class="card">
       <p><em>{{ sensitivity_report.summary }}</em> ({{ "row-level" if sensitivity_mode == "row" else "batch-level" }})</p>
       <table class="summary">
@@ -648,7 +836,7 @@
         <tr>
           <td>{{ r.influential_row_index }}</td>
           <td>{{ r.baseline_supported_shelf_life }}</td>
-          <td>{{ r.leave_one_out_supported_shelf_life if r.leave_one_out_supported_shelf_life is not none else "&mdash;" }}</td>
+          <td>{{ r.leave_one_out_supported_shelf_life if r.leave_one_out_supported_shelf_life is not none else "not recorded" }}</td>
           <td>{{ r.diff_supported_shelf_life_months }}</td>
           <td>{{ r.note or "" }}</td>
         </tr>
@@ -684,7 +872,7 @@
             {% if arrhenius_shelf_life.predicted_statistical_crossing_months is not none %}
               {{ "%.2f"|format(arrhenius_shelf_life.predicted_statistical_crossing_months) }} mo
             {% else %}
-              &mdash;
+              not recorded
             {% endif %}
           </td>
         </tr>
@@ -694,7 +882,7 @@
             {% if arrhenius_shelf_life.predicted_shelf_life_months is not none %}
               {{ arrhenius_shelf_life.predicted_shelf_life_months }} mo
             {% else %}
-              &mdash;
+              not recorded
             {% endif %}
           </td>
         </tr>
@@ -783,8 +971,13 @@
         <tr>
           <th>Library versions</th>
           <td>
-            {% if library_versions %}
-              <code class="mono">{{ library_versions }}</code>
+            {% if library_version_rows %}
+              <div class="kv-table">
+                {% for row in library_version_rows %}
+                  <div class="key"><code class="mono">{{ row.key }}</code></div>
+                  <div><code class="mono">{{ row.value }}</code></div>
+                {% endfor %}
+              </div>
             {% else %}
               <em>not recorded</em>
             {% endif %}

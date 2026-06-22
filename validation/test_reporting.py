@@ -912,7 +912,7 @@ def test_html_v070_sensitivity_section_appears_when_present(tmp_path):
     render_html(result, plot_png_path=None, out_path=str(out))
     body = out.read_text(encoding="utf-8")
     # The section header is present (gated on sensitivity_present).
-    assert "Sensitivity analysis (leave-one-out" in body
+    assert "Sensitivity analysis over Cook" in body
     # And the summary text appears.
     assert "max delta 1 mo" in body
     # And the column header for the row table appears.
