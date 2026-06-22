@@ -1,0 +1,130 @@
+{
+  "supported_shelf_life_months": 17,
+  "statistical_crossing_months": 17.954842444120718,
+  "limiting_attribute": "assay",
+  "condition": "25C/60RH",
+  "direction": "decreasing",
+  "model": "common_slope_batch_intercepts",
+  "poolability": "partial",
+  "poolability_alpha": 0.25,
+  "p_value_slopes": 0.9056407431888036,
+  "p_value_intercepts": 1.6579456996566815e-16,
+  "p_value_slopes_holm": 0.9056407431888036,
+  "p_value_intercepts_holm": 3.315891399313363e-16,
+  "confidence_bound": "lower_one_sided_95_mean",
+  "confidence_level": 0.95,
+  "poolability_alpha_reference": 0.25,
+  "guidance_profile": "Q1A_R2+Q1E",
+  "observed_long_term_months": 24.0,
+  "extrapolation": "none",
+  "warnings": [
+    "data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+    "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
+    "step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)",
+    "step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)",
+    "Influence check: 4 observation(s) have Cook's distance > 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+  ],
+  "significant_change_accelerated": null,
+  "significant_change_intermediate": null,
+  "extrapolation_allowed": true,
+  "extrapolation_rationale": "no accelerated data",
+  "significant_change_details": {
+    "accelerated": {
+      "occurred": null,
+      "first_change_month": null,
+      "reasons": [],
+      "details": {}
+    },
+    "intermediate": {
+      "occurred": null,
+      "first_change_month": null,
+      "reasons": [],
+      "details": {}
+    }
+  },
+  "deliverable_term": "shelf life",
+  "product_type": "product",
+  "crossing_status": "crossed",
+  "governing_batch": "B2",
+  "governing_side": null,
+  "diagnostics": {
+    "linearity_ok": true,
+    "homoscedastic_ok": true,
+    "normal_resid_ok": true,
+    "n_influential_points": 4,
+    "notes": [
+      "Influence check: 4 observation(s) have Cook's distance > 4.0/n = 0.0952 (row indices [13, 24, 28, 29]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+    ]
+  },
+  "metadata": {
+    "file_sha256": "65138b8343548cfcc775d822e124c556ed47e62fdec455bc4ccd7d946f8a497e",
+    "row_count": 42,
+    "column_count": 8,
+    "random_seed": null,
+    "library_versions": {
+      "python": "3.12.10",
+      "pandas": "3.0.3",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "statsmodels": "0.14.6",
+      "matplotlib": "3.11.0",
+      "jinja2": "3.1.6"
+    },
+    "tool_version": "1.0.2",
+    "timestamp": "2024-06-01T00:00:00Z",
+    "file_path": "examples\\assay_3batch.csv",
+    "data_quality": {
+      "n_errors": 0,
+      "n_warnings": 0,
+      "n_info": 1,
+      "can_analyze": true,
+      "n_issues": 1
+    }
+  },
+  "bql_summary": {
+    "policy": "exclude",
+    "n_bql_rows": 0,
+    "n_substituted": 0,
+    "n_excluded": 0,
+    "value_column": "value",
+    "original_value_column": null,
+    "notes": [
+      "no is_bql column; nothing to do"
+    ]
+  },
+  "transform_assessment": null,
+  "disclaimer": "This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.",
+  "arrhenius": null,
+  "mkt_celsius": null,
+  "reduced_design": null,
+  "model_effects": "fixed",
+  "model_convergence": {
+    "converged": true,
+    "boundary": false,
+    "message": "OLS"
+  },
+  "sensitivity_report": null,
+  "sensitivity_mode": "row",
+  "arrhenius_shelf_life": null,
+  "arrhenius_per_batch": {},
+  "arrhenius_outlier_batches": [],
+  "acceptance_criteria": [
+    {
+      "attribute": "assay",
+      "condition": "25C/60RH",
+      "direction": "decreasing",
+      "model": "common_slope_batch_intercepts",
+      "poolability": "partial",
+      "lower_spec": null,
+      "upper_spec": null,
+      "statistical_crossing_months": 17.954842444120718,
+      "supported_shelf_life_months": 17,
+      "observed_data_months": 24.0,
+      "extrapolation_flag": false,
+      "included_in_limiting_decision": true,
+      "exclusion_reason": "",
+      "unit": null,
+      "governing_batch": "B2"
+    }
+  ]
+}

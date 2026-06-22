@@ -1,6 +1,13 @@
 /**
- * One-shot QA for OpenPharmaStability.dc.html
- * Run: npx -y -p playwright node tools/website-qa.mjs
+ * One-shot QA for the OpenPharmaStability public website preview.
+ *
+ * Deploy folder (default) — serve site/ first:
+ *   python -m http.server 8766 --directory site
+ *   npx -y -p playwright node tools/website-qa.mjs
+ *
+ * Authoring source (--dev) — serve repo root first:
+ *   python -m http.server 8766
+ *   npx -y -p playwright node tools/website-qa.mjs --dev
  */
 import { chromium } from 'playwright';
 import fs from 'fs';
@@ -10,7 +17,11 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'qa-output');
-const BASE = 'http://127.0.0.1:8766/OpenPharmaStability.dc.html';
+const DEV = process.argv.includes('--dev');
+const ORIGIN = 'http://127.0.0.1:8766';
+const BASE = DEV
+  ? `${ORIGIN}/OpenPharmaStability.dc.html`
+  : `${ORIGIN}/`;
 
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -134,7 +145,7 @@ async function runInteractions(page) {
       log(`Sample link ${lc.label}`, false, `href=${href}`);
       continue;
     }
-    const resp = await page.request.get(`http://127.0.0.1:8766/${lc.href}`);
+    const resp = await page.request.get(`${ORIGIN}/${lc.href}`);
     const statusOk = resp.ok();
     let contentOk = statusOk;
     if (statusOk && lc.expect && !lc.href.endsWith('.png')) {
