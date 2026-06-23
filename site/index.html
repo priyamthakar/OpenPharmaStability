@@ -56,7 +56,7 @@ html,body{margin:0;padding:0;}
 
           <div class="ops-2" style="display:grid;grid-template-columns:minmax(0,500px) minmax(0,1fr);gap:58px;align-items:start;">
             <div>
-              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#b35a3a;font-weight:500;margin-bottom:22px;">Public face for a real analysis engine</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#b35a3a;font-weight:500;margin-bottom:22px;">Python toolkit for pharmaceutical shelf life analysis</div>
               <h1 class="ops-h1" style="font-family:Newsreader,serif;font-weight:500;font-size:50px;line-height:0.98;letter-spacing:-0.02em;margin:0 0 20px;color:#1c1a16;">OpenPharmaStability</h1>
               <p style="font-family:'IBM Plex Sans',sans-serif;font-size:20px;line-height:1.46;color:#3b352d;margin:0 0 18px;max-width:31em;">An open source, ICH&nbsp;Q1E inspired toolkit for reproducible pharmaceutical stability analysis.</p>
               <p style="font-size:15.5px;line-height:1.66;color:#6f685d;margin:0 0 30px;max-width:36em;">Upload stability data, run transparent shelf life calculations, and generate audit friendly HTML, JSON, and plot artifacts from a Python statistical engine.</p>
@@ -65,8 +65,8 @@ html,body{margin:0;padding:0;}
                 <button onClick="{{ scrollToReport }}" style="font-family:'IBM Plex Sans',sans-serif;font-size:15px;font-weight:600;background:#fff;color:#211f1b;border:1px solid #d8cdb8;padding:13px 22px;border-radius:8px;cursor:pointer;white-space:nowrap;" style-hover="border-color:#b35a3a;">See Sample Report</button>
               </div>
               <div style="display:grid;grid-template-columns:74px 1fr;gap:16px;border-top:1px solid #e4dbcb;padding-top:18px;">
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#b35a3a;letter-spacing:0.12em;text-transform:uppercase;">Hiring signal</div>
-                <p style="font-size:14px;line-height:1.62;color:#544e45;margin:0;">Shows statistical modeling, pharma context, reproducible artifacts, and regulatory aware boundaries in one coherent product surface.</p>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#b35a3a;letter-spacing:0.12em;text-transform:uppercase;">Why it exists</div>
+                <p style="font-size:14px;line-height:1.62;color:#544e45;margin:0;">A stability dataset outgrows its spreadsheet the moment you add a fourth batch or a second storage condition. This engine owns the poolability decision tree and the audit artifacts, so the analysis is reproducible from the same input file.</p>
               </div>
             </div>
 
@@ -132,13 +132,13 @@ html,body{margin:0;padding:0;}
 
       <!-- TRUST STRIP -->
       <section style="border-top:1px solid #e4dbcb;border-bottom:1px solid #e4dbcb;background:#efe9dc;">
-        <div class="ops-pad ops-trust" style="max-width:1180px;margin:0 auto;padding:16px 40px;display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#d8cdb8;">
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">Python engine</div>
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">CSV and XLSX</div>
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">HTML and JSON</div>
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">Q1E inspired</div>
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">Many attributes</div>
-          <div style="background:#efe9dc;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#544e45;text-align:center;">Hashed outputs</div>
+        <div class="ops-pad ops-trust" style="max-width:1180px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:#d8cdb8;">
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">statsmodels + scipy</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Regression and OLS core</div></div>
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">CSV and XLSX input</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Flexible format, no schema lock</div></div>
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">HTML · JSON · plot</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Audit-ready output bundle</div></div>
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">ICH Q1E poolability</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Slope and intercept testing</div></div>
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">Multi-attribute limiting</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Ranked by the tightest result</div></div>
+          <div style="background:#efe9dc;padding:14px 14px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#211f1b;margin-bottom:3px;">SHA-256 artifact hashing</div><div style="font-size:11px;line-height:1.4;color:#6f685d;">Input, config, and output integrity</div></div>
         </div>
       </section>
 
@@ -149,7 +149,7 @@ html,body{margin:0;padding:0;}
             <div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#b35a3a;font-weight:500;margin-bottom:14px;">Method ledger</div>
               <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:36px;line-height:1.08;letter-spacing:-0.015em;margin:0 0 18px;max-width:10em;">Not a calculator. A documented statistical run.</h2>
-              <p style="font-size:15px;line-height:1.65;color:#6f685d;margin:0;">The page foregrounds the work hiring reviewers should notice: regression choices, poolability logic, confidence bounds, data warnings, and reproducible artifacts.</p>
+              <p style="font-size:15px;line-height:1.65;color:#6f685d;margin:0;">Every run records its regression choices, poolability outcome, confidence bounds, data warnings, and artifact hashes, so the result can be traced back to its inputs and verified independently.</p>
             </div>
             <div style="border-top:1px solid #d8cdb8;">
               <div style="display:grid;grid-template-columns:70px 1fr 1.2fr;gap:18px;padding:19px 0;border-bottom:1px solid #e4dbcb;align-items:start;">
@@ -250,8 +250,8 @@ html,body{margin:0;padding:0;}
           <div class="ops-2" style="display:grid;grid-template-columns:320px 1fr;gap:58px;align-items:start;">
             <div>
               <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#c9856a;font-weight:500;margin-bottom:14px;">Technical case study</div>
-              <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:36px;line-height:1.08;letter-spacing:-0.015em;margin:0 0 18px;">The statistical core is the portfolio story.</h2>
-              <p style="font-size:15px;line-height:1.65;color:#cfc6b8;margin:0;">This specimen comes from the bundled assay data and current engine. It demonstrates the part hiring reviewers should care about: model selection under Q1E style poolability logic, confidence bound crossing, and transparent warnings.</p>
+              <h2 style="font-family:Newsreader,serif;font-weight:500;font-size:36px;line-height:1.08;letter-spacing:-0.015em;margin:0 0 18px;">The analysis is transparent at every step.</h2>
+              <p style="font-size:15px;line-height:1.65;color:#cfc6b8;margin:0;">This specimen uses the bundled assay data and current engine. It shows the full decision path: model selection under Q1E poolability logic, confidence bound crossing against the specification limit, and the rounding rule that produces the reported shelf life.</p>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#4a4439;border:1px solid #4a4439;">
               <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Input</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">42 assay observations</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Three batches, condition 25C / 60RH, time coverage from 0 to 18 months.</div></div>
