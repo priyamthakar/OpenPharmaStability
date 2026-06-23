@@ -1,6 +1,6 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v1.0.3 on a fresh machine.**
+> **You are picking up OpenPharmaStability v1.0.4 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
@@ -9,7 +9,7 @@
 
 ## 1. Positioning
 
-**OpenPharmaStability v1.0.2** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v1.0.4** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
@@ -420,10 +420,10 @@ question.
    state, hard rules, open warnings.
 2. **`CHANGELOG.md`** — every release entry from v0.1.0 through
    v0.6.0; what each minor/patch added; backward-compatibility notes.
-3. **`NEXT_STEPS.md`** — the forward plan. v1.0.2 is the current
-   release; the local UI pass has shipped, and the next UI work is
-   hosted deployment/polish over the existing Python-owned stats
-   engine. Read §7 (pycache/env integrity) and §8 (agent handover
+3. **`NEXT_STEPS.md`** — the forward plan. v1.0.4 is the current
+   release; the local UI pass has shipped (including Save as PDF),
+   and the next UI work is hosted deployment/polish over the existing
+   Python-owned stats engine. Read §7 (pycache/env integrity) and §8 (agent handover
    protocol) first, before touching any code.
 4. **`AGENTS.md`** — the v0.1 build plan, wave structure, and the
    authoritative math in §5. Read-only reference now.
