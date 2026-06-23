@@ -6,6 +6,7 @@ const statusCopy = document.querySelector("#status-copy");
 const statusPill = document.querySelector("#status-pill");
 const reportFrame = document.querySelector("#report-frame");
 const reportLink = document.querySelector("#report-link");
+const pdfBtn = document.querySelector("#pdf-btn");
 const emptyPreview = document.querySelector("#empty-preview");
 const artifactList = document.querySelector("#artifact-list");
 const warningsList = document.querySelector("#warnings-list");
@@ -121,9 +122,14 @@ function renderResult(data) {
     reportFrame.src = htmlArtifact.url;
     reportLink.href = htmlArtifact.url;
     reportLink.hidden = false;
+    pdfBtn.hidden = false;
     emptyPreview.hidden = true;
   }
 }
+
+pdfBtn.addEventListener("click", () => {
+  reportFrame.contentWindow.print();
+});
 
 function renderWarnings(warnings) {
   warningsList.innerHTML = "";

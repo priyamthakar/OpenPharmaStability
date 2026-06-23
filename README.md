@@ -1,7 +1,7 @@
 # OpenPharmaStability
 
 ICH Q1E-inspired stability analysis and shelf-life reporting toolkit for
-pharmaceutical development. **v1.0.2** is the current release. The v0.1
+pharmaceutical development. **v1.0.4** is the current release. The v0.1
 baseline (one attribute, one long-term condition, fixed-effect ANCOVA,
 one-sided 95% bound, lower-spec crossing) has grown into a Python-first
 analysis/reporting engine with multi-attribute analysis, XLSX input,

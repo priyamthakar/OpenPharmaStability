@@ -298,6 +298,10 @@
       .kv-table { grid-template-columns: 1fr; }
       .kv-table .key { border-right: 0; border-bottom: 0; }
     }
+    @media print {
+      * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      @page { margin: 14mm 16mm; }
+    }
   </style>
 </head>
 <body>

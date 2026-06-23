@@ -5,6 +5,27 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## [1.0.4] — 2026-06-23 — Save as PDF button in local UI workspace
+
+### Added
+- **Save as PDF** button in the local web workspace report preview. After a
+  successful analysis the button appears in the preview header and triggers
+  `window.print()` on the embedded report iframe, letting users save the
+  rendered HTML report as a PDF via the browser's native print-to-PDF dialog.
+- Print CSS in `report.html.j2`: `print-color-adjust: exact` preserves chart
+  and section colours; `@page` margin (`14mm 16mm`) gives clean A4 margins.
+- `.pdf-download-btn` style rule (terracotta `#a6533b`, hover `#8f4530`,
+  focus-visible ring) consistent with the DESIGN.md colour tokens.
+
+### Changed
+- Bumped package/tool version markers to `1.0.4`.
+
+### Notes
+- No statistics, report-generation, or CLI behavior changed. The PDF dialog
+  is browser-native; no server-side rendering or new Python dependency is
+  introduced. The button is hidden until a successful analysis result is
+  loaded into the preview frame.
+
 ## [1.0.3] — 2026-06-22 — toolchain-robust golden/regen + mixed-model boundary checks
 
 ### Fixed

@@ -470,6 +470,30 @@ a:focus-visible {
   }
 }
 
+.pdf-download-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  background: #a6533b;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+.pdf-download-btn:hover {
+  background: #8f4530;
+}
+
+.pdf-download-btn:focus-visible {
+  outline: 2px solid rgba(166, 83, 59, 0.4);
+  outline-offset: 2px;
+}
+
 @media (max-width: 780px) {
   .topbar {
     height: auto;
