@@ -18,7 +18,7 @@
   "observed_long_term_months": 24.0,
   "extrapolation": "none",
   "warnings": [
-    "data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+    "data_quality[info] duplicate_batch_time_no_replicate: 42 rows share (batch, time, attribute) — no 'replicate' column",
     "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
     "step1 slopes: F-test on time:C(batch), p=0.9056 (alpha=0.25)",
     "step2 intercepts: F-test on C(batch), p=1.658e-16 (alpha=0.25)",
@@ -70,7 +70,7 @@
       "matplotlib": "3.11.0",
       "jinja2": "3.1.6"
     },
-    "tool_version": "1.0.3",
+    "tool_version": "1.0.4",
     "timestamp": "2024-06-01T00:00:00Z",
     "file_path": "examples\\assay_3batch.csv",
     "data_quality": {

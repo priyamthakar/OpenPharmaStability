@@ -2092,8 +2092,8 @@ values.
 
 | Item | Class | Action |
 |---|---|---|
-| HTML timestamp makes byte output non-identical run-to-run (numbers identical) | **known-open** (Fix 1.1) | Not a blocker. Numeric determinism holds. |
-| `schema._infer_direction_from_spec` false-positive warning when both specs present AND direction declared consistently | **known-open** (Fix 1.2) | Cosmetic; warning noise only. |
+| HTML timestamp makes byte output non-identical run-to-run (numbers identical) | **resolved** (Fix 1.1) | `_resolve_timestamp()` + `SOURCE_DATE_EPOCH` env var; `test_cli_source_epoch_makes_deterministic` green. |
+| `schema._infer_direction_from_spec` false-positive warning when both specs present AND direction declared consistently | **resolved** (Fix 1.2) | `_warn_on_incompatible_direction()` only fires on true incompatibilities; `test_declared_decreasing_with_both_specs_no_warning` + `test_declared_increasing_with_both_specs_no_warning` green. |
 | `regen_expected.py` uses statsmodels for COMMON_SLOPE fit (not pure numpy) | **resolved** (Fix 1.3) | `test_script_does_not_import_statsmodels` locks this. |
 | Stale `.pyc` from prior session | **BLOCKER** | §7 — clear before anything. v1.0.0 note: mount-layer pyc staleness on Windows is a known hazard; `touch` source files and verify with `python -B` if imports behave unexpectedly. |
 | `pytest` not green / `regen --check` nonzero | **BLOCKER** | Stop and fix before new work. |

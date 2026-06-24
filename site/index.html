@@ -426,16 +426,16 @@ html,body{margin:0;padding:0;}
 
                 <div style="font-size:12px;font-weight:600;color:#544e45;margin:18px 0 7px;">Guidance profile</div>
                 <select value="{{ guidance }}" onChange="{{ setGuidance }}" style="width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#211f1b;background:#fff;border:1px solid #ddd3c2;border-radius:7px;padding:9px 11px;cursor:pointer;">
-                  <option>ICH Q1E (default)</option>
-                  <option>ICH Q1E (conservative)</option>
-                  <option>Custom profile</option>
+                  <option>Q1A(R2)+Q1E</option>
+                  <option>Q1 consolidated draft</option>
                 </select>
 
                 <div style="font-size:12px;font-weight:600;color:#544e45;margin:18px 0 7px;">BQL policy</div>
                 <select value="{{ bql }}" onChange="{{ setBql }}" style="width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#211f1b;background:#fff;border:1px solid #ddd3c2;border-radius:7px;padding:9px 11px;cursor:pointer;">
-                  <option>half LOQ substitution</option>
-                  <option>Exclude BQL points</option>
-                  <option>Treat as zero</option>
+                  <option>Exclude</option>
+                  <option>Flag</option>
+                  <option>Substitute half LOQ</option>
+                  <option>Manual review</option>
                 </select>
 
                 <div onClick="{{ toggleAdv }}" style="display:flex;align-items:center;gap:7px;margin-top:20px;cursor:pointer;font-size:12.5px;font-weight:600;color:#6f685d;user-select:none;"><span style="color:#b35a3a;">{{ advChevron }}</span> Advanced options</div>
@@ -460,7 +460,7 @@ html,body{margin:0;padding:0;}
                 <div class="ops-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#eee5d6;border:1px solid #eee5d6;border-radius:9px;overflow:hidden;margin-bottom:20px;">
                   <div style="background:#fff;padding:14px 16px;"><div style="font-size:11px;color:#a59a89;margin-bottom:5px;">Supported decision</div><div style="display:flex;align-items:baseline;gap:5px;"><span style="font-family:Newsreader,serif;font-size:26px;font-weight:600;line-height:1;color:#1c1a16;">17</span><span style="font-size:12px;color:#6f685d;">mo</span></div></div>
                   <div style="background:#fff;padding:14px 16px;"><div style="font-size:11px;color:#a59a89;margin-bottom:5px;">Limiting attribute</div><div style="font-size:14px;font-weight:600;color:#211f1b;">assay</div></div>
-                  <div style="background:#fff;padding:14px 16px;"><div style="font-size:11px;color:#a59a89;margin-bottom:5px;">Guidance profile</div><div style="font-size:13px;color:#211f1b;">ICH Q1E</div></div>
+                  <div style="background:#fff;padding:14px 16px;"><div style="font-size:11px;color:#a59a89;margin-bottom:5px;">Guidance profile</div><div style="font-size:13px;color:#211f1b;">Q1A(R2)+Q1E</div></div>
                   <div style="background:#fff;padding:14px 16px;"><div style="font-size:11px;color:#a59a89;margin-bottom:5px;">Model</div><div style="font-size:12.5px;color:#211f1b;line-height:1.3;">common slope + intercepts</div></div>
                 </div>
 
@@ -514,7 +514,7 @@ html,body{margin:0;padding:0;}
   <span style="color:#8fae84;">"spec_limit_lower"</span>: <span style="color:#d8b36a;">95.0</span>,
   <span style="color:#8fae84;">"model"</span>: <span style="color:#c9856a;">"common_slope_batch_intercepts"</span>,
   <span style="color:#8fae84;">"poolability"</span>: <span style="color:#c9856a;">"partial"</span>,
-  <span style="color:#8fae84;">"guidance_profile"</span>: <span style="color:#c9856a;">"ich_q1e_default"</span>,
+  <span style="color:#8fae84;">"guidance_profile"</span>: <span style="color:#c9856a;">"q1ae"</span>,
   <span style="color:#8fae84;">"warnings"</span>: <span style="color:#d8b36a;">2</span>,
   <span style="color:#8fae84;">"artifact_sha256"</span>: <span style="color:#c9856a;">"4f9c...a1e7"</span>
 }</pre>
@@ -535,7 +535,7 @@ html,body{margin:0;padding:0;}
                 <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:#a59a89;margin:24px 0 12px;">Audit facts</div>
                 <div style="display:flex;flex-direction:column;gap:12px;">
                   <div><div style="font-size:11px;color:#a59a89;margin-bottom:3px;">Input SHA 256</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#544e45;word-break:break-all;line-height:1.5;">c1a7 9e4f 22b0 8d63 ... 4f9c a1e7</div></div>
-                  <div><div style="font-size:11px;color:#a59a89;margin-bottom:3px;">Engine version</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#544e45;">openpharmastability 0.4.0</div></div>
+                  <div><div style="font-size:11px;color:#a59a89;margin-bottom:3px;">Engine version</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#544e45;">openpharmastability 1.0.4</div></div>
                   <div><div style="font-size:11px;color:#a59a89;margin-bottom:3px;">Run timestamp</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#544e45;">2026-06-22T14:08:21Z</div></div>
                   <div><div style="font-size:11px;color:#a59a89;margin-bottom:3px;">Reproducible</div><div style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3f5a38;"><span style="width:6px;height:6px;border-radius:50%;background:#5e7a56;"></span>inputs + config hashed</div></div>
                 </div>
