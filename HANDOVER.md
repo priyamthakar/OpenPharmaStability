@@ -48,7 +48,7 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `1.0.3` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `1.0.4` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
@@ -59,7 +59,7 @@ verbatim in every HTML report.
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
-| Test count | **483 collected tests** expected after v1.0.0 UI/service/browser-boundary tests (confirm via `pytest --collect-only -q`); PDF-backend tests skip cleanly on hosts without weasyprint/pdfkit |
+| Test count | **483 collected tests** (confirm via `pytest --collect-only -q`); expect ~479 passed + 4 host-dependent PDF skips without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
 | Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for`; v1 adds `openpharmastability.ui_service.analyze_for_ui` |
@@ -74,7 +74,8 @@ verbatim in every HTML report.
 
 | Version | Theme | What it added |
 |---|---|---|
-| `1.0.3` (current) | Toolchain-robust validation | `tools/regen_expected.py --check` now compares against the golden `expected.json` with `rtol=1e-9` / `atol=1e-12` instead of exact float equality (last-ULP drift on modern numpy/scipy/BLAS no longer fails `--check` or the regen tests); the random-effects 2-batch boundary test accepts `converged=False` as well as `boundary=True` (newer statsmodels reports the degenerate fixture as non-convergence). Suite is green on a clean modern install (479 passed / 4 host-dependent PDF skips). No analysis-math, golden-value, report, CLI, or UI behavior changed. |
+| `1.0.4` (current) | Local UI Save as PDF + site polish | Browser-native **Save as PDF** button in the local UI report preview (`window.print()` + print CSS); public site showcase accuracy fixes (engine badge 1.0.4, real guidance/BQL options); sample artifacts refreshed to `tool_version` 1.0.4. No analysis-math change. |
+| `1.0.3` | Toolchain-robust validation | `tools/regen_expected.py --check` compares golden values with `rtol=1e-9` / `atol=1e-12` (last-ULP drift on modern numpy/scipy/BLAS); random-effects 2-batch boundary test accepts `converged=False` as well as `boundary=True`. Suite green on a clean modern install (479 passed / 4 host-dependent PDF skips). |
 | `1.0.2` | Handover + roadmap orientation sync | Current-version docs now match the live package markers; `NEXT_STEPS.md` no longer describes the completed `dataclasses.replace` extrapolation refactor as open work. |
 | `1.0.1` | Release documentation truth sync | README/HANDOVER/NEXT_STEPS synchronized after the local UI shipment; expected test collection corrected to 483. |
 | `1.0.0` | Local v1 UI + service manifest | `openpharmastability-ui` local workspace, packaged static UI, `ui_service.analyze_for_ui()` manifest, artifact preview/download flow. Python engine remains authoritative; UI does not reimplement statistics. |
@@ -436,8 +437,13 @@ question.
 
 If you are picking up **post-v1 UI work** (hosted deployment, browser
 polish, or workflow hardening), read `NEXT_STEPS.md` §11 in full and
-the v1.0.0 entry in `CHANGELOG.md` before opening an editor. The
-Python stats engine is the authoritative implementation; the UI is a
+the v1.0.0 / v1.0.4 entries in `CHANGELOG.md` before opening an editor.
+The Python stats engine is the authoritative implementation; the UI is a
 thin client that posts CSV/XLSX to a thin API and renders the HTML
 report inline. Do not reimplement the statistical core in JavaScript /
 TypeScript.
+
+For **CMC / hiring-facing portfolio work**, also read
+`CMC_ANALYTICS_POSITIONING.md` and the README case study section
+("Case study: the golden assay dataset"). The live public site is
+https://openpharmastability.pages.dev (static `site/` on Cloudflare Pages).

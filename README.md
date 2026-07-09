@@ -26,6 +26,121 @@ engine; it does not reimplement shelf-life statistics in JavaScript.
 > tool, not submission-ready, and not a validated GxP / 21 CFR Part 11 system.
 > See `DISCLAIMER` in `openpharmastability/contracts.py`.
 
+## Case study: the golden assay dataset
+
+`examples/assay_3batch.csv` is the toolkit's frozen golden fixture — 3 batches,
+7 time points, 42 rows of a decreasing assay attribute with a lower spec of 90.0:
+
+```csv
+batch,condition,time_months,attribute,value,lower_spec,upper_spec,direction
+B1,25C/60RH,0.0,assay,100.3961,90.0,110.0,decreasing
+B1,25C/60RH,0.0,assay,99.5295,90.0,110.0,decreasing
+B1,25C/60RH,3.0,assay,98.3637,90.0,110.0,decreasing
+...
+```
+
+Running the CLI against it:
+
+```bash
+openpharmastability analyze examples/assay_3batch.csv \
+    --condition "25C/60RH" --attribute assay \
+    --output build/report.html
+```
+
+produces the confidence-bound plot below (batch B2 governs the crossing) plus
+an HTML report and a JSON decision record:
+
+![Confidence-bound plot for the golden assay dataset](site-sample/confidence_plot.png)
+
+| Field | Value |
+|---|---|
+| Model selected | `common_slope_batch_intercepts` (partial poolability at alpha=0.25) |
+| Confidence bound | one-sided 95% lower bound on the mean |
+| Statistical crossing | 17.955 months |
+| Supported shelf life | **17 months** (floor-rounded) |
+| Governing batch | B2 |
+
+The full artifacts for this exact run — the HTML report and the JSON decision
+record — are checked in at
+[`site-sample/sample-report.html`](site-sample/sample-report.html) and
+[`site-sample/sample-report.json`](site-sample/sample-report.json), and are what
+the [public site preview](#public-website-preview) links to.
+
+### For CMC reviewers: how to read the output
+
+The engine's job is to turn a raw stability table into a shelf-life decision a
+reviewer can audit, not to make the call unsupervised. Reading the golden-dataset
+report above end to end:
+
+1. **Input** — `examples/assay_3batch.csv`. Each row is one measurement: batch,
+   condition, time, attribute, value, and the spec limits/direction that define
+   what "out of spec" means for this attribute.
+2. **Poolability** — a two-step nested ANCOVA (`p_value_slopes_holm`,
+   `p_value_intercepts_holm` in the JSON) decides whether batches share a common
+   slope. Here slopes pool (p≈0.906) but intercepts don't (p≈3.3e-16, Holm-
+   corrected), so the engine selects `common_slope_batch_intercepts`: one
+   degradation rate, per-batch starting points.
+3. **Bound and crossing** — a one-sided 95% lower confidence bound is computed
+   on the mean response for every batch; `governing_batch` (`B2`) is whichever
+   batch's bound crosses `lower_spec` earliest. That crossing time is
+   `statistical_crossing_months`, and the reported shelf life is that value
+   floored to whole months — never rounded up.
+4. **Decision record** — `sample-report.json` is the machine-readable version of
+   everything above: the model, the p-values, the crossing, the shelf life, plus
+   `warnings` (e.g. the Cook's-distance flag on four rows in this dataset) and
+   `model_convergence`. Anything in `warnings` is worth reading before signing
+   off — the audit trail is deliberately verbose.
+5. **Report** — `sample-report.html` is the same information rendered for a
+   human reviewer, with the plot inlined and the disclaimer from
+   `openpharmastability/contracts.py::DISCLAIMER` always present verbatim.
+
+This is decision support, not a decision: every number here is reproducible
+from the input CSV via `tools/regen_expected.py --check`, and the warnings
+section of the report is where a reviewer's judgment comes in.
+
+For a hiring-facing CMC framing (roles, resume bullets, interview pitch),
+see [`CMC_ANALYTICS_POSITIONING.md`](CMC_ANALYTICS_POSITIONING.md).
+
+### Local UI
+
+The same analysis path is available in a local web workspace (thin client over the Python engine — no shelf-life math in JavaScript):
+
+```bash
+openpharmastability-ui --host 127.0.0.1 --port 8765
+```
+
+Open `http://127.0.0.1:8765` to upload CSV/XLSX, select condition and attributes, run the engine, and preview the HTML/JSON/plot artifacts.
+
+![Local UI workspace](site-sample/ui-workspace.png)
+
+### Multi-attribute limiting CQA
+
+When several attributes share a long-term condition, the multi-attribute path evaluates each attribute independently and reports the **limiting CQA**: the attribute with the shortest supported shelf life (minimum across included attributes). Attributes that fail baseline or cannot claim a positive crossing do not drive a false “long” claim; the limiting decision uses the worst-case supported months among attributes included in the decision.
+
+```bash
+openpharmastability analyze examples/multi_attribute.csv \
+    --condition "25C/60RH" --all-attributes \
+    --metadata-csv examples/multi_attribute_metadata.csv \
+    --output build/multi_report.html
+```
+
+On the bundled multi-attribute fixture this yields:
+
+| Attribute | Supported shelf life | Role |
+|---|---|---|
+| assay | 16 months | included |
+| impurity_a | **7 months** | **limiting** |
+| **Product (min)** | **7 months** | limiting CQA = `impurity_a` |
+
+Checked-in sample artifacts for this exact run (fixed `--source-epoch 1717200000`):
+
+- [HTML report](site-sample/multi/multi-report.html)
+- [JSON decision record](site-sample/multi/multi-report.json)
+- [assay plot](site-sample/multi/plots/assay_confidence_plot.png) · [impurity_a plot](site-sample/multi/plots/impurity_a_confidence_plot.png)
+
+These are decision-support samples only — not submission-ready and not a validated GxP system.
+
+
 ## Public website preview
 
 `OpenPharmaStability.dc.html` is the authoring source for a static public
@@ -444,7 +559,7 @@ validation/            # pytest suites
 
 ## Limitations / out of scope (current and future)
 
-v1.0.2 is the current release. The stats engine remains in Python
+v1.0.4 is the current release. The stats engine remains in Python
 and ICH Q1E-style fixed-effect by default; the opt-in advanced
 features (Arrhenius, MKT, reduced designs, random effects,
 sensitivity, acceptance-criteria CSV) are clearly labelled

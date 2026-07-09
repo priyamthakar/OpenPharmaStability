@@ -50,7 +50,7 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (local workspace + future hosted polish)** | v1.0.0 shipped / hosted future |
+| 11 | **UI pass (local workspace + hosted polish)** | v1.0.0 + v1.0.4 shipped; portfolio samples added |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
@@ -2256,6 +2256,12 @@ consolidated **ICH Q1** reached **Step 2b in April 2025**; the
 Step 4 (final)**. Until Step 4, this toolkit implements
 **Q1A(R2) + Q1E** and labels everything "Q1E-inspired."
 
+> **Re-checked 2026-07-06:** still Step 2b; Step 4 is expected no
+> earlier than late 2026. No change to the poolability alpha,
+> quantiles, extrapolation caps, or terminology. See the
+> "Regulatory watch — 2026-07-06" entry in `CHANGELOG.md` for
+> sources. Next re-check: Q4 2026.
+
 **Watch checklist (revisit each quarter / on any ICH news):**
 
 - Has consolidated Q1 reached Step 4? (If yes → trigger §10.2
@@ -2377,6 +2383,54 @@ When regulatory guidance changes, before editing
 5. A disclaimer wording change that reflects a guidance switch
    is at least a MINOR bump; if it accompanies an algorithm
    change, MAJOR.
+
+---
+
+## SECTION 11: UI PASS — LOCAL WORKSPACE + HOSTED / PORTFOLIO POLISH
+
+> **STATUS (2026-07-09):** Local v1 UI shipped in v1.0.0; Save as PDF in
+> v1.0.4; hosted showcase accuracy + sample artifact refresh on `main`.
+> Portfolio samples now include a local UI screenshot and a multi-attribute
+> limiting-CQA story under `site-sample/`. Remaining hosted work is optional.
+
+### 11.1 What already shipped
+
+| Piece | Where | Version |
+|---|---|---|
+| Local workspace server | `openpharmastability-ui` / `ui_server.py` | v1.0.0 |
+| UI service manifest | `ui_service.analyze_for_ui()` | v1.0.0 |
+| Save as PDF | local UI + report print CSS | v1.0.4 |
+| Public static site | `site/` → https://openpharmastability.pages.dev | post-v1 |
+| Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.0.4 |
+| Local UI screenshot | `site-sample/ui-workspace.png` | portfolio |
+| Multi-attribute sample | `site-sample/multi/` (impurity_a limits at **7 mo**; assay **16 mo**) | portfolio |
+
+**Hard rule:** Python stats engine remains authoritative. Do not reimplement
+shelf-life math in JavaScript / TypeScript.
+
+### 11.2 Portfolio materials
+
+- README golden assay case study (17 mo / B2 / common slope)
+- README "For CMC reviewers" walkthrough
+- README Local UI + multi-attribute limiting CQA sections
+- `CMC_ANALYTICS_POSITIONING.md` — roles, resume bullets, interview pitch
+
+### 11.3 Remaining optional work
+
+1. Sample PDF on the public portfolio (optional)
+2. Public-site link to `site-sample/multi/`
+3. Mobile density polish; website-qa loop after site edits
+4. Hosted run-analysis backend — out of scope unless deliberately planned
+5. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
+
+### 11.4 Acceptance when touching UI or site
+
+```
+[ ] pytest still green (483 collected; PDF skips OK without backends)
+[ ] python tools/regen_expected.py --check
+[ ] node tools/sync-site.mjs after dc.html / support.js / site-sample changes
+[ ] No stats reimplemented in JS; disclaimer not diluted
+```
 
 ---
 

@@ -5,6 +5,39 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Docs / portfolio — 2026-07-09
+
+No code or version change. Portfolio and handover materials only.
+
+- README: golden assay case study, CMC reviewer walkthrough, Local UI
+  screenshot (`site-sample/ui-workspace.png`), multi-attribute limiting
+  CQA section (assay 16 mo / impurity_a **7 mo** limiting).
+- `site-sample/multi/`: multi-attribute HTML/JSON/plots with fixed
+  `source_epoch=1717200000`; mirrored under `site/site-sample/multi/`.
+- `CMC_ANALYTICS_POSITIONING.md`: CMC role mapping, resume bullets, pitch.
+- `HANDOVER.md` / `NEXT_STEPS.md` §11: oriented to v1.0.4 + portfolio status.
+
+## Regulatory watch — 2026-07-06
+
+No code or version change. Recorded per `NEXT_STEPS.md` §10.1's quarterly
+regulatory-watch instruction.
+
+- The consolidated **ICH Q1** guideline (replacing Q1A–Q1F + Q5C) remains at
+  **Step 2b**. The EMA public consultation on the Step 2b draft closed
+  30 July 2025. **Step 4 (final) is expected no earlier than late 2026**;
+  industry trackers as of mid-2026 still describe the document as subject to
+  further revision and not yet citable as final.
+  ([StabilityHub, Sep 2025](https://stabilityhub.com/2025/09/07/ich-q1-draft-guideline-marks-a-new-era-for-stability-testing/);
+  [EMA Step 2b draft](https://www.ema.europa.eu/en/documents/scientific-guideline/draft-ich-q1-guideline-stability-testing-drug-substances-drug-products-step-2b_en.pdf))
+- No change identified to the poolability alpha (0.25), the one-sided 95%
+  mean-response bound, the 2x / +12-month extrapolation caps, or shelf-life
+  vs. retest-period terminology.
+- **Action: none required.** The toolkit continues to default to the
+  `Q1A_R2+Q1E` guidance profile, labelled "Q1E-inspired." Given the "late
+  2026 at the earliest" estimate for Step 4, the next re-check should happen
+  in Q4 2026 (see `NEXT_STEPS.md` §10.2 for the migration path once Step 4
+  lands).
+
 ## [1.0.4] — 2026-06-23 — Save as PDF button in local UI workspace
 
 ### Added

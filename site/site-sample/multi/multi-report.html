@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpenPharmaStability multi-attribute report — 25C/60RH</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 1100px; margin: 2em auto; padding: 0 1em; color: #222; }
+  h1, h2, h3 { color: #1a365d; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; }
+  code.mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em; }
+  .disclaimer { background: #fef3c7; border-left: 4px solid #d97706; padding: 0.8em 1em; margin: 1.5em 0; }
+  img { max-width: 100%; height: auto; border: 1px solid #ddd; margin: 0.5em 0; }
+  .muted { color: #666; font-size: 0.92em; }
+  section.attribute { border-top: 1px solid #e5e7eb; margin-top: 1.5em; padding-top: 1em; }
+</style>
+</head>
+<body>
+
+<h1>OpenPharmaStability multi-attribute report</h1>
+<p class="muted">Tool version 1.0.4 &middot;
+   Python 3.12.10 &middot;
+   pandas 3.0.3</p>
+
+<div class="disclaimer">
+  <strong>Disclaimer.</strong> This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.
+</div>
+
+<h2>Executive summary</h2>
+<table>
+  <tr><th>Condition</th><td>25C/60RH</td></tr>
+  <tr><th>Product type</th><td>product</td></tr>
+  <tr><th>Deliverable term</th><td>shelf life</td></tr>
+  <tr><th>Overall supported shelf life</th>
+      <td><strong>7</strong>
+           <em>(extrapolation flagged)</em></td></tr>
+  <tr><th>Limiting attribute</th><td>impurity_a</td></tr>
+  <tr><th>Attributes analyzed</th><td>2 (2 eligible for limiting decision)</td></tr>
+  <tr><th>Observed data length</th><td>12.0 mo</td></tr>
+</table>
+
+<h2>Overall decision</h2>
+<table>
+  <tr>
+    <th>Attribute</th><th>Unit</th><th>Role</th><th>Model</th><th>Poolability</th>
+    <th>Crossing</th><th>Statistical (mo)</th><th>Supported (mo)</th><th>Limiting?</th>
+  </tr>
+  <tr><td>assay</td><td>%LC</td><td>primary</td><td>batch_specific</td><td>none</td><td>crossed</td><td>16.57</td><td>16</td><td>yes</td></tr><tr><td>impurity_a</td><td>%area</td><td>primary</td><td>batch_specific</td><td>none</td><td>crossed</td><td>7.93</td><td>7</td><td>yes</td></tr>
+</table>
+
+<h2>Per-attribute details</h2>
+
+<section class="attribute" id="attr-0">
+  <h2>Attribute: assay (%LC)</h2>
+  <p><strong>Role:</strong> primary &middot;
+     <strong>Direction:</strong> decreasing &middot;
+     <strong>Spec:</strong>
+     lower=90,
+     upper=110 (unit: %LC)</p>
+  <p><strong>Report order:</strong> 1</p>
+  <p><strong>Model:</strong> batch_specific &middot;
+     <strong>Poolability:</strong> none
+     (p<sub>slopes</sub>=0.206,
+      p<sub>intercepts</sub>=n/a)</p>
+  <p><strong>Crossing:</strong> crossed &middot;
+     <strong>Statistical:</strong> 16.57 mo &middot;
+     <strong>Governing batch:</strong> B2</p>
+  <p><strong>Supported shelf life:</strong>
+     16 mo
+      <em>(extrapolation flagged)</em></p>
+  <p><strong>ICH Q1A gate:</strong> accelerated=— &middot; intermediate=— &middot; allowed=yes &middot; rationale=<code>no accelerated data</code></p>
+  
+  <img src="plots/assay_confidence_plot.png" alt="confidence plot for assay" />
+  <h3>Warnings</h3><ul><li>data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no &#x27;replicate&#x27; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)</li><li>Linearity check failed: lack-of-fit F-test p = 0.04968 &lt; 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.</li><li>Influence check: 4 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li><li>supported shelf life extends beyond observed data (12 mo); extrapolation flagged.</li><li>supported shelf life extends beyond observed data (12 mo); extrapolation flagged.</li></ul>
+</section>
+
+<section class="attribute" id="attr-1">
+  <h2>Attribute: impurity_a (%area)</h2>
+  <p><strong>Role:</strong> primary &middot;
+     <strong>Direction:</strong> increasing &middot;
+     <strong>Spec:</strong>
+     lower=—,
+     upper=0.5 (unit: %area)</p>
+  <p><strong>Report order:</strong> 2</p>
+  <p><strong>Model:</strong> batch_specific &middot;
+     <strong>Poolability:</strong> none
+     (p<sub>slopes</sub>=0.0851,
+      p<sub>intercepts</sub>=n/a)</p>
+  <p><strong>Crossing:</strong> crossed &middot;
+     <strong>Statistical:</strong> 7.93 mo &middot;
+     <strong>Governing batch:</strong> B2</p>
+  <p><strong>Supported shelf life:</strong>
+     7 mo
+     </p>
+  <p><strong>ICH Q1A gate:</strong> accelerated=— &middot; intermediate=— &middot; allowed=yes &middot; rationale=<code>no accelerated data</code></p>
+  
+  <img src="plots/impurity_a_confidence_plot.png" alt="confidence plot for impurity_a" />
+  <h3>Warnings</h3><ul><li>data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no &#x27;replicate&#x27; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)</li><li>Influence check: 1 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li></ul>
+</section>
+
+
+<h2>Top-level warnings</h2><ul><li>data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no &#x27;replicate&#x27; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)</li><li>Linearity check failed: lack-of-fit F-test p = 0.04968 &lt; 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.</li><li>Influence check: 4 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li><li>supported shelf life extends beyond observed data (12 mo); extrapolation flagged.</li><li>step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)</li><li>Influence check: 1 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li></ul>
+
+<h2>Reproducibility</h2>
+<table>
+<tr><th>deliverable_term</th><td><code class='mono'>shelf life</code></td></tr><tr><th>product_type</th><td><code class='mono'>product</code></td></tr><tr><th>n_attributes_total</th><td><code class='mono'>2</code></td></tr><tr><th>n_attributes_limiting</th><td><code class='mono'>2</code></td></tr><tr><th>tie_break</th><td><code class='mono'></code></td></tr><tr><th>tool_version</th><td><code class='mono'>1.0.4</code></td></tr><tr><th>timestamp</th><td><code class='mono'>2024-06-01T00:00:00Z</code></td></tr><tr><th>file_path</th><td><code class='mono'>E:\STABILITY TOOLKIT\examples\multi_attribute.csv</code></td></tr><tr><th>file_sha256</th><td><code class='mono'>37e1b34d21da3c87dd1b3656da37d7d11dab3e46226667fd8a137e02a36da8fb</code></td></tr><tr><th>row_count</th><td><code class='mono'>48</code></td></tr><tr><th>column_count</th><td><code class='mono'>8</code></td></tr><tr><th>library_versions</th><td><code class='mono'>{&#x27;python&#x27;: &#x27;3.12.10&#x27;, &#x27;pandas&#x27;: &#x27;3.0.3&#x27;, &#x27;numpy&#x27;: &#x27;2.4.6&#x27;, &#x27;scipy&#x27;: &#x27;1.17.1&#x27;, &#x27;statsmodels&#x27;: &#x27;0.14.6&#x27;, &#x27;openpyxl&#x27;: &#x27;3.1.5&#x27;}</code></td></tr><tr><th>random_seed</th><td><code class='mono'></code></td></tr><tr><th>data_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_path</th><td><code class='mono'>E:\STABILITY TOOLKIT\examples\multi_attribute_metadata.csv</code></td></tr>
+</table>
+
+<p class="muted">End of report.</p>
+</body>
+</html>

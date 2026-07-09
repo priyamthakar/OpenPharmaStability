@@ -1,0 +1,377 @@
+{
+  "condition": "25C/60RH",
+  "product_type": "product",
+  "deliverable_term": "shelf life",
+  "guidance_profile": "Q1A_R2+Q1E",
+  "supported_shelf_life_months": 7,
+  "statistical_crossing_months": 7.9339869369298315,
+  "limiting_attribute": "impurity_a",
+  "observed_data_months": 12.0,
+  "attributes": [
+    {
+      "supported_shelf_life_months": 16,
+      "statistical_crossing_months": 16.571695877697017,
+      "limiting_attribute": "assay",
+      "condition": "25C/60RH",
+      "direction": "decreasing",
+      "model": "batch_specific",
+      "poolability": "none",
+      "poolability_alpha": 0.25,
+      "p_value_slopes": 0.20585368668590004,
+      "p_value_intercepts": null,
+      "p_value_slopes_holm": 0.20585368668590004,
+      "p_value_intercepts_holm": null,
+      "confidence_bound": "lower_one_sided_95_mean",
+      "confidence_level": 0.95,
+      "poolability_alpha_reference": 0.25,
+      "guidance_profile": "Q1A_R2+Q1E",
+      "observed_long_term_months": 12.0,
+      "extrapolation": "flag_required",
+      "warnings": [
+        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+        "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
+        "step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)",
+        "Linearity check failed: lack-of-fit F-test p = 0.04968 < 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.",
+        "Influence check: 4 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.",
+        "supported shelf life extends beyond observed data (12 mo); extrapolation flagged.",
+        "supported shelf life extends beyond observed data (12 mo); extrapolation flagged."
+      ],
+      "significant_change_accelerated": null,
+      "significant_change_intermediate": null,
+      "extrapolation_allowed": true,
+      "extrapolation_rationale": "no accelerated data",
+      "significant_change_details": {
+        "accelerated": {
+          "occurred": null,
+          "first_change_month": null,
+          "reasons": [],
+          "details": {}
+        },
+        "intermediate": {
+          "occurred": null,
+          "first_change_month": null,
+          "reasons": [],
+          "details": {}
+        }
+      },
+      "deliverable_term": "shelf life",
+      "product_type": "product",
+      "crossing_status": "crossed",
+      "governing_batch": "B2",
+      "governing_side": null,
+      "diagnostics": {
+        "linearity_ok": false,
+        "homoscedastic_ok": true,
+        "normal_resid_ok": true,
+        "n_influential_points": 4,
+        "notes": [
+          "Linearity check failed: lack-of-fit F-test p = 0.04968 < 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.",
+          "Influence check: 4 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+        ]
+      },
+      "metadata": {
+        "file_sha256": "7ab7fd93f61ba6393355f5a82b887d2a65d5d9f0499707f1c55256c4ae256dae",
+        "row_count": 24,
+        "column_count": 8,
+        "random_seed": null,
+        "library_versions": {
+          "python": "3.12.10",
+          "pandas": "3.0.3",
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "statsmodels": "0.14.6",
+          "matplotlib": "3.11.0",
+          "jinja2": "3.1.6"
+        },
+        "tool_version": "1.0.4",
+        "timestamp": "2024-06-01T00:00:00Z",
+        "file_path": "C:\\Users\\priya\\AppData\\Local\\Temp\\tmpgj83ogy6.csv",
+        "data_quality": {
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 1,
+          "can_analyze": true,
+          "n_issues": 1
+        }
+      },
+      "bql_summary": {
+        "policy": "exclude",
+        "n_bql_rows": 0,
+        "n_substituted": 0,
+        "n_excluded": 0,
+        "value_column": "value",
+        "original_value_column": null,
+        "notes": [
+          "no is_bql column; nothing to do"
+        ]
+      },
+      "transform_assessment": null,
+      "disclaimer": "This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.",
+      "arrhenius": null,
+      "mkt_celsius": null,
+      "reduced_design": null,
+      "model_effects": "fixed",
+      "model_convergence": {
+        "converged": true,
+        "boundary": false,
+        "message": "OLS"
+      },
+      "sensitivity_report": null,
+      "sensitivity_mode": "row",
+      "arrhenius_shelf_life": null,
+      "arrhenius_per_batch": {},
+      "arrhenius_outlier_batches": [],
+      "acceptance_criteria": [
+        {
+          "attribute": "assay",
+          "condition": "25C/60RH",
+          "direction": "decreasing",
+          "model": "batch_specific",
+          "poolability": "none",
+          "lower_spec": 90.0,
+          "upper_spec": 110.0,
+          "statistical_crossing_months": 16.571695877697017,
+          "supported_shelf_life_months": 16,
+          "observed_data_months": 12.0,
+          "extrapolation_flag": true,
+          "included_in_limiting_decision": true,
+          "exclusion_reason": "",
+          "unit": null,
+          "governing_batch": "B2"
+        }
+      ],
+      "attribute_role": "primary",
+      "included_in_limiting_decision": true,
+      "unit": "%LC",
+      "spec_type": "shelf_life",
+      "transform": "none",
+      "report_order": 1
+    },
+    {
+      "supported_shelf_life_months": 7,
+      "statistical_crossing_months": 7.9339869369298315,
+      "limiting_attribute": "impurity_a",
+      "condition": "25C/60RH",
+      "direction": "increasing",
+      "model": "batch_specific",
+      "poolability": "none",
+      "poolability_alpha": 0.25,
+      "p_value_slopes": 0.08505635589904356,
+      "p_value_intercepts": null,
+      "p_value_slopes_holm": 0.08505635589904356,
+      "p_value_intercepts_holm": null,
+      "confidence_bound": "upper_one_sided_95_mean",
+      "confidence_level": 0.95,
+      "poolability_alpha_reference": 0.25,
+      "guidance_profile": "Q1A_R2+Q1E",
+      "observed_long_term_months": 12.0,
+      "extrapolation": "none",
+      "warnings": [
+        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+        "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
+        "step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)",
+        "Influence check: 1 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+      ],
+      "significant_change_accelerated": null,
+      "significant_change_intermediate": null,
+      "extrapolation_allowed": true,
+      "extrapolation_rationale": "no accelerated data",
+      "significant_change_details": {
+        "accelerated": {
+          "occurred": null,
+          "first_change_month": null,
+          "reasons": [],
+          "details": {}
+        },
+        "intermediate": {
+          "occurred": null,
+          "first_change_month": null,
+          "reasons": [],
+          "details": {}
+        }
+      },
+      "deliverable_term": "shelf life",
+      "product_type": "product",
+      "crossing_status": "crossed",
+      "governing_batch": "B2",
+      "governing_side": null,
+      "diagnostics": {
+        "linearity_ok": true,
+        "homoscedastic_ok": true,
+        "normal_resid_ok": true,
+        "n_influential_points": 1,
+        "notes": [
+          "Influence check: 1 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+        ]
+      },
+      "metadata": {
+        "file_sha256": "5e9f7a4acd8662df7112139148351d4e7acbb26d8a3e1bce81657026d15b84f9",
+        "row_count": 24,
+        "column_count": 8,
+        "random_seed": null,
+        "library_versions": {
+          "python": "3.12.10",
+          "pandas": "3.0.3",
+          "numpy": "2.4.6",
+          "scipy": "1.17.1",
+          "statsmodels": "0.14.6",
+          "matplotlib": "3.11.0",
+          "jinja2": "3.1.6"
+        },
+        "tool_version": "1.0.4",
+        "timestamp": "2024-06-01T00:00:00Z",
+        "file_path": "C:\\Users\\priya\\AppData\\Local\\Temp\\tmpabduvvlo.csv",
+        "data_quality": {
+          "n_errors": 0,
+          "n_warnings": 0,
+          "n_info": 1,
+          "can_analyze": true,
+          "n_issues": 1
+        }
+      },
+      "bql_summary": {
+        "policy": "exclude",
+        "n_bql_rows": 0,
+        "n_substituted": 0,
+        "n_excluded": 0,
+        "value_column": "value",
+        "original_value_column": null,
+        "notes": [
+          "no is_bql column; nothing to do"
+        ]
+      },
+      "transform_assessment": null,
+      "disclaimer": "This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.",
+      "arrhenius": null,
+      "mkt_celsius": null,
+      "reduced_design": null,
+      "model_effects": "fixed",
+      "model_convergence": {
+        "converged": true,
+        "boundary": false,
+        "message": "OLS"
+      },
+      "sensitivity_report": null,
+      "sensitivity_mode": "row",
+      "arrhenius_shelf_life": null,
+      "arrhenius_per_batch": {},
+      "arrhenius_outlier_batches": [],
+      "acceptance_criteria": [
+        {
+          "attribute": "impurity_a",
+          "condition": "25C/60RH",
+          "direction": "increasing",
+          "model": "batch_specific",
+          "poolability": "none",
+          "lower_spec": null,
+          "upper_spec": 0.5,
+          "statistical_crossing_months": 7.9339869369298315,
+          "supported_shelf_life_months": 7,
+          "observed_data_months": 12.0,
+          "extrapolation_flag": false,
+          "included_in_limiting_decision": true,
+          "exclusion_reason": "",
+          "unit": null,
+          "governing_batch": "B2"
+        }
+      ],
+      "attribute_role": "primary",
+      "included_in_limiting_decision": true,
+      "unit": "%area",
+      "spec_type": "shelf_life",
+      "transform": "none",
+      "report_order": 2
+    }
+  ],
+  "warnings": [
+    "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+    "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
+    "step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)",
+    "Linearity check failed: lack-of-fit F-test p = 0.04968 < 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.",
+    "Influence check: 4 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.",
+    "supported shelf life extends beyond observed data (12 mo); extrapolation flagged.",
+    "step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)",
+    "Influence check: 1 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
+  ],
+  "metadata": {
+    "deliverable_term": "shelf life",
+    "product_type": "product",
+    "n_attributes_total": 2,
+    "n_attributes_limiting": 2,
+    "tie_break": null,
+    "tool_version": "1.0.4",
+    "timestamp": "2024-06-01T00:00:00Z",
+    "file_path": "E:\\STABILITY TOOLKIT\\examples\\multi_attribute.csv",
+    "file_sha256": "37e1b34d21da3c87dd1b3656da37d7d11dab3e46226667fd8a137e02a36da8fb",
+    "row_count": 48,
+    "column_count": 8,
+    "library_versions": {
+      "python": "3.12.10",
+      "pandas": "3.0.3",
+      "numpy": "2.4.6",
+      "scipy": "1.17.1",
+      "statsmodels": "0.14.6",
+      "openpyxl": "3.1.5"
+    },
+    "random_seed": null,
+    "data_sheet": null,
+    "metadata_sheet": null,
+    "metadata_path": "E:\\STABILITY TOOLKIT\\examples\\multi_attribute_metadata.csv"
+  },
+  "disclaimer": "This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.",
+  "extrapolation_allowed": true,
+  "extrapolation_rationale_per_attribute": {
+    "assay": "no accelerated data",
+    "impurity_a": "no accelerated data"
+  },
+  "model_effects_per_attribute": {
+    "assay": "fixed",
+    "impurity_a": "fixed"
+  },
+  "any_random_effects_used": false,
+  "any_convergence_issue": false,
+  "acceptance_criteria": [
+    {
+      "attribute": "assay",
+      "condition": "25C/60RH",
+      "direction": "decreasing",
+      "model": "batch_specific",
+      "poolability": "none",
+      "lower_spec": 90.0,
+      "upper_spec": 110.0,
+      "statistical_crossing_months": 16.571695877697017,
+      "supported_shelf_life_months": 16,
+      "observed_data_months": 12.0,
+      "extrapolation_flag": true,
+      "included_in_limiting_decision": true,
+      "exclusion_reason": "",
+      "unit": "%LC",
+      "governing_batch": "B2"
+    },
+    {
+      "attribute": "impurity_a",
+      "condition": "25C/60RH",
+      "direction": "increasing",
+      "model": "batch_specific",
+      "poolability": "none",
+      "lower_spec": null,
+      "upper_spec": 0.5,
+      "statistical_crossing_months": 7.9339869369298315,
+      "supported_shelf_life_months": 7,
+      "observed_data_months": 12.0,
+      "extrapolation_flag": false,
+      "included_in_limiting_decision": true,
+      "exclusion_reason": "",
+      "unit": "%area",
+      "governing_batch": "B2"
+    }
+  ],
+  "sensitivity_reports": {
+    "assay": null,
+    "impurity_a": null
+  },
+  "attribute_order": [
+    "assay",
+    "impurity_a"
+  ]
+}
