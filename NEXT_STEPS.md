@@ -2404,6 +2404,7 @@ When regulatory guidance changes, before editing
 | Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.0.4 |
 | Local UI screenshot | `site-sample/ui-workspace.png` | portfolio |
 | Multi-attribute sample | `site-sample/multi/` (impurity_a limits at **7 mo**; assay **16 mo**) | portfolio |
+| Public multi-attribute link | report specimen → `site-sample/multi/multi-report.html` | portfolio |
 
 **Hard rule:** Python stats engine remains authoritative. Do not reimplement
 shelf-life math in JavaScript / TypeScript.
@@ -2418,10 +2419,9 @@ shelf-life math in JavaScript / TypeScript.
 ### 11.3 Remaining optional work
 
 1. Sample PDF on the public portfolio (optional)
-2. Public-site link to `site-sample/multi/`
-3. Mobile density polish; website-qa loop after site edits
-4. Hosted run-analysis backend — out of scope unless deliberately planned
-5. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
+2. Mobile density polish; website-qa loop after site edits
+3. Hosted run-analysis backend — out of scope unless deliberately planned
+4. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
 
 ### 11.4 Acceptance when touching UI or site
 

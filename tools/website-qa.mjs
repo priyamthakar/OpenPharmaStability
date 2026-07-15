@@ -103,11 +103,35 @@ async function runInteractions(page) {
   const appVisible = await page.evaluate(() => getComputedStyle(document.getElementById('view-app')).display !== 'none');
   log('Overview -> App UI', appVisible, appVisible ? '' : 'view-app not visible');
 
-  // App UI -> Warnings 2
-  await page.getByRole('button', { name: 'Warnings 2', exact: true }).click();
+  const pageText = await page.locator('body').textContent() || '';
+  const requiredTruth = [
+    '3 batches, 0 to 24 mo',
+    '42 rows, 3 batches, 7 time points',
+    'Slope interaction p=0.9056',
+    'Common slope with batch-specific intercepts selected',
+    '24 months (no extrapolation)',
+    'Governing batch',
+    'Multi-attribute: impurity_a limiting at 7 mo',
+  ];
+  const forbiddenClaims = [
+    'Slope poolability rejected',
+    'partial (slopes independent)',
+    'p = 0.18',
+    '0 to 18 mo',
+    '18 rows, 3 batches',
+    'six time points',
+    'extends beyond the 18 month observed coverage',
+  ];
+  const missingTruth = requiredTruth.filter((value) => !pageText.includes(value));
+  const staleClaims = forbiddenClaims.filter((value) => pageText.includes(value));
+  log('Portfolio truth copy', missingTruth.length === 0 && staleClaims.length === 0,
+    `missing=${missingTruth.join('|')} stale=${staleClaims.join('|')}`);
+
+  // App UI -> Warnings 5
+  await page.getByRole('button', { name: 'Warnings 5', exact: true }).click();
   await page.waitForTimeout(300);
   const warnVisible = await page.evaluate(() => {
-    const el = [...document.querySelectorAll('div')].find((d) => d.textContent?.includes('Slope poolability rejected'));
+    const el = [...document.querySelectorAll('div')].find((d) => d.textContent?.includes('Common slope with batch-specific intercepts selected'));
     if (!el) return false;
     let n = el;
     while (n && n !== document.body) {
@@ -116,7 +140,7 @@ async function runInteractions(page) {
     }
     return true;
   });
-  log('App UI -> Warnings 2', warnVisible);
+  log('App UI -> Warnings 5', warnVisible);
 
   // App UI -> JSON record
   await page.getByRole('button', { name: 'JSON record', exact: true }).click();
@@ -142,6 +166,7 @@ async function runInteractions(page) {
 
   const linkChecks = [
     { label: 'HTML report', href: 'site-sample/sample-report.html', expect: 'Stability' },
+    { label: 'multi-attribute report', href: 'site-sample/multi/multi-report.html', expect: 'Limiting attribute' },
     { label: 'JSON record', href: 'site-sample/sample-report.json', expect: 'supported_shelf_life_months' },
     { label: 'confidence plot', href: 'site-sample/confidence_plot.png', expect: null },
   ];

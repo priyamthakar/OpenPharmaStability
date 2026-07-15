@@ -205,7 +205,7 @@ html,body{margin:0;padding:0;}
               <div style="background:#fff;border:1px solid #d8cdb8;border-radius:8px;padding:24px 26px;">
               <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px;">
                 <div style="font-family:'IBM Plex Sans',sans-serif;font-size:15px;font-weight:600;white-space:nowrap;">Assay at 25C / 60RH</div>
-                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#938b7d;">3 batches, 0 to 18 mo</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#938b7d;">3 batches, 0 to 24 mo</div>
               </div>
               <div style="font-size:13px;color:#6f685d;margin-bottom:16px;">Lower one sided 95% confidence bound against a 95.0% lower specification limit.</div>
               {{ chartReport }}
@@ -235,6 +235,7 @@ html,body{margin:0;padding:0;}
               </div>
               <div style="display:flex;flex-direction:column;gap:9px;">
                 <a href="site-sample/sample-report.html" target="_blank" style="font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600;background:#b35a3a;color:#fff;border:none;padding:12px 18px;border-radius:8px;cursor:pointer;text-align:left;white-space:nowrap;display:flex;justify-content:space-between;text-decoration:none;" style-hover="background:#98472d;"><span>Open HTML report</span><span>open</span></a>
+                <a href="site-sample/multi/multi-report.html" target="_blank" style="font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#211f1b;border:1px solid #d8cdb8;padding:12px 18px;border-radius:8px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;text-decoration:none;" style-hover="border-color:#b35a3a;"><span>Multi-attribute: impurity_a limiting at 7 mo</span><span style="font-family:'IBM Plex Mono',monospace;color:#938b7d;font-size:12px;">open</span></a>
                 <a href="site-sample/sample-report.json" target="_blank" style="font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#211f1b;border:1px solid #d8cdb8;padding:12px 18px;border-radius:8px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;text-decoration:none;" style-hover="border-color:#b35a3a;"><span>Download JSON record</span><span style="font-family:'IBM Plex Mono',monospace;color:#938b7d;font-size:12px;">.json</span></a>
                 <a href="site-sample/confidence_plot.png" target="_blank" style="font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:500;background:#fff;color:#211f1b;border:1px solid #d8cdb8;padding:12px 18px;border-radius:8px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;text-decoration:none;" style-hover="border-color:#b35a3a;"><span>View confidence plot</span><span style="font-family:'IBM Plex Mono',monospace;color:#938b7d;font-size:12px;">.png</span></a>
               </div>
@@ -254,10 +255,10 @@ html,body{margin:0;padding:0;}
               <p style="font-size:15px;line-height:1.65;color:#cfc6b8;margin:0;">This specimen comes from the bundled assay data and current engine. It demonstrates the part hiring reviewers should care about: model selection under Q1E style poolability logic, confidence bound crossing, and transparent warnings.</p>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#4a4439;border:1px solid #4a4439;">
-              <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Input</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">42 assay observations</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Three batches, condition 25C / 60RH, time coverage from 0 to 18 months.</div></div>
+              <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Input</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">42 assay observations</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Three batches, seven time points, condition 25C / 60RH, time coverage from 0 to 24 months.</div></div>
               <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Poolability</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Partial pooling selected</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Slope interaction passes with p value 0.9056. Batch intercepts differ with p value 1.658e minus 16.</div></div>
               <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Bound</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">One sided 95% lower bound</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">The decision uses the lower confidence bound crossing against a 95.0% lower specification limit.</div></div>
-              <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Decision</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">17 months supported</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Statistical crossing is 17.954842 months. The reported shelf life is rounded down to 17 months.</div></div>
+              <div style="background:#2f2b24;padding:20px 22px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#c9856a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Decision</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">17 months supported</div><div style="font-size:13px;line-height:1.55;color:#cfc6b8;">Batch B2 governs at 17.954842 months, within the 24-month observed coverage. The reported shelf life is rounded down to 17 months.</div></div>
             </div>
           </div>
         </div>
@@ -405,7 +406,7 @@ html,body{margin:0;padding:0;}
                 <div style="border:1.5px dashed #cdbfa6;border-radius:8px;padding:16px 12px;text-align:center;background:#fff;margin-bottom:9px;">
                   <div style="font-size:18px;color:#b35a3a;margin-bottom:4px;">↑</div>
                   <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#211f1b;">assay_3batch.csv</div>
-                  <div style="font-size:11px;color:#a59a89;margin-top:3px;">18 rows, 3 batches, drag to replace</div>
+                  <div style="font-size:11px;color:#a59a89;margin-top:3px;">42 rows, 3 batches, 7 time points</div>
                 </div>
 
                 <div style="font-size:12px;font-weight:600;color:#544e45;margin:18px 0 7px;">Condition</div>
@@ -466,7 +467,7 @@ html,body{margin:0;padding:0;}
 
                 <div style="display:flex;gap:22px;border-bottom:1px solid #eee5d6;margin-bottom:18px;">
                   <button onClick="{{ setTabReport }}" style="{{ tabReportSty }}">Report</button>
-                  <button onClick="{{ setTabWarn }}" style="{{ tabWarnSty }}">Warnings 2</button>
+                  <button onClick="{{ setTabWarn }}" style="{{ tabWarnSty }}">Warnings 5</button>
                   <button onClick="{{ setTabJson }}" style="{{ tabJsonSty }}">JSON record</button>
                 </div>
 
@@ -483,12 +484,14 @@ html,body{margin:0;padding:0;}
                         <tbody>
                           <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Supported shelf life</td><td style="padding:9px 0;text-align:right;font-family:'IBM Plex Mono',monospace;color:#211f1b;">17 months</td></tr>
                           <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Statistical crossing</td><td style="padding:9px 0;text-align:right;font-family:'IBM Plex Mono',monospace;color:#211f1b;">17.95 months</td></tr>
+                          <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Governing batch</td><td style="padding:9px 0;text-align:right;font-family:'IBM Plex Mono',monospace;color:#211f1b;">B2</td></tr>
+                          <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Observed coverage</td><td style="padding:9px 0;text-align:right;font-family:'IBM Plex Mono',monospace;color:#211f1b;">24 months (no extrapolation)</td></tr>
                           <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Specification (lower)</td><td style="padding:9px 0;text-align:right;font-family:'IBM Plex Mono',monospace;color:#211f1b;">95.0 %</td></tr>
                           <tr style="border-bottom:1px solid #eee5d6;"><td style="padding:9px 0;color:#6f685d;">Model</td><td style="padding:9px 0;text-align:right;color:#211f1b;">common slope + batch intercepts</td></tr>
-                          <tr><td style="padding:9px 0;color:#6f685d;">Poolability</td><td style="padding:9px 0;text-align:right;color:#b07a32;">partial (slopes independent)</td></tr>
+                          <tr><td style="padding:9px 0;color:#6f685d;">Poolability</td><td style="padding:9px 0;text-align:right;color:#b07a32;">partial (common slope, batch intercepts)</td></tr>
                         </tbody>
                       </table>
-                      <p style="font-size:13.5px;line-height:1.65;color:#544e45;margin:0;">The lower one sided 95% confidence bound of the common slope regression intersects the 95.0% specification limit at 17.95 months; the supported shelf life is therefore reported as <strong style="color:#211f1b;">17 months</strong>. Slope poolability was rejected at alpha 0.25, so batch specific slopes were retained for the limiting estimate.</p>
+                      <p style="font-size:13.5px;line-height:1.65;color:#544e45;margin:0;">The lower one sided 95% confidence bound of the common slope regression intersects the 95.0% specification limit at 17.95 months; the supported shelf life is therefore reported as <strong style="color:#211f1b;">17 months</strong>. The slope interaction p value is 0.9056, while batch intercepts differ with p value 1.658e-16, so the selected model uses a common slope with batch-specific intercepts.</p>
                     </div>
                   </div>
                 </div>
@@ -496,9 +499,9 @@ html,body{margin:0;padding:0;}
                 <!-- Warnings tab -->
                 <div style="display:{{ tabWarnDisp }};">
                   <div style="display:flex;flex-direction:column;gap:10px;">
-                    <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Poolability</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Slope poolability rejected at alpha 0.25 with p = 0.18. Independent slopes retained; the most conservative batch governs the supported shelf life.</div></div>
-                    <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Extrapolation</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Reported shelf life at 17 mo extends beyond the 18 month observed coverage only marginally; treat the estimate as exploratory per ICH Q1E extrapolation guidance.</div></div>
-                    <div style="background:#f4f7f2;border:1px solid #d2ddca;border-left:3px solid #5e7a56;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#3f5a38;font-weight:500;margin-bottom:6px;">Data quality pass</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">No below quantitation values detected. All six time points present across three batches.</div></div>
+                    <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Poolability</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Slope interaction p=0.9056; batch intercept p=1.658e-16. Common slope with batch-specific intercepts selected.</div></div>
+                    <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Influence</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Cook's distance flags four observations for review at row indices 13, 24, 28, and 29. No observation is auto-excluded.</div></div>
+                    <div style="background:#f4f7f2;border:1px solid #d2ddca;border-left:3px solid #5e7a56;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#3f5a38;font-weight:500;margin-bottom:6px;">Data quality</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">The 42 rows form 21 batch/time/attribute groups with two observations each and no replicate column. The audit records this as information and allows analysis.</div></div>
                   </div>
                 </div>
 
@@ -648,7 +651,7 @@ html,body{margin:0;padding:0;}
             </div>
             <div style="grid-column:span 2;">
               <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#a59a89;margin-bottom:12px;">Warning panel</div>
-              <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Poolability</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Slope poolability rejected at alpha 0.25. Independent slopes retained.</div></div>
+              <div style="background:#fbf4ec;border:1px solid #e8d5bf;border-left:3px solid #b07a32;border-radius:8px;padding:14px 16px;"><div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;color:#9a6c28;font-weight:500;margin-bottom:6px;">Poolability</div><div style="font-size:13.5px;color:#544e45;line-height:1.55;">Slope interaction p=0.9056; batch intercept p=1.658e-16. Common slope with batch-specific intercepts selected.</div></div>
             </div>
           </div>
         </div>
