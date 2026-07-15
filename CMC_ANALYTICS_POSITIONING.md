@@ -100,10 +100,10 @@ Done:
 2. "For CMC reviewers" walkthrough: input → poolability → bound/crossing → decision record → report.
 3. Local UI screenshot in portfolio materials (`site-sample/ui-workspace.png`).
 4. Multi-attribute limiting-attribute sample story (`site-sample/multi/` + README multi-attribute section; limiting CQA = impurity_a @ 7 months).
+5. Public-site link to the multi-attribute report (`site-sample/multi/multi-report.html`).
 
 Highest-value remaining improvements for job applications:
 
 1. **Sample PDF (optional)** — one compact sample report PDF on the public portfolio (browser Save as PDF from the local UI, or server-side PDF if a backend is installed). Not a release blocker.
-2. Optional link from the public site App UI / sample section to `site-sample/multi/` (multi-attribute limiting CQA story).
-3. Keep the validation/test count visible (**483** collected), but do not overclaim regulatory validation.
-4. When extending portfolio copy: keep the disclaimer boundary explicit (decision-support / educational only — not GxP, not 21 CFR Part 11, not submission-ready).
+2. Keep the validation/test count visible (**483** collected), but do not overclaim regulatory validation.
+3. When extending portfolio copy: keep the disclaimer boundary explicit (decision-support / educational only — not GxP, not 21 CFR Part 11, not submission-ready).
