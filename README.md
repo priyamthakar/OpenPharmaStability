@@ -190,12 +190,25 @@ npx -y -p playwright node tools/website-qa.mjs --dev
 
 | Setting | Value |
 |---------|-------|
-| Framework preset | None / Static |
-| Build command | *(none)* |
+| Project type | Direct Upload |
+| Production branch | `main` |
 | Output directory | `site` |
+| Deployment workflow | `.github/workflows/pages-deployment.yml` |
 
 After changing `OpenPharmaStability.dc.html`, `support.js`, or `site-sample/`,
 run `node tools/sync-site.mjs` and commit the updated `site/` folder.
+
+The existing Pages project is Direct Upload and cannot be converted to Git
+integration. The GitHub workflow therefore deploys `site/` with Wrangler on
+changes to `main`. It requires:
+
+- repository variable `CLOUDFLARE_ACCOUNT_ID`, and
+- repository secret `CLOUDFLARE_API_TOKEN` with **Account / Cloudflare Pages / Edit**
+  permission limited to the owning account.
+
+Create the scoped token in the Cloudflare dashboard, store it with
+`gh secret set CLOUDFLARE_API_TOKEN`, then run
+`gh workflow run pages-deployment.yml` once to verify the connection.
 
 ## Install
 
