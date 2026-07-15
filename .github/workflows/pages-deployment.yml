@@ -1,0 +1,47 @@
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/pages-deployment.yml
+      - OpenPharmaStability.dc.html
+      - support.js
+      - site/**
+      - site-sample/**
+      - tools/sync-site.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify deploy folder is synchronized
+        run: |
+          node tools/sync-site.mjs
+          git diff --exit-code -- site
+
+      - name: Report missing deployment secret
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "CLOUDFLARE_API_TOKEN is not configured; deployment skipped." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy production site
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name=openpharmastability --branch=main
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
