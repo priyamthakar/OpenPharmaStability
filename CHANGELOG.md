@@ -5,6 +5,15 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Quality CI — 2026-07-17
+
+No package version or analysis-math change.
+
+- Added `.github/workflows/quality.yml` for pull requests, `main` pushes, and
+  manual runs. It tests Python 3.11/3.12, independently checks the golden
+  fixture, validates an installed-CLI report end to end, and verifies static
+  site synchronization before deployment.
+
 ## Release and deployment truth sync — 2026-07-17
 
 No package version or analysis-math change.

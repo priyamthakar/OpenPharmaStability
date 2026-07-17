@@ -571,6 +571,12 @@ using a pure-numpy path and exits 0 if the engine still agrees.
 v0.7.0 made the regen fully independent of the engine (no shared
 statsmodels backend).
 
+The [Quality workflow](.github/workflows/quality.yml) runs on pull requests
+and pushes to `main`: it tests supported Python versions, verifies the
+independent golden calculation, exercises the installed CLI end to end, and
+checks that the deploy folder is synchronized. This is separate from the Pages
+workflow, which only publishes the already-validated static site.
+
 ## Layout
 
 ```
