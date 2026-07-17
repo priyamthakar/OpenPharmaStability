@@ -19,6 +19,17 @@ No package version or analysis-math change.
 - Synchronized `HANDOVER.md`, `NEXT_STEPS.md`, `README.md`, and the session
   summary to the post-release state.
 
+## Public sample PDF — 2026-07-17
+
+No package version or analysis-math change.
+
+- Added a print-ready PDF of the canonical golden assay report at
+  `site-sample/sample-report.pdf` and mirrored it into the deploy artifact.
+- Verified all 9 pages for layout, plot rendering, decision values, governing
+  batch, and the mandatory decision-support disclaimer.
+- Linked the PDF from the public artifact ledger and added its PDF signature to
+  automated website asset QA.
+
 ## Public-site Graphite Dark redesign — 2026-07-17
 
 No package version or analysis-math change.

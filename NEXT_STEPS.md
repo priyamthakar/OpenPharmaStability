@@ -2404,6 +2404,7 @@ When regulatory guidance changes, before editing
 | Local workspace server | `openpharmastability-ui` / `ui_server.py` | v1.0.0 |
 | UI service manifest | `ui_service.analyze_for_ui()` | v1.0.0 |
 | Save as PDF | local UI + report print CSS | v1.0.4 |
+| Public golden sample PDF | `site-sample/sample-report.pdf` | post-v1 |
 | Public static site | `site/` → https://openpharmastability.pages.dev | post-v1 |
 | Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.0.4 |
 | Local UI screenshot | `site-sample/ui-workspace.png` | portfolio |
@@ -2469,9 +2470,10 @@ The public information architecture should be:
 
 ### 11.5 Work after the redesign
 
-1. Sample PDF on the public site (optional; not a redesign blocker)
-2. Hosted run-analysis backend — out of scope unless deliberately planned
-3. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
+1. **Done:** public sample PDF generated from the canonical golden HTML report,
+   structurally validated, visually inspected, and linked from the site.
+2. Hosted run-analysis backend — out of scope unless deliberately planned.
+3. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch).
 
 ### 11.6 Acceptance when touching UI or site
 

@@ -22,7 +22,7 @@ Pages deployment from GitHub Actions is now operational.
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. Optional next work is the public sample PDF; do not start a hosted analysis backend without a separate product decision |
+| Immediate priority | No release blocker. The public sample PDF is shipped; monitor ICH Q1 Step 4 and do not start a hosted analysis backend without a separate product decision |
 
 ### Why the public site was redesigned
 

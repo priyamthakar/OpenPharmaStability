@@ -60,11 +60,11 @@ an HTML report and a JSON decision record:
 | Supported shelf life | **17 months** (floor-rounded) |
 | Governing batch | B2 |
 
-The full artifacts for this exact run — the HTML report and the JSON decision
-record — are checked in at
-[`site-sample/sample-report.html`](site-sample/sample-report.html) and
-[`site-sample/sample-report.json`](site-sample/sample-report.json), and are what
-the [public site preview](#public-website-preview) links to.
+The full artifacts for this exact run — the
+[`HTML report`](site-sample/sample-report.html),
+[`print-ready PDF`](site-sample/sample-report.pdf), and
+[`JSON decision record`](site-sample/sample-report.json) — are checked in and
+linked from the [public site preview](#public-website-preview).
 
 ### For CMC reviewers: how to read the output
 
