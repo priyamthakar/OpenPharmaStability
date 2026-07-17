@@ -111,6 +111,31 @@ class GuidanceProfile:
     status: str = "effective"
     reference: str = "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
 
+    def __post_init__(self) -> None:
+        """Reject incomplete or mathematically invalid guidance profiles."""
+        if not isinstance(self.name, str) or not self.name.strip():
+            raise ValueError("guidance profile name must be non-empty")
+        if self.status not in {"draft", "effective"}:
+            raise ValueError("guidance profile status must be 'draft' or 'effective'")
+        if not isinstance(self.reference, str) or not self.reference.strip():
+            raise ValueError("guidance profile reference must be non-empty")
+        if not isinstance(self.disclaimer, str) or not self.disclaimer.strip():
+            raise ValueError("guidance profile disclaimer must be non-empty")
+        if not 0.0 < self.poolability_alpha < 1.0:
+            raise ValueError("poolability_alpha must be between 0 and 1")
+        if not 0.0 < self.confidence < 1.0:
+            raise ValueError("confidence must be between 0 and 1")
+        if not 0.0 < self.one_sided_quantile < 1.0:
+            raise ValueError("one_sided_quantile must be between 0 and 1")
+        if not 0.0 < self.two_sided_quantile < 1.0:
+            raise ValueError("two_sided_quantile must be between 0 and 1")
+        if self.extrapolation_max_factor <= 0 or self.extrapolation_max_months_beyond <= 0:
+            raise ValueError("extrapolation caps must be positive")
+        if self.assay_change_threshold_pct < 0:
+            raise ValueError("assay_change_threshold_pct must be non-negative")
+        if not isinstance(self.significant_change_criteria, tuple) or not self.significant_change_criteria:
+            raise ValueError("significant_change_criteria must be a non-empty tuple")
+
 
 # The default profile: ICH Q1A(R2) + Q1E, assembled from the canonical
 # constants in ``contracts``. Keeping the values sourced from the

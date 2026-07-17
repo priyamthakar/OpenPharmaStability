@@ -114,7 +114,10 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
         "attributes": per_attr,
         "warnings": list(dict.fromkeys(result.warnings)),
         "metadata": dict(result.metadata),
-        "disclaimer": DISCLAIMER,
+        "disclaimer": (
+            getattr(result.attributes[0].result, "guidance_disclaimer", DISCLAIMER)
+            if result.attributes else DISCLAIMER
+        ),
         # v0.4.0: ICH Q1A significant-change gating of extrapolation.
         # The per-attribute entries already inherit the single-attribute
         # record (which includes the five new keys); these two top-level

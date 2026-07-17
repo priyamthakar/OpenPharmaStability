@@ -335,7 +335,9 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "p_value_slopes": p_slopes_str,
         "p_value_intercepts": p_intercepts_str,
         "poolability_alpha": float(pool.alpha),
-        "poolability_alpha_ref": float(POOLABILITY_ALPHA),
+        "poolability_alpha_ref": float(
+            getattr(result, "guidance_poolability_alpha", POOLABILITY_ALPHA)
+        ),
         # v0.11.0: the active guidance profile's name, surfaced in the
         # assumptions table. ``getattr`` keeps the renderer
         # forward-compatible with hand-built fixtures that predate the
@@ -377,7 +379,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         # Confidence bound
         "confidence_bound_id": bound_id,
         "confidence_bound_label": bound_label,
-        "confidence_level": float(CONFIDENCE),
+        "confidence_level": float(getattr(result, "guidance_confidence", CONFIDENCE)),
         # Plot
         "plot_src": _resolve_plot_src(plot_png_path),
         # Warnings
@@ -499,7 +501,7 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         "library_versions": _library_versions(result),
         "library_version_rows": _dict_rows(_library_versions(result)),
         # Disclaimer (verbatim from contracts.DISCLAIMER)
-        "disclaimer": DISCLAIMER,
+        "disclaimer": getattr(result, "guidance_disclaimer", DISCLAIMER),
     }
 
 

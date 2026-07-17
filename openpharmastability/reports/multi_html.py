@@ -233,6 +233,7 @@ def render_multi_html(
         "guidance_reference",
         "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
     )
+    guidance_disclaimer = getattr(first_result, "guidance_disclaimer", DISCLAIMER)
     overview_table_rows = "".join(
         f"<tr>"
         f"<td>{_esc(ar.metadata.attribute)}</td>"
@@ -286,7 +287,7 @@ def render_multi_html(
    pandas {_esc(md.get('library_versions', {}).get('pandas', '?'))}</p>
 
 <div class="disclaimer">
-  <strong>Disclaimer.</strong> {_esc(DISCLAIMER)}
+  <strong>Disclaimer.</strong> {_esc(guidance_disclaimer)}
 </div>
 
 <h2>Executive summary</h2>

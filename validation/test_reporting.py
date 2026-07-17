@@ -1008,9 +1008,27 @@ def test_record_carries_guidance_profile():
     assert rec["guidance_profile"] == "Q1A_R2+Q1E"
     assert rec["guidance_status"] == "effective"
     assert rec["guidance_reference"] == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
+    assert rec["confidence_level"] == 0.95
+    assert rec["poolability_alpha_reference"] == 0.25
     # A custom profile_name flows through the record builder.
     result.profile_name = "custom_profile"
     assert to_decision_record(result)["guidance_profile"] == "custom_profile"
+
+
+def test_record_and_html_use_result_guidance_snapshot(tmp_path):
+    result = _make_stability_result()
+    result.guidance_confidence = 0.90
+    result.guidance_poolability_alpha = 0.20
+    result.guidance_disclaimer = "Custom profile disclaimer for test only."
+    rec = to_decision_record(result)
+    assert rec["confidence_level"] == 0.90
+    assert rec["poolability_alpha_reference"] == 0.20
+    assert rec["disclaimer"] == result.guidance_disclaimer
+    out = tmp_path / "custom-guidance.html"
+    render_html(result, plot_png_path=None, out_path=str(out))
+    body = out.read_text(encoding="utf-8")
+    assert "0.2" in body
+    assert result.guidance_disclaimer in body
 
 
 def test_render_html_contains_guidance_profile(tmp_path):

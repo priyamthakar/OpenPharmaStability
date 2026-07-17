@@ -301,8 +301,10 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
             getattr(pool, "p_intercepts_holm", None)
         ),
         "confidence_bound": _confidence_bound_label(result.direction),
-        "confidence_level": float(CONFIDENCE),
-        "poolability_alpha_reference": float(POOLABILITY_ALPHA),
+        "confidence_level": float(getattr(result, "guidance_confidence", CONFIDENCE)),
+        "poolability_alpha_reference": float(
+            getattr(result, "guidance_poolability_alpha", POOLABILITY_ALPHA)
+        ),
         # v0.11.0: the active guidance profile's name — an immutable
         # audit fact for the run. ``getattr`` keeps the record builder
         # forward-compatible with hand-built fixtures that predate the
@@ -361,7 +363,7 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         # contracts.DISCLAIMER). The HTML report and the multi-attribute
         # record already carry it; the single-attribute record did not,
         # and the spec requires it on every record.
-        "disclaimer": DISCLAIMER,
+        "disclaimer": getattr(result, "guidance_disclaimer", DISCLAIMER),
         # v0.5.0: advanced statistics opt-ins. All four default to
         # None / None / None / "fixed" so a v0.4.x result that never
         # ran the new modules looks identical in the record (no

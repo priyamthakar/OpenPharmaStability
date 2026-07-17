@@ -155,7 +155,7 @@ def analyze(
     # accelerated rows -> gate silently permissive).
     accelerated_condition: str | None = "40C/75RH",
     intermediate_condition: str | None = "30C/65RH",
-    assay_change_threshold: float = 5.0,
+    assay_change_threshold: float | None = None,
     no_significant_change_gate: bool = False,
     # v0.5.0 advanced statistics. All default-safe; the default
     # behavior of `analyze()` is byte-equivalent to v0.4.0 when
@@ -320,6 +320,10 @@ def analyze(
     """
     if profile is None:
         profile = resolve_profile(None)
+    if not isinstance(profile, GuidanceProfile):
+        raise TypeError("profile must be a GuidanceProfile or None")
+    if assay_change_threshold is None:
+        assay_change_threshold = profile.assay_change_threshold_pct
 
     raw_df = load_table(path)
 
@@ -570,6 +574,10 @@ def analyze(
         profile_name=profile.name,
         guidance_status=profile.status,
         guidance_reference=profile.reference,
+        guidance_confidence=profile.confidence,
+        guidance_poolability_alpha=profile.poolability_alpha,
+        guidance_assay_change_threshold_pct=profile.assay_change_threshold_pct,
+        guidance_disclaimer=profile.disclaimer,
     )
 
     # v0.3.0: surface the data-quality audit summary in the result
@@ -654,7 +662,8 @@ def analyze(
                 compute_sensitivity as _compute_sensitivity,
             )
             v070_sens = _compute_sensitivity(
-                result, data, mode=sensitivity_mode,
+                result, data, mode=sensitivity_mode, horizon=horizon,
+                profile=profile,
             )
         except Exception as exc:  # defensive
             warnings.append(f"sensitivity analysis failed: {exc!r}")

@@ -283,6 +283,10 @@ class StabilityResult:
     # identify the document family represented by the profile.
     guidance_status: str = "effective"
     guidance_reference: str = "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
+    guidance_confidence: float = 0.95
+    guidance_poolability_alpha: float = 0.25
+    guidance_assay_change_threshold_pct: float = 5.0
+    guidance_disclaimer: str = DISCLAIMER
     # v0.7.0: optional sensitivity report. None when --sensitivity
     # is not requested; a `SensitivityReport` dataclass instance
     # otherwise. The report records, for each Cook's-distance

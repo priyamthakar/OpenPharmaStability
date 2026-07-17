@@ -352,7 +352,7 @@ def analyze_many(
     # limiting-decision logic below is unchanged.
     accelerated_condition: Optional[str] = "40C/75RH",
     intermediate_condition: Optional[str] = "30C/65RH",
-    assay_change_threshold: float = 5.0,
+    assay_change_threshold: float | None = None,
     no_significant_change_gate: bool = False,
     # v0.5.0 advanced-statistics opt-ins. Threaded through to the
     # per-attribute single-attribute ``analyze()`` call so each
@@ -425,6 +425,10 @@ def analyze_many(
     """
     if profile is None:
         profile = resolve_profile(None)
+    if not isinstance(profile, GuidanceProfile):
+        raise TypeError("profile must be a GuidanceProfile or None")
+    if assay_change_threshold is None:
+        assay_change_threshold = profile.assay_change_threshold_pct
 
     # 1) Load data via the v0.7.0 dispatcher. ``load_table`` accepts
     #    ``.csv`` / ``.xlsx`` / ``.xlsm`` / ``.xls`` by extension and

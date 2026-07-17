@@ -48,6 +48,7 @@ from openpharmastability.contracts import (
     StabilityResult,
     ValidatedData,
 )
+from openpharmastability.regulatory.profile import GuidanceProfile
 
 
 def compute_sensitivity(
@@ -56,6 +57,7 @@ def compute_sensitivity(
     *,
     horizon: float = 60.0,
     mode: str = "row",
+    profile: GuidanceProfile | None = None,
 ) -> SensitivityReport:
     """Leave-one-out sensitivity.
 
@@ -104,9 +106,9 @@ def compute_sensitivity(
     """
     mode_norm = str(mode).strip().lower()
     if mode_norm == "row":
-        return _compute_sensitivity_row(result, data, horizon=horizon)
+        return _compute_sensitivity_row(result, data, horizon=horizon, profile=profile)
     if mode_norm == "batch":
-        return _compute_sensitivity_batch(result, data, horizon=horizon)
+        return _compute_sensitivity_batch(result, data, horizon=horizon, profile=profile)
     raise ValueError(
         f"compute_sensitivity: unknown mode {mode!r}; expected 'row' or 'batch'."
     )
@@ -117,6 +119,7 @@ def _compute_sensitivity_row(
     data: ValidatedData,
     *,
     horizon: float,
+    profile: GuidanceProfile | None,
 ) -> SensitivityReport:
     """Row-level leave-one-out sensitivity (v0.7.0 behavior).
 
@@ -143,7 +146,7 @@ def _compute_sensitivity_row(
     for idx in influential:
         try:
             loo_shelf, loo_cross, loo_note = _leave_one_out(
-                result, data, idx, horizon=horizon,
+                result, data, idx, horizon=horizon, profile=profile,
             )
         except Exception as exc:  # defensive
             loo_shelf, loo_cross = None, None
@@ -186,6 +189,7 @@ def _compute_sensitivity_batch(
     data: ValidatedData,
     *,
     horizon: float,
+    profile: GuidanceProfile | None,
 ) -> SensitivityReport:
     """Batch-level leave-one-out sensitivity (v0.8.0).
 
@@ -230,7 +234,7 @@ def _compute_sensitivity_batch(
     for batch_name in batches_in_fit:
         try:
             loo_shelf, loo_cross, loo_note, first_row_idx = _leave_one_batch_out(
-                result, data, batch_name, horizon=horizon,
+                result, data, batch_name, horizon=horizon, profile=profile,
             )
         except Exception as exc:  # defensive
             loo_shelf, loo_cross = None, None
@@ -317,6 +321,7 @@ def _refit_and_cross(
     condition: str,
     attribute: str,
     horizon: float,
+    profile: GuidanceProfile | None,
 ) -> Tuple[Optional[int], Optional[float]]:
     """Write ``df`` to a temp CSV, run the engine, and return
     ``(supported_shelf_life_months, statistical_crossing_months)``.
@@ -342,6 +347,7 @@ def _refit_and_cross(
             condition=condition,
             attribute=attribute,
             horizon=float(horizon),
+            profile=profile,
         )
     finally:
         try:
@@ -360,6 +366,7 @@ def _leave_one_out(
     drop_idx: int,
     *,
     horizon: float,
+    profile: GuidanceProfile | None,
 ) -> Tuple[Optional[int], Optional[float], str]:
     """Drop one row, refit, re-cross, return ``(shelf, crossing, note)``.
 
@@ -378,6 +385,7 @@ def _leave_one_out(
             condition=data.condition,
             attribute=getattr(data, "attribute", "assay") or "assay",
             horizon=horizon,
+            profile=profile,
         )
     except Exception as exc:  # defensive
         return None, None, f"leave-one-out refit failed: {exc!r}"
@@ -390,6 +398,7 @@ def _leave_one_batch_out(
     batch_name: str,
     *,
     horizon: float,
+    profile: GuidanceProfile | None,
 ) -> Tuple[Optional[int], Optional[float], str, Optional[int]]:
     """Drop one batch, refit, re-cross.
 
@@ -426,6 +435,7 @@ def _leave_one_batch_out(
             condition=data.condition,
             attribute=getattr(data, "attribute", "assay") or "assay",
             horizon=horizon,
+            profile=profile,
         )
     except Exception as exc:  # defensive
         return (

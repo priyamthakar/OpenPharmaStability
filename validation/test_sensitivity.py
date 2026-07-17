@@ -29,6 +29,7 @@ from openpharmastability.contracts import (
 )
 from openpharmastability.shelf_life.engine import analyze
 from openpharmastability.stats.sensitivity import compute_sensitivity
+from openpharmastability.regulatory.profile import Q1_CONSOLIDATED_DRAFT
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -168,6 +169,23 @@ def test_compute_sensitivity_summary_is_string() -> None:
         or "1 point changes the shelf life" in s
         or "a single point drives the shelf-life decision" in s
     ), f"unexpected sensitivity summary: {s!r}"
+
+
+def test_sensitivity_refits_preserve_active_profile(monkeypatch) -> None:
+    import openpharmastability.stats.sensitivity as sens_mod
+
+    captured = []
+
+    def _refit(*args, **kwargs):
+        captured.append(kwargs["profile"])
+        return 17, 18.0
+
+    monkeypatch.setattr(sens_mod, "_refit_and_cross", _refit)
+    result = _build_tiny_result(influential_points=[0])
+    data = _build_tiny_validated_data()
+    report = compute_sensitivity(result, data, profile=Q1_CONSOLIDATED_DRAFT)
+    assert len(report.rows) == 1
+    assert captured == [Q1_CONSOLIDATED_DRAFT]
 
 
 # ---------------------------------------------------------------------------

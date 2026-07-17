@@ -59,3 +59,28 @@ def test_profiles_registry_lists_both():
 def test_engine_defaults_resolve_active_profile_at_call_time():
     assert inspect.signature(analyze).parameters["profile"].default is None
     assert inspect.signature(analyze_many).parameters["profile"].default is None
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"status": "final"},
+        {"reference": ""},
+        {"poolability_alpha": 1.0},
+        {"confidence": 0.0},
+        {"significant_change_criteria": ()},
+    ],
+)
+def test_guidance_profile_rejects_invalid_provenance_or_parameters(overrides):
+    base = dict(
+        name="invalid-test",
+        poolability_alpha=0.25,
+        confidence=0.95,
+        one_sided_quantile=0.95,
+        two_sided_quantile=0.975,
+        extrapolation_max_factor=2.0,
+        extrapolation_max_months_beyond=12.0,
+    )
+    base.update(overrides)
+    with pytest.raises(ValueError):
+        P.GuidanceProfile(**base)
