@@ -13,12 +13,12 @@ Pages deployment from GitHub Actions is now operational.
 
 | Item | Current state |
 |---|---|
-| Branch / current source commit | `main` / release preparation following `3a6187f` (`fix: make multi guidance provenance explicit`) |
-| GitHub release | `v1.1.0`, release preparation in progress |
+| Branch / current release commit | `main` / `406b352` (`ci: update setup actions for Node 24`), tagged `v1.1.0` |
+| GitHub release | `v1.1.0`, published 2026-07-17 |
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
-| Test state | 483 collected; last full run green with 4 host-dependent PDF skips |
+| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `29598840371` green on Python 3.11/3.12 plus CLI/site gates |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
