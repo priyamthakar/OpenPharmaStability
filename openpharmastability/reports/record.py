@@ -308,6 +308,12 @@ def to_decision_record(result: StabilityResult) -> dict[str, Any]:
         # forward-compatible with hand-built fixtures that predate the
         # ``profile_name`` field.
         "guidance_profile": getattr(result, "profile_name", "Q1A_R2+Q1E"),
+        "guidance_status": getattr(result, "guidance_status", "effective"),
+        "guidance_reference": getattr(
+            result,
+            "guidance_reference",
+            "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
+        ),
         "observed_long_term_months": float(result.observed_data_months),
         "extrapolation": _extrapolation_status(result.extrapolation_flag),
         "warnings": [str(w) for w in (result.warnings or [])],

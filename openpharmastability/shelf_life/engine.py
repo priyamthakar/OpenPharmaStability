@@ -45,7 +45,7 @@ from openpharmastability.contracts import (
 from openpharmastability.data.io import load_table
 from openpharmastability.data.schema import validate_and_select
 from openpharmastability.models.selection import select_model
-from openpharmastability.regulatory.profile import Q1AE, GuidanceProfile
+from openpharmastability.regulatory.profile import GuidanceProfile, resolve_profile
 from openpharmastability.shelf_life.extrapolation import apply_extrapolation_caps
 from openpharmastability.stats.bounds import find_crossing
 from openpharmastability.stats.diagnostics import run_diagnostics
@@ -215,7 +215,7 @@ def analyze(
     # to v0.9.0. Pass a different ``GuidanceProfile`` (e.g. a future
     # ``Q1_CONSOLIDATED``) to re-base every regulator constant in one
     # place with no algorithm change.
-    profile: GuidanceProfile = Q1AE,
+    profile: GuidanceProfile | None = None,
 ) -> StabilityResult:
     """Run the end-to-end v0.1 stability analysis on a CSV.
 
@@ -318,6 +318,9 @@ def analyze(
     StabilityResult
         The full decision record.
     """
+    if profile is None:
+        profile = resolve_profile(None)
+
     raw_df = load_table(path)
 
     # v0.5.0 advanced-statistics hooks — each is opt-in via its
@@ -565,6 +568,8 @@ def analyze(
         # so the JSON record and HTML report can surface which guidance
         # governed the decision.
         profile_name=profile.name,
+        guidance_status=profile.status,
+        guidance_reference=profile.reference,
     )
 
     # v0.3.0: surface the data-quality audit summary in the result
@@ -1110,7 +1115,7 @@ def _run_significant_change_gate(
     intermediate_condition: str | None,
     assay_change_threshold: float,
     no_significant_change_gate: bool,
-    profile: GuidanceProfile = Q1AE,
+    profile: GuidanceProfile | None = None,
 ) -> StabilityResult:
     """Run the ICH Q1A(R2) §2.2.7 significant-change gate and refine
     the result's extrapolation decision.
@@ -1129,6 +1134,9 @@ def _run_significant_change_gate(
     * Any exception inside the gate is caught, a single warning is
       appended, and the default permissive values are left in place.
     """
+    if profile is None:
+        profile = resolve_profile(None)
+
     if no_significant_change_gate:
         new_warnings = list(result.warnings)
         new_warnings.append(

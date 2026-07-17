@@ -484,6 +484,8 @@ def _profile(name, **overrides):
 def test_engine_records_default_profile_name():
     result = analyze(path=str(CSV), condition="25C/60RH", attribute="assay")
     assert result.profile_name == "Q1A_R2+Q1E"
+    assert result.guidance_status == "effective"
+    assert result.guidance_reference == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
 
 
 def test_engine_records_custom_profile_name():
@@ -494,6 +496,8 @@ def test_engine_records_custom_profile_name():
         profile=_profile("custom_test"),
     )
     assert result.profile_name == "custom_test"
+    assert result.guidance_status == "effective"
+    assert result.guidance_reference == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
 
 
 def test_engine_looser_quantile_delays_crossing():

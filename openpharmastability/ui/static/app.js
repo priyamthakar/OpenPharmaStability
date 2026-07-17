@@ -106,7 +106,11 @@ function renderResult(data) {
 
   text("#metric-supported", supported);
   text("#metric-limiting", summary.limiting_attribute || summary.attribute || "-");
-  text("#metric-guidance", data.guidance_profile);
+  text(
+    "#metric-guidance",
+    `${data.guidance_profile} · ${data.guidance_status || "effective"}`,
+  );
+  document.querySelector("#metric-guidance").title = data.guidance_reference || "";
   text("#metric-model", formatModel(summary.model || (data.mode === "multi" ? "multi" : "-")));
   text("#audit-status", "Complete");
   text("#audit-mode", data.mode);

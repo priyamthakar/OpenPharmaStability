@@ -609,6 +609,17 @@ multi-condition shelf-life selection (the engine reports per
 long-term condition, not the limiting one), and any GxP / 21 CFR
 Part 11 validation claim.
 
+The consolidated ICH Q1 guideline is not final as of 17 July 2026. Official
+ICH planning expects a revised draft in September and Step 4 in November 2026;
+the default therefore remains Q1A(R2)+Q1E and Q1E-inspired until the final text
+is reviewed. A hosted analysis backend is not part of this roadmap and remains
+a separate product decision.
+
+Every new decision record snapshots the selected guidance profile's name,
+maturity (`effective` or `draft`), and document reference. This provenance is
+also visible in HTML reports and the local UI manifest; it does not change the
+analysis mathematics.
+
 ## Development
 
 The repo ships with a small cross-platform build tool — a GNU

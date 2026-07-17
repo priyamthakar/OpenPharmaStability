@@ -2257,11 +2257,11 @@ consolidated **ICH Q1** reached **Step 2b in April 2025**; the
 Step 4 (final)**. Until Step 4, this toolkit implements
 **Q1A(R2) + Q1E** and labels everything "Q1E-inspired."
 
-> **Re-checked 2026-07-06:** still Step 2b; Step 4 is expected no
-> earlier than late 2026. No change to the poolability alpha,
-> quantiles, extrapolation caps, or terminology. See the
-> "Regulatory watch — 2026-07-06" entry in `CHANGELOG.md` for
-> sources. Next re-check: Q4 2026.
+> **Re-checked 2026-07-17:** the guideline is still not final. Official ICH
+> planning expects the revised draft in September 2026 and Step 4 in November
+> 2026. No profile, analysis constant, default, or claim changes now. Review
+> the September text for deltas, then run the migration assessment only after
+> the Step 4 document is published. See `CHANGELOG.md`.
 
 **Watch checklist (revisit each quarter / on any ICH news):**
 
@@ -2323,10 +2323,19 @@ comparison/audit.
 > The registry (`PROFILES`), `resolve_profile()`, the `--guidance` CLI
 > flag, the `profile_name` audit field on `StabilityResult`, JSON + HTML
 > surfacing, and a non-default-profile threading test all shipped in
-> v0.11.0. The only remaining step when ICH Q1 reaches Step 4 is: edit
-> the `Q1_CONSOLIDATED_DRAFT` values in `regulatory/profile.py` in place,
-> optionally switch `DEFAULT_PROFILE` to it, regenerate the golden file,
-> and bump MAJOR. No algorithm rewrite, no contract re-plumbing.
+> v0.11.0. When ICH Q1 reaches Step 4, preserve the draft profile for audit
+> history, add a distinct final profile after a documented gap review, update
+> tests and independently assessed golden values, then make a deliberate
+> default-profile and major-release decision. No algorithm rewrite or contract
+> re-plumbing should be needed.
+
+**Guidance provenance contract.** Every registered profile must have a stable
+name, maturity (`draft` or `effective`), and formal document reference. Draft
+and final texts are distinct immutable profiles; a draft may never be the
+default. A final profile requires a dated gap assessment mapping each controlled
+constant and criterion to the Step 4 text, independent golden-value review,
+JSON/HTML provenance surfacing, a CHANGELOG entry, and a deliberate major-release
+decision. Step 4 publication by itself does not switch the default.
 
 ### 10.3 Versioning strategy (SemVer)
 
@@ -2362,8 +2371,8 @@ comparison/audit.
 | Add Holm-corrected poolability p-values, multi-engine XLSX dispatch, per-batch Arrhenius rate diagnostic + outlier flagging, multi-attribute `unit` + `report_order` surfacing — *shipped v0.9.0; more backend features, no UI* | MINOR → 0.9.0 |
 | Finish GuidanceProfile abstraction (registry + `--guidance` + `profile_name` audit + threading test) — *shipped v0.11.0* | MINOR → 0.11.0 |
 | Local UI pass + UI service manifest (§11) — *shipped v1.0.0* | MAJOR → 1.0.0 |
-| Hosted/Cloudflare Pages polish over the Python engine (§11 follow-up) | future |
-| Switch default profile to consolidated Q1 | MAJOR → 1.0.0 |
+| Hosted analysis backend / production API | Separate product decision; not part of guidance migration |
+| Switch default profile to consolidated Q1 | Next MAJOR release (version TBD) |
 | Change `POOLABILITY_ALPHA` from 0.25 to anything else | MAJOR |
 
 ### 10.4 Disclaimer update checklist
@@ -2472,8 +2481,9 @@ The public information architecture should be:
 
 1. **Done:** public sample PDF generated from the canonical golden HTML report,
    structurally validated, visually inspected, and linked from the site.
-2. Hosted run-analysis backend — out of scope unless deliberately planned.
-3. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch).
+2. Hosted analysis backend — out of scope and requires a separate product decision.
+3. ICH Q1 watch — review the revised draft in September 2026 and the final
+   profile migration only after Step 4, currently expected November 2026.
 
 ### 11.6 Acceptance when touching UI or site
 

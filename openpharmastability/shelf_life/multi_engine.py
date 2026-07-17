@@ -60,7 +60,7 @@ from openpharmastability.data.metadata import (
     load_attribute_metadata_from_dataframe,
 )
 from openpharmastability.data.xlsx import load_xlsx_sheet
-from openpharmastability.regulatory.profile import Q1AE, GuidanceProfile
+from openpharmastability.regulatory.profile import GuidanceProfile, resolve_profile
 from openpharmastability.shelf_life.engine import analyze
 from openpharmastability.shelf_life.limiting import select_limiting
 
@@ -369,7 +369,7 @@ def analyze_many(
     # v0.10.0 — active guidance profile, forwarded to each
     # per-attribute ``analyze()`` call. Defaults to ``Q1AE``; the
     # limiting-decision logic is unchanged.
-    profile: GuidanceProfile = Q1AE,
+    profile: GuidanceProfile | None = None,
 ) -> MultiAttributeResult:
     """Run a multi-attribute stability analysis.
 
@@ -423,6 +423,9 @@ def analyze_many(
         The full per-attribute results plus the overall limiting
         decision.
     """
+    if profile is None:
+        profile = resolve_profile(None)
+
     # 1) Load data via the v0.7.0 dispatcher. ``load_table`` accepts
     #    ``.csv`` / ``.xlsx`` / ``.xlsm`` / ``.xls`` by extension and
     #    forwards ``sheet`` to the XLSX path. Mirrors the

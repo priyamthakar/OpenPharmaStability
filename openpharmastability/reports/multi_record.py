@@ -95,6 +95,18 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
             getattr(result.attributes[0].result, "profile_name", "Q1A_R2+Q1E")
             if result.attributes else "Q1A_R2+Q1E"
         ),
+        "guidance_status": (
+            getattr(result.attributes[0].result, "guidance_status", "effective")
+            if result.attributes else "effective"
+        ),
+        "guidance_reference": (
+            getattr(
+                result.attributes[0].result,
+                "guidance_reference",
+                "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
+            )
+            if result.attributes else "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
+        ),
         "supported_shelf_life_months": result.supported_shelf_life_months,
         "statistical_crossing_months": result.statistical_crossing_months,
         "limiting_attribute": result.limiting_attribute,

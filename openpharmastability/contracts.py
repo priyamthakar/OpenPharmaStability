@@ -278,6 +278,11 @@ class StabilityResult:
     # and v0.10.x callers keep working unchanged. Set by the engine from
     # ``profile.name``; surfaced in the JSON record and HTML report.
     profile_name: str = "Q1A_R2+Q1E"
+    # Guidance provenance is additive and non-numeric. These fields distinguish
+    # an effective profile from an explicitly selected consultation draft and
+    # identify the document family represented by the profile.
+    guidance_status: str = "effective"
+    guidance_reference: str = "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
     # v0.7.0: optional sensitivity report. None when --sensitivity
     # is not requested; a `SensitivityReport` dataclass instance
     # otherwise. The report records, for each Cook's-distance

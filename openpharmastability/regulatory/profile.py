@@ -108,6 +108,8 @@ class GuidanceProfile:
         )
     )
     disclaimer: str = DISCLAIMER
+    status: str = "effective"
+    reference: str = "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
 
 
 # The default profile: ICH Q1A(R2) + Q1E, assembled from the canonical
@@ -133,9 +135,10 @@ DEFAULT_PROFILE = Q1AE
 # PROVISIONAL — pending the consolidated ICH Q1 reaching Step 4
 # (NEXT_STEPS.md §10.1). Values MIRROR Q1AE so selecting this profile is
 # numerically inert until the consolidated guideline's final numbers are
-# confirmed. When Step 4 lands, edit the values below (keep the name),
-# regenerate the golden file, and bump MAJOR. Do not change
-# DEFAULT_PROFILE without that bump.
+# confirmed. Preserve this object for historical draft-labelled audit
+# records. When Step 4 lands, add a distinct final profile after a guidance
+# gap review, regenerate the golden file if required, and bump MAJOR. Do not
+# change DEFAULT_PROFILE without that deliberate release.
 Q1_CONSOLIDATED_DRAFT = GuidanceProfile(
     name="Q1_consolidated_draft",
     poolability_alpha=POOLABILITY_ALPHA,
@@ -145,6 +148,8 @@ Q1_CONSOLIDATED_DRAFT = GuidanceProfile(
     extrapolation_max_factor=EXTRAPOLATION_MAX_FACTOR,
     extrapolation_max_months_beyond=EXTRAPOLATION_MAX_MONTHS_BEYOND,
     assay_change_threshold_pct=5.0,
+    status="draft",
+    reference="ICH Q1 Step 2b draft (April 2025)",
 )
 
 #: Registry of selectable guidance profiles, keyed by CLI ``--guidance`` name.
@@ -152,6 +157,9 @@ PROFILES: dict[str, GuidanceProfile] = {
     "q1ae": Q1AE,
     "q1-consolidated-draft": Q1_CONSOLIDATED_DRAFT,
 }
+
+if DEFAULT_PROFILE.status != "effective":
+    raise RuntimeError("DEFAULT_PROFILE must reference an effective guidance profile")
 
 
 def resolve_profile(name: str | None) -> GuidanceProfile:

@@ -31,6 +31,8 @@ def test_analyze_for_ui_single_manifest(tmp_path):
     assert data["mode"] == "single"
     assert data["version"] == openpharmastability.__version__
     assert data["guidance_profile"] == "Q1A_R2+Q1E"
+    assert data["guidance_status"] == "effective"
+    assert data["guidance_reference"] == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
     assert data["summary"]["supported_shelf_life_months"] == 17
     assert data["summary"]["limiting_attribute"] == "assay"
     assert "validated GxP" in data["disclaimer"]
@@ -61,9 +63,12 @@ def test_analyze_for_ui_multi_manifest(tmp_path):
     assert data["status"] == "ok"
     assert data["mode"] == "multi"
     assert data["guidance_profile"] == "Q1_consolidated_draft"
+    assert data["guidance_status"] == "draft"
+    assert data["guidance_reference"] == "ICH Q1 Step 2b draft (April 2025)"
     assert data["summary"]["limiting_attribute"] == "impurity_a"
     assert data["summary"]["attributes_analyzed"] >= 2
     assert data["record"]["guidance_profile"] == data["guidance_profile"]
+    assert data["record"]["guidance_status"] == data["guidance_status"]
     assert len([item for item in data["artifacts"] if item["kind"] == "plot"]) >= 2
 
 

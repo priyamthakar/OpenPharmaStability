@@ -67,6 +67,20 @@ No code or version change. Portfolio and handover materials only.
 - `CMC_ANALYTICS_POSITIONING.md`: CMC role mapping, resume bullets, pitch.
 - `HANDOVER.md` / `NEXT_STEPS.md` §11: oriented to v1.0.4 + portfolio status.
 
+## Regulatory watch — 2026-07-17
+
+No analysis constants, default profile, claims, or version changed. Official
+ICH planning expects a revised consolidated Q1 draft in September 2026 and
+Step 4 adoption in November 2026; the guideline is not final as of this date.
+Review the September text for deltas, then perform the profile/golden-file
+assessment only after the Step 4 document is published. A hosted analysis
+backend remains a separate product decision and is not implied by this work.
+
+- Added non-numeric guidance provenance to each result and export: profile
+  maturity (`effective` or `draft`) and the represented guidance reference.
+  The local UI offers only effective profiles, while explicit CLI/Python draft
+  selection remains available for comparison. Statistical outputs are unchanged.
+
 ## Regulatory watch — 2026-07-06
 
 No code or version change. Recorded per `NEXT_STEPS.md` §10.1's quarterly

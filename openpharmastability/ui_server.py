@@ -61,7 +61,7 @@ class _Handler(BaseHTTPRequestHandler):
             self._send_json({
                 "version": TOOL_VERSION,
                 "disclaimer": DISCLAIMER,
-                "guidance_profiles": ["q1ae", "q1-consolidated-draft"],
+                "guidance_profiles": ["q1ae"],
             })
             return
         self.send_error(HTTPStatus.NOT_FOUND)

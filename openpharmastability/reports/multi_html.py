@@ -225,6 +225,14 @@ def render_multi_html(
 
     n_total = len(result.attributes)
     n_lim = sum(1 for a in result.attributes if a.included_in_limiting_decision)
+    first_result = result.attributes[0].result if result.attributes else None
+    guidance_profile = getattr(first_result, "profile_name", "Q1A_R2+Q1E")
+    guidance_status = getattr(first_result, "guidance_status", "effective")
+    guidance_reference = getattr(
+        first_result,
+        "guidance_reference",
+        "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
+    )
     overview_table_rows = "".join(
         f"<tr>"
         f"<td>{_esc(ar.metadata.attribute)}</td>"
@@ -286,6 +294,9 @@ def render_multi_html(
   <tr><th>Condition</th><td>{_esc(result.condition)}</td></tr>
   <tr><th>Product type</th><td>{_esc(result.product_type)}</td></tr>
   <tr><th>Deliverable term</th><td>{_esc(result.deliverable_term)}</td></tr>
+  <tr><th>Guidance profile</th><td>{_esc(guidance_profile)}</td></tr>
+  <tr><th>Guidance status</th><td>{_esc(guidance_status)}</td></tr>
+  <tr><th>Guidance reference</th><td>{_esc(guidance_reference)}</td></tr>
   <tr><th>Overall supported {result.deliverable_term}</th>
       <td><strong>{_esc(result.supported_shelf_life_months if result.supported_shelf_life_months is not None else 'not limiting within horizon')}</strong>
           {' <em>(extrapolation flagged)</em>' if any(ar.result.extrapolation_flag for ar in result.attributes) else ''}</td></tr>

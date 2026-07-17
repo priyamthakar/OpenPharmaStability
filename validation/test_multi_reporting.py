@@ -46,6 +46,8 @@ def test_json_record_top_level_keys():
     }
     assert set(rec.keys()) >= expected_keys
     assert rec["condition"] == "25C/60RH"
+    assert rec["guidance_status"] == "effective"
+    assert rec["guidance_reference"] == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
     assert rec["limiting_attribute"] in (a.metadata.attribute for a in result.attributes)
     # Disclaimer is the verbatim text from contracts.DISCLAIMER.
     from openpharmastability.contracts import DISCLAIMER
@@ -99,6 +101,9 @@ def test_html_render_writes_file(tmp_path):
     # Executive summary block.
     assert "Executive summary" in html
     assert "Overall decision" in html
+    assert "Guidance status" in html
+    assert "effective" in html
+    assert "ICH Q1A(R2) Step 4 + ICH Q1E Step 4" in html
     # Per-attribute sections.
     for ar in result.attributes:
         assert f"id=\"attr-" in html or ar.metadata.attribute in html

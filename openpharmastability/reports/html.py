@@ -341,6 +341,12 @@ def _build_context(result: StabilityResult, plot_png_path: Optional[str]) -> dic
         # forward-compatible with hand-built fixtures that predate the
         # ``profile_name`` field.
         "guidance_profile": getattr(result, "profile_name", "Q1A_R2+Q1E"),
+        "guidance_status": getattr(result, "guidance_status", "effective"),
+        "guidance_reference": getattr(
+            result,
+            "guidance_reference",
+            "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
+        ),
         "poolability_notes": list(pool.notes or []),
         # Fit summary
         "fit_params": result.fit.params,

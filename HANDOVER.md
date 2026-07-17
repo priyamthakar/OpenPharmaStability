@@ -22,7 +22,11 @@ Pages deployment from GitHub Actions is now operational.
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. The public sample PDF is shipped; monitor ICH Q1 Step 4 and do not start a hosted analysis backend without a separate product decision |
+| Immediate priority | No release blocker. Review the revised ICH Q1 draft expected September 2026 and Step 4 expected November 2026; a hosted analysis backend remains a separate product decision |
+
+Before adding or promoting a guidance profile, complete the provenance and gap
+review gates in `NEXT_STEPS.md` §10. Never overwrite a draft profile or make one
+the default.
 
 ### Why the public site was redesigned
 

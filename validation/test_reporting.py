@@ -1006,6 +1006,8 @@ def test_record_carries_guidance_profile():
     result = _make_stability_result()
     rec = to_decision_record(result)
     assert rec["guidance_profile"] == "Q1A_R2+Q1E"
+    assert rec["guidance_status"] == "effective"
+    assert rec["guidance_reference"] == "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
     # A custom profile_name flows through the record builder.
     result.profile_name = "custom_profile"
     assert to_decision_record(result)["guidance_profile"] == "custom_profile"
@@ -1017,6 +1019,8 @@ def test_render_html_contains_guidance_profile(tmp_path):
     render_html(result, plot_png_path=None, out_path=str(out))
     body = out.read_text(encoding="utf-8")
     assert "Q1A_R2+Q1E" in body
+    assert "effective" in body
+    assert "ICH Q1A(R2) Step 4 + ICH Q1E Step 4" in body
     # A custom profile_name flows through to the rendered HTML.
     result.profile_name = "custom_profile"
     render_html(result, plot_png_path=None, out_path=str(out))

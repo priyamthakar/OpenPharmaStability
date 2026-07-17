@@ -73,6 +73,8 @@ class UIAnalysisManifest:
     mode: str
     version: str
     guidance_profile: str
+    guidance_status: str
+    guidance_reference: str
     disclaimer: str
     summary: dict[str, Any]
     warnings: list[str]
@@ -86,6 +88,8 @@ class UIAnalysisManifest:
             "mode": self.mode,
             "version": self.version,
             "guidance_profile": self.guidance_profile,
+            "guidance_status": self.guidance_status,
+            "guidance_reference": self.guidance_reference,
             "disclaimer": self.disclaimer,
             "summary": self.summary,
             "warnings": self.warnings,
@@ -158,6 +162,11 @@ def _build_manifest(
     mode = "multi" if isinstance(result, MultiAttributeResult) else "single"
     warnings = _dedupe(list(getattr(result, "warnings", []) or []))
     guidance_profile = str(record.get("guidance_profile") or "Q1A_R2+Q1E")
+    guidance_status = str(record.get("guidance_status") or "effective")
+    guidance_reference = str(
+        record.get("guidance_reference")
+        or "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
+    )
     summary: dict[str, Any] = {
         "condition": record.get("condition"),
         "product_type": record.get("product_type"),
@@ -186,6 +195,8 @@ def _build_manifest(
         mode=mode,
         version=TOOL_VERSION,
         guidance_profile=guidance_profile,
+        guidance_status=guidance_status,
+        guidance_reference=guidance_reference,
         disclaimer=DISCLAIMER,
         summary=summary,
         warnings=warnings,
