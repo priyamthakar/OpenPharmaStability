@@ -20,6 +20,7 @@ import os
 from typing import Any
 
 from openpharmastability.contracts import DISCLAIMER, MultiAttributeResult
+from openpharmastability.reports.multi_record import validate_multi_guidance
 
 
 def _esc(s: Any) -> str:
@@ -215,6 +216,7 @@ def render_multi_html(
         Destination path for the HTML. The directory is created
         if missing.
     """
+    validate_multi_guidance(result)
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
     # The HTML is the anchor for resolving relative image paths in the
     # browser. Compute its absolute directory once and pass it down so
@@ -225,15 +227,10 @@ def render_multi_html(
 
     n_total = len(result.attributes)
     n_lim = sum(1 for a in result.attributes if a.included_in_limiting_decision)
-    first_result = result.attributes[0].result if result.attributes else None
-    guidance_profile = getattr(first_result, "profile_name", "Q1A_R2+Q1E")
-    guidance_status = getattr(first_result, "guidance_status", "effective")
-    guidance_reference = getattr(
-        first_result,
-        "guidance_reference",
-        "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
-    )
-    guidance_disclaimer = getattr(first_result, "guidance_disclaimer", DISCLAIMER)
+    guidance_profile = result.profile_name
+    guidance_status = result.guidance_status
+    guidance_reference = result.guidance_reference
+    guidance_disclaimer = result.guidance_disclaimer
     overview_table_rows = "".join(
         f"<tr>"
         f"<td>{_esc(ar.metadata.attribute)}</td>"

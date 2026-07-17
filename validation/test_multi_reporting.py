@@ -21,6 +21,7 @@ from openpharmastability.contracts import (
 )
 from openpharmastability.reports.multi_html import render_multi_html
 from openpharmastability.reports.multi_record import to_multi_decision_record
+from openpharmastability.regulatory.profile import Q1_CONSOLIDATED_DRAFT
 from openpharmastability.shelf_life import analyze_many
 
 
@@ -52,6 +53,38 @@ def test_json_record_top_level_keys():
     # Disclaimer is the verbatim text from contracts.DISCLAIMER.
     from openpharmastability.contracts import DISCLAIMER
     assert rec["disclaimer"] == DISCLAIMER
+
+
+def test_multi_guidance_provenance_is_explicit_for_empty_and_nonempty_runs(tmp_path):
+    """Aggregate provenance comes from the selected profile, never first attr."""
+    full = analyze_many(
+        str(CSV), condition="25C/60RH", all_attributes=True,
+        source_epoch=1700000000, profile=Q1_CONSOLIDATED_DRAFT,
+    )
+    empty = analyze_many(
+        str(CSV), condition="25C/60RH", attributes=["not_present"],
+        source_epoch=1700000000, profile=Q1_CONSOLIDATED_DRAFT,
+    )
+    for result in (full, empty):
+        record = to_multi_decision_record(result)
+        assert result.profile_name == Q1_CONSOLIDATED_DRAFT.name
+        assert record["guidance_profile"] == Q1_CONSOLIDATED_DRAFT.name
+        assert record["guidance_status"] == "draft"
+        assert record["guidance_reference"] == Q1_CONSOLIDATED_DRAFT.reference
+        assert record["disclaimer"] == Q1_CONSOLIDATED_DRAFT.disclaimer
+        assert all(
+            attr["guidance_profile"] == Q1_CONSOLIDATED_DRAFT.name
+            for attr in record["attributes"]
+        )
+
+
+def test_multi_reports_reject_mixed_guidance_provenance(tmp_path):
+    result = analyze_many(str(CSV), condition="25C/60RH", all_attributes=True)
+    result.attributes[0].result.profile_name = "incompatible_profile"
+    with pytest.raises(ValueError, match="mixed guidance provenance"):
+        to_multi_decision_record(result)
+    with pytest.raises(ValueError, match="mixed guidance provenance"):
+        render_multi_html(result, str(tmp_path / "plots"), str(tmp_path / "report.html"))
 
 
 def test_json_record_per_attribute_shape():

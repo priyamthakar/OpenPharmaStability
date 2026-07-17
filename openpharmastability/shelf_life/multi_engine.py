@@ -122,6 +122,7 @@ def _empty_stability_result(
     attribute: str,
     condition: str,
     product_type: str,
+    profile: GuidanceProfile,
 ) -> StabilityResult:
     """Minimal :class:`StabilityResult` for an attribute with no data rows.
 
@@ -152,7 +153,7 @@ def _empty_stability_result(
             decision=Poolability.FULL,
             p_slopes=1.0,
             p_intercepts=1.0,
-            alpha=0.25,
+            alpha=profile.poolability_alpha,
             notes=["no data; poolability test not run"],
         ),
         fit=noop_fit,
@@ -178,6 +179,13 @@ def _empty_stability_result(
         deliverable_term=_deliverable_term_for(product_type),
         product_type=product_type,
         plot_filename="confidence_plot.png",
+        profile_name=profile.name,
+        guidance_status=profile.status,
+        guidance_reference=profile.reference,
+        guidance_confidence=profile.confidence,
+        guidance_poolability_alpha=profile.poolability_alpha,
+        guidance_assay_change_threshold_pct=profile.assay_change_threshold_pct,
+        guidance_disclaimer=profile.disclaimer,
     )
 
 
@@ -475,7 +483,7 @@ def analyze_many(
                 AttributeResult(
                     metadata=meta,
                     result=_empty_stability_result(
-                        name, condition_norm, product_type
+                        name, condition_norm, product_type, profile
                     ),
                     included_in_limiting_decision=False,
                     exclusion_reason=None,  # refined below
@@ -624,6 +632,16 @@ def analyze_many(
         "metadata_path": metadata_path,
     })
     multi.metadata = merged
+    # Keep aggregate provenance explicit.  All per-attribute calls above
+    # receive this exact profile, including no-data placeholders, but reports
+    # must never depend on their ordering or even their presence.
+    multi.profile_name = profile.name
+    multi.guidance_status = profile.status
+    multi.guidance_reference = profile.reference
+    multi.guidance_confidence = profile.confidence
+    multi.guidance_poolability_alpha = profile.poolability_alpha
+    multi.guidance_assay_change_threshold_pct = profile.assay_change_threshold_pct
+    multi.guidance_disclaimer = profile.disclaimer
     return multi
 
 

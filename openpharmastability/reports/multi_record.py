@@ -20,6 +20,42 @@ from openpharmastability.reports.record import (
 )
 
 
+def validate_multi_guidance(result: MultiAttributeResult) -> None:
+    """Reject aggregate reports whose provenance snapshot is incomplete/mixed."""
+    snapshot = (
+        result.profile_name,
+        result.guidance_status,
+        result.guidance_reference,
+        result.guidance_confidence,
+        result.guidance_poolability_alpha,
+        result.guidance_assay_change_threshold_pct,
+        result.guidance_disclaimer,
+    )
+    if (
+        not isinstance(result.profile_name, str)
+        or not result.profile_name.strip()
+        or not isinstance(result.guidance_status, str)
+        or not result.guidance_status.strip()
+        or not isinstance(result.guidance_reference, str)
+        or not result.guidance_reference.strip()
+        or not isinstance(result.guidance_disclaimer, str)
+        or not result.guidance_disclaimer.strip()
+    ):
+        raise ValueError("multi guidance provenance snapshot is incomplete")
+    for attribute in result.attributes:
+        item_snapshot = (
+            attribute.result.profile_name,
+            attribute.result.guidance_status,
+            attribute.result.guidance_reference,
+            attribute.result.guidance_confidence,
+            attribute.result.guidance_poolability_alpha,
+            attribute.result.guidance_assay_change_threshold_pct,
+            attribute.result.guidance_disclaimer,
+        )
+        if item_snapshot != snapshot:
+            raise ValueError("mixed guidance provenance in multi-attribute result")
+
+
 def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
     """Convert a :class:`MultiAttributeResult` to a JSON-serializable dict.
 
@@ -39,6 +75,8 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
     - disclaimer (the verbatim text from contracts.DISCLAIMER)
     """
     from openpharmastability.contracts import DISCLAIMER
+
+    validate_multi_guidance(result)
 
     per_attr: list[dict[str, Any]] = []
     for ar in result.attributes:
@@ -86,27 +124,9 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
         "condition": result.condition,
         "product_type": result.product_type,
         "deliverable_term": result.deliverable_term,
-        # v0.11.0: the active guidance profile's name. All per-attribute
-        # results in one run share the same profile (forwarded by
-        # ``analyze_many``); read it from the first attribute's result.
-        # ``getattr`` keeps this robust against hand-built fixtures that
-        # predate the ``profile_name`` field.
-        "guidance_profile": (
-            getattr(result.attributes[0].result, "profile_name", "Q1A_R2+Q1E")
-            if result.attributes else "Q1A_R2+Q1E"
-        ),
-        "guidance_status": (
-            getattr(result.attributes[0].result, "guidance_status", "effective")
-            if result.attributes else "effective"
-        ),
-        "guidance_reference": (
-            getattr(
-                result.attributes[0].result,
-                "guidance_reference",
-                "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
-            )
-            if result.attributes else "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
-        ),
+        "guidance_profile": result.profile_name,
+        "guidance_status": result.guidance_status,
+        "guidance_reference": result.guidance_reference,
         "supported_shelf_life_months": result.supported_shelf_life_months,
         "statistical_crossing_months": result.statistical_crossing_months,
         "limiting_attribute": result.limiting_attribute,
@@ -114,10 +134,7 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
         "attributes": per_attr,
         "warnings": list(dict.fromkeys(result.warnings)),
         "metadata": dict(result.metadata),
-        "disclaimer": (
-            getattr(result.attributes[0].result, "guidance_disclaimer", DISCLAIMER)
-            if result.attributes else DISCLAIMER
-        ),
+        "disclaimer": result.guidance_disclaimer,
         # v0.4.0: ICH Q1A significant-change gating of extrapolation.
         # The per-attribute entries already inherit the single-attribute
         # record (which includes the five new keys); these two top-level
@@ -224,4 +241,4 @@ def _attribute_order(result: MultiAttributeResult) -> list[str]:
     ]
 
 
-__all__ = ["to_multi_decision_record"]
+__all__ = ["to_multi_decision_record", "validate_multi_guidance"]

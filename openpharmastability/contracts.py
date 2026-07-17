@@ -349,6 +349,16 @@ class MultiAttributeResult:
     observed_data_months: float
     warnings: list[str] = field(default_factory=list)
     metadata: dict = field(default_factory=dict)
+    # Snapshot the active guidance on the aggregate result itself.  A multi
+    # report must not infer its provenance from an arbitrary attribute result:
+    # that breaks empty selections and makes hand-built/mixed fixtures unsafe.
+    profile_name: str = "Q1A_R2+Q1E"
+    guidance_status: str = "effective"
+    guidance_reference: str = "ICH Q1A(R2) Step 4 + ICH Q1E Step 4"
+    guidance_confidence: float = 0.95
+    guidance_poolability_alpha: float = 0.25
+    guidance_assay_change_threshold_pct: float = 5.0
+    guidance_disclaimer: str = DISCLAIMER
 
 
 # ---------------------------------------------------------------------------
