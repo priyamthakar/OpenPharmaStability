@@ -148,7 +148,7 @@ landing page. The deploy artifact lives in [`site/index.html`](site/index.html)
 after running `node tools/sync-site.mjs`.
 
 > **Redesign status (2026-07-17):** the selected Graphite Dark revision is
-> implemented locally. It removes the public mock-workspace/design-system
+> merged and deployed. It removes the public mock-workspace/design-system
 > routes and leads with the real confidence plot, decision record,
 > documentation, installation path, and sample report. See
 > [`design-qa.md`](design-qa.md), [`DESIGN.md`](DESIGN.md), and
@@ -203,7 +203,7 @@ npx -y -p playwright node tools/website-qa.mjs --dev
 After changing `OpenPharmaStability.dc.html`, `support.js`, or `site-sample/`,
 run `node tools/sync-site.mjs` and commit the updated `site/` folder.
 
-The current production deployment was also verified through local Wrangler:
+Production deployment can also be performed interactively through local Wrangler:
 
 ```bash
 npx -y wrangler@latest pages deploy site \
@@ -211,9 +211,11 @@ npx -y wrangler@latest pages deploy site \
   --branch=main
 ```
 
-Deployment `1f173a5f-f2fe-4b50-80d0-8f5bd47734b2` serves source commit
-`e8f4b66`; the canonical production HTML returned HTTP 200 and matched the
-local `site/index.html` SHA-256 exactly at the time of verification.
+GitHub Actions run `29590938841` deployed source commit `3f2b5bf` and produced
+preview `https://8fdcfa96.openpharmastability.pages.dev`. The preview and
+canonical production URLs returned HTTP 200; canonical HTML SHA-256
+`9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232`
+matches LF-normalized `site/index.html`.
 
 The existing Pages project is Direct Upload and cannot be converted to Git
 integration. The GitHub workflow therefore deploys `site/` with Wrangler on
@@ -223,14 +225,14 @@ changes to `main`. It requires:
 - repository secret `CLOUDFLARE_API_TOKEN` with **Account / Cloudflare Pages / Edit**
   permission limited to the owning account.
 
-The account variable is configured. The durable API-token secret is not, so the
-workflow currently performs its synchronization check and then safely skips the
-deploy step. Local Wrangler OAuth can deploy interactively but must not be copied
-into GitHub Actions because it is short-lived.
+The account variable and durable account-scoped API-token secret are configured.
+The workflow verifies synchronization and deploys automatically on relevant
+pushes to `main`. Local Wrangler OAuth can deploy interactively but must not be
+copied into GitHub Actions because it is short-lived.
 
-Create the scoped token in the Cloudflare dashboard, store it with
-`gh secret set CLOUDFLARE_API_TOKEN`, then run
-`gh workflow run pages-deployment.yml` once to verify the connection.
+For token rotation, create the same account-scoped `Cloudflare Pages: Edit`
+token, store it with `gh secret set CLOUDFLARE_API_TOKEN`, then run
+`gh workflow run pages-deployment.yml` to verify the replacement.
 
 ## Install
 

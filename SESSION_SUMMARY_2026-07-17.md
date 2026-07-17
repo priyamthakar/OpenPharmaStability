@@ -17,15 +17,19 @@ and synchronized deploy artifact.
 |---|---|
 | Public accuracy fixes | PR #5 merged; commit `430a6b5` |
 | Cloudflare deployment workflow | PR #6 merged; commit `e8f4b66` |
+| Graphite Dark redesign | PR #7 merged; commit `3f2b5bf` |
+| GitHub release | `v1.0.4`, published 2026-07-17 |
 | Live site | https://openpharmastability.pages.dev |
-| Latest verified deployment | `1f173a5f-f2fe-4b50-80d0-8f5bd47734b2` |
-| Deployment source | branch `main`, commit `e8f4b66` |
-| Production verification | HTTP 200; remote HTML SHA-256 exactly matched `site/index.html` |
+| Latest verified deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev` |
+| Deployment source | branch `main`, commit `3f2b5bf` |
+| Production verification | Canonical and preview URLs return HTTP 200; remote HTML SHA-256 exactly matches LF-normalized `site/index.html` |
 
 PR links:
 
 - https://github.com/priyamthakar/OpenPharmaStability/pull/5
 - https://github.com/priyamthakar/OpenPharmaStability/pull/6
+- https://github.com/priyamthakar/OpenPharmaStability/pull/7
+- https://github.com/priyamthakar/OpenPharmaStability/releases/tag/v1.0.4
 
 ## Scientific truth fixed on the public site
 
@@ -62,10 +66,12 @@ The public site and multi-attribute sample links were aligned to those facts.
 - Local Wrangler OAuth is authenticated and has Pages write access.
 - `.github/workflows/pages-deployment.yml` exists and its sync check passed.
 - GitHub repository variable `CLOUDFLARE_ACCOUNT_ID` is configured.
-- GitHub secret `CLOUDFLARE_API_TOKEN` is not configured. The workflow therefore
-  skips deployment safely.
+- GitHub secret `CLOUDFLARE_API_TOKEN` is configured with account-scoped
+  `Cloudflare Pages: Edit` permission.
+- Workflow run `29590938841` verified the deploy-folder sync and completed an
+  unattended production deployment successfully.
 - Do not store the short-lived local Wrangler OAuth token in GitHub Actions.
-- Until a durable scoped API token is created, deploy interactively with:
+- Interactive maintenance remains available with local Wrangler OAuth:
 
 ```powershell
 node tools/sync-site.mjs
@@ -89,10 +95,10 @@ Read in this order:
 4. `NEXT_STEPS.md` §11
 5. `README.md` public website and deployment sections
 
-## Worktree changes in progress
+## Published documentation set
 
-The following documentation files are being updated and should be reviewed as
-one set:
+The following documentation files were reviewed and published as one set with
+the Graphite Dark redesign:
 
 - `HANDOVER.md`
 - `NEXT_STEPS.md`
@@ -127,17 +133,18 @@ The implementation and release gates are complete:
 - Full pytest suite passed: 483 collected with 4 expected host-dependent PDF
   skips.
 - `python tools/regen_expected.py --check` passed.
-- Wrangler production deployment:
-  `268ac970-4f37-4ca9-b0db-4b3c8cc11deb`.
-- Deployment preview: https://268ac970.openpharmastability.pages.dev
+- Latest automated production deployment: GitHub Actions run `29590938841`.
+- Deployment preview: https://8fdcfa96.openpharmastability.pages.dev
 - Canonical site: https://openpharmastability.pages.dev
-- Both URLs passed desktop/mobile website QA.
-- Production and local `site/index.html` SHA-256 match:
+- Both URLs return HTTP 200; the Graphite Dark content had already passed
+  desktop/mobile website QA before the automated redeploy.
+- Production and LF-normalized local `site/index.html` SHA-256 match:
   `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232`.
 
-Next agent: merge the Graphite Dark source PR if it is still open. After that,
-the optional public sample PDF is the next small website enhancement; do not
-start a hosted analysis backend without a separate product decision.
+Post-release state: PR #7 is merged, `v1.0.4` is published, and automated Pages
+deployment is operational. The optional public sample PDF is the next small
+website enhancement; do not start a hosted analysis backend without a separate
+product decision.
 
 ## Redesign guardrails
 

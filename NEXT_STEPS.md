@@ -1,7 +1,7 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v1.0.4 CURRENT; ANALYTICS + LOCAL UI STABLE; PUBLIC-SITE
-> ANTI-SLOP REDESIGN IS THE ACTIVE WORKSTREAM (2026-07-17).** v1.0.0
+> **STATUS: v1.0.4 CURRENT; ANALYTICS + LOCAL UI STABLE; GRAPHITE DARK
+> PUBLIC SITE MERGED, RELEASED, AND DEPLOYED (2026-07-17).** v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
 > v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
@@ -21,8 +21,8 @@
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
 > before you touch any code. §§1–6 are historical (shipped). §11
-> (public-site anti-slop redesign) is the active UI section after the v1.0.0
-> local UI shipment. §10 is the ongoing regulatory watch + versioning
+> records the completed public-site redesign and its optional follow-ups.
+> §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -2453,11 +2453,12 @@ The public information architecture should be:
 4. **Done:** added semantic `header`, `nav`, `main`, `section`, and `footer` structure;
    logical headings; visible focus styles; reduced-motion handling; explicit
    button types; and safe `rel` values on new-tab links.
-5. **Local done:** desktop/mobile QA and side-by-side visual comparison pass.
-   Production QA remains after deployment.
-6. Run Python tests and the golden regeneration check to prove no engine drift.
-7. Sync `site/`, publish through local Wrangler, verify production HTML against
-   `site/index.html`, then update the handover/session summary.
+5. **Done:** desktop/mobile QA and side-by-side visual comparison passed locally
+   and in production.
+6. **Done:** Python tests and the golden regeneration check proved no engine drift.
+7. **Done:** `site/` was synchronized, deployed, and verified against production;
+   PR #7 was merged, `v1.0.4` was released, and GitHub Actions deployment run
+   `29590938841` succeeded with the scoped Cloudflare Pages secret.
 
 ### 11.4 Portfolio materials
 

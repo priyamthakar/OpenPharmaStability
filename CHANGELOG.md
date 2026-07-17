@@ -5,6 +5,20 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Release and deployment truth sync — 2026-07-17
+
+No package version or analysis-math change.
+
+- Merged Graphite Dark PR #7 to `main` at commit `3f2b5bf`.
+- Published the `v1.0.4` tag and GitHub Release.
+- Configured the account-scoped Cloudflare Pages deployment secret without
+  storing local Wrangler OAuth credentials.
+- Verified unattended GitHub Actions deployment in run `29590938841`; preview
+  `https://8fdcfa96.openpharmastability.pages.dev` and the canonical site return
+  HTTP 200, with canonical HTML matching LF-normalized `site/index.html`.
+- Synchronized `HANDOVER.md`, `NEXT_STEPS.md`, `README.md`, and the session
+  summary to the post-release state.
+
 ## Public-site Graphite Dark redesign — 2026-07-17
 
 No package version or analysis-math change.

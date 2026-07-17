@@ -8,24 +8,25 @@
 ## Current takeover state — 2026-07-17
 
 The statistics engine and local UI are stable at **v1.0.4**. The Graphite Dark
-public-site anti-slop redesign is implemented, deployed, and verified on both
-desktop and mobile.
+public-site redesign is merged, released, and deployed. Automated Cloudflare
+Pages deployment from GitHub Actions is now operational.
 
 | Item | Current state |
 |---|---|
-| Branch / latest published commit | `main` / `e8f4b66` (`ci: automate Cloudflare Pages deployment`) |
+| Branch / Graphite Dark source commit | `main` / `3f2b5bf` (`redesign public site in graphite dark (#7)`) |
+| GitHub release | `v1.0.4`, published 2026-07-17 |
 | Production site | https://openpharmastability.pages.dev |
-| Latest verified Pages deployment | `268ac970-4f37-4ca9-b0db-4b3c8cc11deb`, production branch `main` |
-| Production verification | Canonical and deployment URLs pass desktop/mobile QA; HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches `site/index.html` |
+| Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
+| Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
 | Test state | 483 collected; last full run green with 4 host-dependent PDF skips |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | Merge the Graphite Dark source PR; optional next work is the public sample PDF |
+| Immediate priority | No release blocker. Optional next work is the public sample PDF; do not start a hosted analysis backend without a separate product decision |
 
-### Why the public site is being redesigned
+### Why the public site was redesigned
 
-The current site is accurate and functional, but it reads like an AI-generated
+The previous site was accurate and functional, but it read like an AI-generated
 portfolio case study rather than a scientific software product. The audit found
 an accumulated pattern of decorative dashboard UI, mono eyebrow labels,
 editorial-serif marketing headings, numbered process rows, repeated bordered
@@ -40,13 +41,13 @@ HTML and visible focus states; keep the scientific/regulatory boundary explicit.
 
 ### Deployment reality
 
-The Cloudflare Pages project is **Direct Upload**. Local Wrangler authentication
-works and was used for the latest production deploy. The GitHub workflow at
-`.github/workflows/pages-deployment.yml` is published and its sync check passes,
-but unattended deployment remains intentionally skipped until the repository
-secret `CLOUDFLARE_API_TOKEN` is supplied. The repository variable
-`CLOUDFLARE_ACCOUNT_ID` is already configured. Do not copy the short-lived local
-Wrangler OAuth credential into GitHub Actions.
+The Cloudflare Pages project is **Direct Upload**. The GitHub workflow at
+`.github/workflows/pages-deployment.yml` verifies the deploy-folder sync and
+deploys `site/` on relevant pushes to `main`. Repository variable
+`CLOUDFLARE_ACCOUNT_ID` and the account-scoped `CLOUDFLARE_API_TOKEN` secret are
+configured; workflow run `29590938841` completed the first verified unattended
+deployment. Local Wrangler OAuth remains for interactive maintenance only and
+must not be copied into GitHub Actions.
 
 ---
 
