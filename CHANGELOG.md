@@ -5,6 +5,31 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Public-site Graphite Dark redesign — 2026-07-17
+
+No package version or analysis-math change.
+
+- Completed desktop/mobile production capture and interaction QA; navigation,
+  truth copy, and sample HTML/JSON/plot links passed.
+- Added `UI_UX_AUDIT.md` with screenshot-grounded findings and source-level
+  accessibility risks.
+- Replaced the old portfolio-showcase design guidance in `DESIGN.md` with an
+  evidence-led anti-slop public-site contract.
+- Updated `HANDOVER.md`, `NEXT_STEPS.md` §11, `README.md`, and
+  `CMC_ANALYTICS_POSITIONING.md` to make the public redesign the active priority.
+- Added `SESSION_SUMMARY_2026-07-17.md` with merged PRs, production deployment,
+  Cloudflare state, verification evidence, guardrails, and exact continuation
+  steps.
+- Implemented the user-selected Graphite Dark direction in
+  `OpenPharmaStability.dc.html` and synchronized `site/index.html`.
+- Replaced the public App UI / Design System showcase with a single evidence-led
+  page using the real confidence plot and exact golden decision record.
+- Reworked website QA for desktop/mobile overflow, semantic landmarks, exact
+  scientific copy, primary CTA, console state, and sample artifacts.
+- Local and production QA plus side-by-side visual comparison passed. Wrangler
+  deployment `268ac970-4f37-4ca9-b0db-4b3c8cc11deb` is live at the canonical
+  Pages URL with an exact local/remote HTML hash match.
+
 ## Docs / portfolio — 2026-07-09
 
 No code or version change. Portfolio and handover materials only.

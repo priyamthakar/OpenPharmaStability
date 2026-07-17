@@ -1,6 +1,7 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v1.0.4 CURRENT; v1.0.0 UI SHIPPED + v1.0.4 Save as PDF.** v1.0.0
+> **STATUS: v1.0.4 CURRENT; ANALYTICS + LOCAL UI STABLE; PUBLIC-SITE
+> ANTI-SLOP REDESIGN IS THE ACTIVE WORKSTREAM (2026-07-17).** v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
 > v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the
@@ -20,8 +21,8 @@
 > the conversation that produced this file. Read **§7 (pycache / env
 > integrity)** and **§8 (agent handover protocol)** FIRST, in that order,
 > before you touch any code. §§1–6 are historical (shipped). §11
-> (hosted deployment/polish) is the forward UI section that remains
-> after the v1.0.0 local UI shipment. §10 is the ongoing regulatory watch + versioning
+> (public-site anti-slop redesign) is the active UI section after the v1.0.0
+> local UI shipment. §10 is the ongoing regulatory watch + versioning
 > strategy.
 
 > **Source-of-truth precedence:** `OpenPharmaStability.md` (product
@@ -50,7 +51,7 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (local workspace + hosted polish)** | v1.0.0 + v1.0.4 shipped; portfolio samples added |
+| 11 | **UI pass (local workspace + public-site anti-slop redesign)** | local UI shipped; public redesign active |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
@@ -2386,12 +2387,15 @@ When regulatory guidance changes, before editing
 
 ---
 
-## SECTION 11: UI PASS — LOCAL WORKSPACE + HOSTED / PORTFOLIO POLISH
+## SECTION 11: UI PASS — LOCAL WORKSPACE + PUBLIC-SITE ANTI-SLOP REDESIGN
 
-> **STATUS (2026-07-09):** Local v1 UI shipped in v1.0.0; Save as PDF in
-> v1.0.4; hosted showcase accuracy + sample artifact refresh on `main`.
-> Portfolio samples now include a local UI screenshot and a multi-attribute
-> limiting-CQA story under `site-sample/`. Remaining hosted work is optional.
+> **STATUS (2026-07-17):** The local v1 UI and Save as PDF are shipped and
+> stable. The public site is live and technically correct, but a desktop/mobile
+> visual audit found that its portfolio framing, decorative workspace mock,
+> public design-system route, repeated card/label cadence, and excessive mobile
+> length make it look AI-generated. Redesigning the public site is now the
+> highest-priority product task. Read `UI_UX_AUDIT.md` and
+> `SESSION_SUMMARY_2026-07-17.md` before editing.
 
 ### 11.1 What already shipped
 
@@ -2409,26 +2413,76 @@ When regulatory guidance changes, before editing
 **Hard rule:** Python stats engine remains authoritative. Do not reimplement
 shelf-life math in JavaScript / TypeScript.
 
-### 11.2 Portfolio materials
+### 11.2 Audit findings that govern the redesign
+
+Keep:
+
+- the real 17-month golden decision, governing batch B2, and common-slope model;
+- the real confidence plot, HTML report, JSON record, and multi-attribute sample;
+- the selected graphite palette and explicit decision-support boundary;
+- the Python-owned statistics and local-execution story.
+
+Remove or demote:
+
+- public `App UI` and `Design System` navigation;
+- “Public face,” “Hiring signal,” “portfolio story,” `DESIGN.md`, and other
+  process-facing copy;
+- the decorative miniature workspace in the hero;
+- repeated mono eyebrow labels, numbered method rows, feature-cell grids,
+  status pills, nested panels, and ornamental metadata;
+- any implication that the static showcase is a hosted analysis application.
+
+The public information architecture should be:
+
+1. Product header: Documentation / Sample report / GitHub
+2. Outcome-focused hero: exact task + install command + sample-report action
+3. Evidence: real plot + example decision + governing batch + warnings
+4. Method: input → poolability → confidence bound → decision record
+5. Scope table: supported now / explicitly not supported
+6. Reproducibility and local execution
+7. Compact disclaimer/footer
+
+### 11.3 Implementation sequence
+
+1. **Done:** generated screenshot-grounded directions; user selected revised
+   theme 2, **Graphite Dark** (`design-concepts/revised-theme-2-graphite-dark.png`).
+2. **Done:** rebuilt `OpenPharmaStability.dc.html` to the selected direction. Preserve
+   working sample links and the `site/` synchronization contract.
+3. **Done:** replaced decorative/public-internal routes with direct documentation,
+   sample-report, and GitHub paths.
+4. **Done:** added semantic `header`, `nav`, `main`, `section`, and `footer` structure;
+   logical headings; visible focus styles; reduced-motion handling; explicit
+   button types; and safe `rel` values on new-tab links.
+5. **Local done:** desktop/mobile QA and side-by-side visual comparison pass.
+   Production QA remains after deployment.
+6. Run Python tests and the golden regeneration check to prove no engine drift.
+7. Sync `site/`, publish through local Wrangler, verify production HTML against
+   `site/index.html`, then update the handover/session summary.
+
+### 11.4 Portfolio materials
 
 - README golden assay case study (17 mo / B2 / common slope)
 - README "For CMC reviewers" walkthrough
 - README Local UI + multi-attribute limiting CQA sections
 - `CMC_ANALYTICS_POSITIONING.md` — roles, resume bullets, interview pitch
 
-### 11.3 Remaining optional work
+### 11.5 Work after the redesign
 
-1. Sample PDF on the public portfolio (optional)
-2. Mobile density polish; website-qa loop after site edits
-3. Hosted run-analysis backend — out of scope unless deliberately planned
-4. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
+1. Sample PDF on the public site (optional; not a redesign blocker)
+2. Hosted run-analysis backend — out of scope unless deliberately planned
+3. ICH Q1 Step 4 profile migration when guidance finalizes (Q4 2026+ watch)
 
-### 11.4 Acceptance when touching UI or site
+### 11.6 Acceptance when touching UI or site
 
 ```
 [ ] pytest still green (483 collected; PDF skips OK without backends)
 [ ] python tools/regen_expected.py --check
 [ ] node tools/sync-site.mjs after dc.html / support.js / site-sample changes
+[ ] npx -y -p playwright node tools/website-qa.mjs --base <preview-or-production-url>
+[ ] desktop + mobile screenshots manually inspected
+[ ] public nav is Documentation / Sample report / GitHub (no Design System route)
+[ ] real plot/report is used as evidence; no fake decorative dashboard in hero
+[ ] semantic landmarks, focus-visible, and reduced-motion behavior present
 [ ] No stats reimplemented in JS; disclaimer not diluted
 ```
 
