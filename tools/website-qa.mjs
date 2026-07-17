@@ -55,9 +55,13 @@ async function verifyCopyAndAssets(page) {
   check('scientific record copy', required.every((s) => text.includes(s)), required.filter((s) => !text.includes(s)).join(' | '));
   check('anti-slop copy exclusions', forbidden.every((s) => !text.includes(s)), forbidden.filter((s) => text.includes(s)).join(' | '));
 
-  for (const asset of ['site-sample/sample-report.html', 'site-sample/multi/multi-report.html', 'site-sample/confidence_plot.png']) {
+  for (const asset of ['site-sample/sample-report.html', 'site-sample/sample-report.pdf', 'site-sample/multi/multi-report.html', 'site-sample/confidence_plot.png']) {
     const response = await page.request.get(`${ORIGIN}/${asset}`);
     check(`asset ${asset}`, response.ok(), `status=${response.status()}`);
+    if (asset.endsWith('.pdf') && response.ok()) {
+      const bytes = await response.body();
+      check('sample PDF signature', bytes.subarray(0, 5).toString() === '%PDF-', `signature=${bytes.subarray(0, 5).toString()}`);
+    }
   }
 
   await page.getByRole('link', { name: 'Inspect the 17-month example' }).click();

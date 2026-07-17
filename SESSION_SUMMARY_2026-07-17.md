@@ -142,9 +142,10 @@ The implementation and release gates are complete:
   `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232`.
 
 Post-release state: PR #7 is merged, `v1.0.4` is published, and automated Pages
-deployment is operational. The optional public sample PDF is the next small
-website enhancement; do not start a hosted analysis backend without a separate
-product decision.
+deployment is operational. The public sample PDF is now generated from the
+canonical golden HTML report, visually verified, and linked from the site. The
+remaining deliberate choices are the ICH Q1 Step 4 watch and whether a hosted
+analysis backend should ever be planned as a separate product milestone.
 
 ## Redesign guardrails
 
