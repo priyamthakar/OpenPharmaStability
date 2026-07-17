@@ -533,6 +533,13 @@ def analyze_many(
         # The single-attribute analyze() infers direction from the
         # data; the metadata override must win.
         single = _apply_metadata_to_stability_result(single, meta)
+        # The per-attribute analysis uses a temporary CSV to isolate the
+        # selected attribute. Export the caller's source path instead of an
+        # ephemeral temp filename in the resulting decision record.
+        single = dataclasses.replace(
+            single,
+            metadata={**single.metadata, "file_path": str(path)},
+        )
 
         attribute_results.append(
             AttributeResult(

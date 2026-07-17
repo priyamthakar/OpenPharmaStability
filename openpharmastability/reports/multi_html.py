@@ -265,7 +265,6 @@ def render_multi_html(
 <head>
 <meta charset="utf-8">
 <title>OpenPharmaStability multi-attribute report — {_esc(result.condition)}</title>
-<base href="{_esc(_to_file_url(html_dir))}">
 <style>
   body {{ font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 1100px; margin: 2em auto; padding: 0 1em; color: #222; }}
   h1, h2, h3 {{ color: #1a365d; }}
@@ -350,20 +349,6 @@ def _rel_plot(plot_dir: str, attribute: str, html_dir: str) -> str | None:
     # Compute relative path from HTML dir to plot file.
     rel = os.path.relpath(plot_file, start=html_dir)
     return rel.replace(os.sep, "/")
-
-
-def _to_file_url(html_dir: str) -> str:
-    """Convert an absolute filesystem path to a file:// URL for use
-    in a ``<base href>`` tag. Uses forward slashes and percent-encodes
-    characters that are unsafe in URLs.
-    """
-    abs_dir = os.path.abspath(html_dir)
-    # Make sure the path ends with a separator so the base resolves
-    # relative to the directory, not to a sibling file.
-    if not abs_dir.endswith(os.sep):
-        abs_dir = abs_dir + os.sep
-    posix = abs_dir.replace(os.sep, "/")
-    return "file://" + posix
 
 
 __all__ = ["render_multi_html"]

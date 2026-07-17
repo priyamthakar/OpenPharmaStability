@@ -49,6 +49,7 @@ def test_analyze_many_with_explicit_attribute_list() -> None:
     assert multi.condition == "25C/60RH"
     assert multi.deliverable_term == "shelf life"
     assert multi.product_type == "product"
+    assert multi.attributes[0].result.metadata["file_path"] == str(DATA_CSV)
     # The single attribute was eligible (assay crosses in the dataset).
     assert multi.attributes[0].included_in_limiting_decision is True
     assert multi.metadata["n_attributes_total"] == 1

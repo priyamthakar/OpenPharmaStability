@@ -773,7 +773,7 @@ def _run_single(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
 
     # JSON
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(to_decision_record(result), f, indent=2)
+        json.dump(to_decision_record(result), f, indent=2, ensure_ascii=False)
 
     # v0.7.0: acceptance-criteria CSV. Best-effort; never crashes
     # the CLI. The helper ``to_acceptance_criteria`` lives in
@@ -946,7 +946,7 @@ def _run_multi(args: argparse.Namespace, raw_df: pd.DataFrame) -> int:
 
     # JSON
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(to_multi_decision_record(result), f, indent=2)
+        json.dump(to_multi_decision_record(result), f, indent=2, ensure_ascii=False)
 
     # v0.7.0: acceptance-criteria CSV. One row per analyzed
     # attribute (excluded attributes appear with

@@ -104,6 +104,7 @@ def test_html_render_writes_file(tmp_path):
     assert "Guidance status" in html
     assert "effective" in html
     assert "ICH Q1A(R2) Step 4 + ICH Q1E Step 4" in html
+    assert "file://" not in html
     # Per-attribute sections.
     for ar in result.attributes:
         assert f"id=\"attr-" in html or ar.metadata.attribute in html

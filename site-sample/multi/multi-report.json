@@ -3,6 +3,8 @@
   "product_type": "product",
   "deliverable_term": "shelf life",
   "guidance_profile": "Q1A_R2+Q1E",
+  "guidance_status": "effective",
+  "guidance_reference": "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
   "supported_shelf_life_months": 7,
   "statistical_crossing_months": 7.9339869369298315,
   "limiting_attribute": "impurity_a",
@@ -25,10 +27,12 @@
       "confidence_level": 0.95,
       "poolability_alpha_reference": 0.25,
       "guidance_profile": "Q1A_R2+Q1E",
+      "guidance_status": "effective",
+      "guidance_reference": "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
       "observed_long_term_months": 12.0,
       "extrapolation": "flag_required",
       "warnings": [
-        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no 'replicate' column",
         "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
         "step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)",
         "Linearity check failed: lack-of-fit F-test p = 0.04968 < 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.",
@@ -75,7 +79,7 @@
         "column_count": 8,
         "random_seed": null,
         "library_versions": {
-          "python": "3.12.10",
+          "python": "3.11.15",
           "pandas": "3.0.3",
           "numpy": "2.4.6",
           "scipy": "1.17.1",
@@ -85,7 +89,7 @@
         },
         "tool_version": "1.0.4",
         "timestamp": "2024-06-01T00:00:00Z",
-        "file_path": "C:\\Users\\priya\\AppData\\Local\\Temp\\tmpgj83ogy6.csv",
+        "file_path": "examples\\multi_attribute.csv",
         "data_quality": {
           "n_errors": 0,
           "n_warnings": 0,
@@ -164,10 +168,12 @@
       "confidence_level": 0.95,
       "poolability_alpha_reference": 0.25,
       "guidance_profile": "Q1A_R2+Q1E",
+      "guidance_status": "effective",
+      "guidance_reference": "ICH Q1A(R2) Step 4 + ICH Q1E Step 4",
       "observed_long_term_months": 12.0,
       "extrapolation": "none",
       "warnings": [
-        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+        "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no 'replicate' column",
         "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
         "step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)",
         "Influence check: 1 observation(s) have Cook's distance > 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude."
@@ -210,7 +216,7 @@
         "column_count": 8,
         "random_seed": null,
         "library_versions": {
-          "python": "3.12.10",
+          "python": "3.11.15",
           "pandas": "3.0.3",
           "numpy": "2.4.6",
           "scipy": "1.17.1",
@@ -220,7 +226,7 @@
         },
         "tool_version": "1.0.4",
         "timestamp": "2024-06-01T00:00:00Z",
-        "file_path": "C:\\Users\\priya\\AppData\\Local\\Temp\\tmpabduvvlo.csv",
+        "file_path": "examples\\multi_attribute.csv",
         "data_quality": {
           "n_errors": 0,
           "n_warnings": 0,
@@ -284,7 +290,7 @@
     }
   ],
   "warnings": [
-    "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) \u2014 no 'replicate' column",
+    "data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no 'replicate' column",
     "data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True",
     "step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)",
     "Linearity check failed: lack-of-fit F-test p = 0.04968 < 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.",
@@ -301,12 +307,12 @@
     "tie_break": null,
     "tool_version": "1.0.4",
     "timestamp": "2024-06-01T00:00:00Z",
-    "file_path": "E:\\STABILITY TOOLKIT\\examples\\multi_attribute.csv",
+    "file_path": "examples\\multi_attribute.csv",
     "file_sha256": "37e1b34d21da3c87dd1b3656da37d7d11dab3e46226667fd8a137e02a36da8fb",
     "row_count": 48,
     "column_count": 8,
     "library_versions": {
-      "python": "3.12.10",
+      "python": "3.11.15",
       "pandas": "3.0.3",
       "numpy": "2.4.6",
       "scipy": "1.17.1",
@@ -316,7 +322,7 @@
     "random_seed": null,
     "data_sheet": null,
     "metadata_sheet": null,
-    "metadata_path": "E:\\STABILITY TOOLKIT\\examples\\multi_attribute_metadata.csv"
+    "metadata_path": "examples\\multi_attribute_metadata.csv"
   },
   "disclaimer": "This report is ICH Q1E-inspired and intended for educational, exploratory, and reproducible decision-support use. It is not a substitute for qualified regulatory, statistical, or quality review. The toolkit does not provide 21 CFR Part 11 audit trails, electronic signatures, or data integrity controls, and is not a validated GxP system.",
   "extrapolation_allowed": true,

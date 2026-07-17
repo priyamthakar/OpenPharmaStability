@@ -202,6 +202,8 @@ npx -y -p playwright node tools/website-qa.mjs --dev
 
 After changing `OpenPharmaStability.dc.html`, `support.js`, or `site-sample/`,
 run `node tools/sync-site.mjs` and commit the updated `site/` folder.
+Regenerate the checked-in sample PDF from its self-contained HTML with
+`node tools/render-sample-pdf.mjs site-sample/sample-report.html site-sample/sample-report.pdf`.
 
 Production deployment can also be performed interactively through local Wrangler:
 
