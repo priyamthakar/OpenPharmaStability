@@ -5,6 +5,49 @@
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
 
+## Current takeover state — 2026-07-17
+
+The statistics engine and local UI are stable at **v1.0.4**. The Graphite Dark
+public-site anti-slop redesign is implemented, deployed, and verified on both
+desktop and mobile.
+
+| Item | Current state |
+|---|---|
+| Branch / latest published commit | `main` / `e8f4b66` (`ci: automate Cloudflare Pages deployment`) |
+| Production site | https://openpharmastability.pages.dev |
+| Latest verified Pages deployment | `268ac970-4f37-4ca9-b0db-4b3c8cc11deb`, production branch `main` |
+| Production verification | Canonical and deployment URLs pass desktop/mobile QA; HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches `site/index.html` |
+| Test state | 483 collected; last full run green with 4 host-dependent PDF skips |
+| Golden validation | `python tools/regen_expected.py --check` passed |
+| Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
+| Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
+| Immediate priority | Merge the Graphite Dark source PR; optional next work is the public sample PDF |
+
+### Why the public site is being redesigned
+
+The current site is accurate and functional, but it reads like an AI-generated
+portfolio case study rather than a scientific software product. The audit found
+an accumulated pattern of decorative dashboard UI, mono eyebrow labels,
+editorial-serif marketing headings, numbered process rows, repeated bordered
+panels, public `App UI` / `Design System` routes, and portfolio/process copy such
+as “Hiring signal” and “portfolio story.” Mobile turns that system into a very
+long stack of micro-panels.
+
+The implemented Graphite Dark direction leads with the real confidence plot and
+decision record; make Documentation, Sample report, and GitHub the primary
+paths; remove internal design-showcase and hiring-process language; use semantic
+HTML and visible focus states; keep the scientific/regulatory boundary explicit.
+
+### Deployment reality
+
+The Cloudflare Pages project is **Direct Upload**. Local Wrangler authentication
+works and was used for the latest production deploy. The GitHub workflow at
+`.github/workflows/pages-deployment.yml` is published and its sync check passes,
+but unattended deployment remains intentionally skipped until the repository
+secret `CLOUDFLARE_API_TOKEN` is supplied. The repository variable
+`CLOUDFLARE_ACCOUNT_ID` is already configured. Do not copy the short-lived local
+Wrangler OAuth credential into GitHub Actions.
+
 ---
 
 ## 1. Positioning
@@ -423,8 +466,8 @@ question.
    v0.6.0; what each minor/patch added; backward-compatibility notes.
 3. **`NEXT_STEPS.md`** — the forward plan. v1.0.4 is the current
    release; the local UI pass has shipped (including Save as PDF),
-   and the next UI work is hosted deployment/polish over the existing
-   Python-owned stats engine. Read §7 (pycache/env integrity) and §8 (agent handover
+   and the active UI work is the audited anti-slop redesign of the static
+   public site over the existing Python-owned stats engine. Read §7 (pycache/env integrity) and §8 (agent handover
    protocol) first, before touching any code.
 4. **`AGENTS.md`** — the v0.1 build plan, wave structure, and the
    authoritative math in §5. Read-only reference now.
@@ -435,8 +478,10 @@ question.
    every module imports from. Do not edit unilaterally; additive
    only.
 
-If you are picking up **post-v1 UI work** (hosted deployment, browser
-polish, or workflow hardening), read `NEXT_STEPS.md` §11 in full and
+If you are picking up **post-v1 UI work** (public-site redesign, hosted
+deployment, browser polish, or workflow hardening), read
+`UI_UX_AUDIT.md`, `SESSION_SUMMARY_2026-07-17.md`, and
+`NEXT_STEPS.md` §11 in full and
 the v1.0.0 / v1.0.4 entries in `CHANGELOG.md` before opening an editor.
 The Python stats engine is the authoritative implementation; the UI is a
 thin client that posts CSV/XLSX to a thin API and renders the HTML

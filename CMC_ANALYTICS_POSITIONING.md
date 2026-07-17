@@ -104,6 +104,17 @@ Done:
 
 Highest-value remaining improvements for job applications:
 
-1. **Sample PDF (optional)** — one compact sample report PDF on the public portfolio (browser Save as PDF from the local UI, or server-side PDF if a backend is installed). Not a release blocker.
-2. Keep the validation/test count visible (**483** collected), but do not overclaim regulatory validation.
-3. When extending portfolio copy: keep the disclaimer boundary explicit (decision-support / educational only — not GxP, not 21 CFR Part 11, not submission-ready).
+1. **Public-site anti-slop redesign (active)** — lead with the real plot and
+   decision, remove public design-system/hiring-process language, and make
+   Documentation / Sample report / GitHub the primary paths. See
+   `UI_UX_AUDIT.md` and `DESIGN.md`.
+2. **Sample PDF (optional)** — one compact sample report PDF on the public site
+   after the redesign. Not a release blocker.
+3. Keep the validation/test count visible (**483** collected), but do not
+   overclaim regulatory validation.
+4. Keep the disclaimer boundary explicit: decision-support / educational only;
+   not GxP, not 21 CFR Part 11, not submission-ready.
+
+The public site should demonstrate the work rather than describe it as a
+portfolio. Recruiter value comes from the real scientific evidence and product
+judgment, not from labels such as “Hiring signal” or “portfolio story.”
