@@ -5,6 +5,33 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## [1.1.0] — 2026-07-17 — guidance provenance and release-quality gates
+
+### Added
+
+- Guidance profiles now carry explicit maturity and document-reference
+  provenance. Reports, JSON records, public samples, and the local UI surface
+  the selected profile; the provisional consolidated-Q1 draft remains opt-in
+  and is never the default.
+- A GitHub Quality workflow verifies Python 3.11/3.12, independently
+  regenerated golden values, an installed-CLI report, and deploy-folder sync
+  on pull requests and pushes to `main`.
+
+### Fixed
+
+- The active profile now controls every profile-dependent analysis path,
+  including sensitivity refits and direct Python threshold defaults.
+- Multi-attribute results hold an explicit aggregate provenance snapshot,
+  preserve it for no-data attributes, and reject mixed-profile report objects
+  instead of inferring guidance from the first attribute.
+
+### Notes
+
+- Default analysis constants and golden stability results are unchanged.
+- The final consolidated ICH Q1 Step 4 guideline is not yet published; its
+  migration remains a separately gated major-release assessment. A hosted
+  analysis backend remains a separate product decision.
+
 ## Quality CI — 2026-07-17
 
 No package version or analysis-math change.

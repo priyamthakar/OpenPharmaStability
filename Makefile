@@ -33,7 +33,7 @@ regen-check:
 	$(REGEN) --check
 
 help:
-	@echo "OpenPharmaStability v0.8.0 Makefile"
+	@echo "OpenPharmaStability v1.1.0 Makefile"
 	@echo ""
 	@echo "Targets:"
 	@echo "  fresh        clean + recompile + install + test (canonical reset)"

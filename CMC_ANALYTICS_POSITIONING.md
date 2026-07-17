@@ -90,7 +90,7 @@ Use this structure on GitHub, LinkedIn, or a portfolio page:
 | Multi-attribute sample | `site-sample/multi/` (limiting CQA = impurity_a at **7 months**; assay 16 months) |
 | Public site | https://openpharmastability.pages.dev |
 | Test suite | **483** collected (`pytest --collect-only -q`); decision-support only — not GxP validated |
-| Engine version | **v1.0.4** |
+| Engine version | **v1.1.0** |
 
 ## What To Build Next For This Career Track
 

@@ -1,20 +1,20 @@
 # HANDOVER.md — OpenPharmaStability cold-start briefing
 
-> **You are picking up OpenPharmaStability v1.0.4 on a fresh machine.**
+> **You are picking up OpenPharmaStability v1.1.0 on a fresh machine.**
 > Read this file top to bottom, run the verification block, then move on.
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
 
 ## Current takeover state — 2026-07-17
 
-The statistics engine and local UI are stable at **v1.0.4**. The Graphite Dark
+The statistics engine and local UI are stable at **v1.1.0**. The Graphite Dark
 public-site redesign is merged, released, and deployed. Automated Cloudflare
 Pages deployment from GitHub Actions is now operational.
 
 | Item | Current state |
 |---|---|
-| Branch / Graphite Dark source commit | `main` / `3f2b5bf` (`redesign public site in graphite dark (#7)`) |
-| GitHub release | `v1.0.4`, published 2026-07-17 |
+| Branch / current source commit | `main` / release preparation following `3a6187f` (`fix: make multi guidance provenance explicit`) |
+| GitHub release | `v1.1.0`, release preparation in progress |
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
@@ -57,7 +57,7 @@ must not be copied into GitHub Actions.
 
 ## 1. Positioning
 
-**OpenPharmaStability v1.0.4** is an ICH Q1E-inspired Python toolkit
+**OpenPharmaStability v1.1.0** is an ICH Q1E-inspired Python toolkit
 that ingests a CSV or XLSX of pharmaceutical stability data and
 produces a shelf-life estimate, a confidence-bound plot, an HTML
 report, a machine-readable JSON decision record, an optional PDF
@@ -96,7 +96,7 @@ verbatim in every HTML report.
 | Item | Value |
 |---|---|
 | Tool name | `openpharmastability` |
-| Version | `1.0.4` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
+| Version | `1.1.0` (declared in `__init__.py`, `contracts.py::TOOL_VERSION`, and `pyproject.toml` — keep in sync) |
 | Python | `3.11+` (developed on 3.12) |
 | Install (editable, with dev deps) | `pip install -e ".[dev]"` |
 | Install (with PDF backend) | `pip install -e ".[pdf]"` (weasyprint) or `".[pdf-fallback]"` (pdfkit + wkhtmltopdf) |
@@ -122,7 +122,8 @@ verbatim in every HTML report.
 
 | Version | Theme | What it added |
 |---|---|---|
-| `1.0.4` (current) | Local UI Save as PDF + site polish | Browser-native **Save as PDF** button in the local UI report preview (`window.print()` + print CSS); public site showcase accuracy fixes (engine badge 1.0.4, real guidance/BQL options); sample artifacts refreshed to `tool_version` 1.0.4. No analysis-math change. |
+| `1.0.4` | Local UI Save as PDF + site polish | Browser-native **Save as PDF** button in the local UI report preview (`window.print()` + print CSS); public site showcase accuracy fixes (engine badge 1.0.4, real guidance/BQL options); sample artifacts refreshed to `tool_version` 1.0.4. No analysis-math change. |
+| `1.1.0` (current) | Guidance provenance + release quality | Effective/draft guidance provenance is explicit and consistently threaded across single/multi reports, no-data paths, samples, and the UI; Quality CI verifies the package, golden values, installed CLI, and static-site sync. No analysis-math change. |
 | `1.0.3` | Toolchain-robust validation | `tools/regen_expected.py --check` compares golden values with `rtol=1e-9` / `atol=1e-12` (last-ULP drift on modern numpy/scipy/BLAS); random-effects 2-batch boundary test accepts `converged=False` as well as `boundary=True`. Suite green on a clean modern install (479 passed / 4 host-dependent PDF skips). |
 | `1.0.2` | Handover + roadmap orientation sync | Current-version docs now match the live package markers; `NEXT_STEPS.md` no longer describes the completed `dataclasses.replace` extrapolation refactor as open work. |
 | `1.0.1` | Release documentation truth sync | README/HANDOVER/NEXT_STEPS synchronized after the local UI shipment; expected test collection corrected to 483. |

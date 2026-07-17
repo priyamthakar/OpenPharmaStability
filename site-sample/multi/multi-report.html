@@ -19,7 +19,7 @@
 <body>
 
 <h1>OpenPharmaStability multi-attribute report</h1>
-<p class="muted">Tool version 1.0.4 &middot;
+<p class="muted">Tool version 1.1.0 &middot;
    Python 3.11.15 &middot;
    pandas 3.0.3</p>
 
@@ -74,7 +74,7 @@
       <em>(extrapolation flagged)</em></p>
   <p><strong>ICH Q1A gate:</strong> accelerated=— &middot; intermediate=— &middot; allowed=yes &middot; rationale=<code>no accelerated data</code></p>
   
-  <img src="plots/assay_confidence_plot.png" alt="confidence plot for assay" />
+  <p><em>No plot available for this attribute.</em></p>
   <h3>Warnings</h3><ul><li>data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no &#x27;replicate&#x27; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.2059 (alpha=0.25)</li><li>Linearity check failed: lack-of-fit F-test p = 0.04968 &lt; 0.05. Consider a non-linear transform (log, sqrt) or a higher-order model.</li><li>Influence check: 4 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [0, 7, 14, 17]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li><li>supported shelf life extends beyond observed data (12 mo); extrapolation flagged.</li><li>supported shelf life extends beyond observed data (12 mo); extrapolation flagged.</li></ul>
 </section>
 
@@ -98,7 +98,7 @@
      </p>
   <p><strong>ICH Q1A gate:</strong> accelerated=— &middot; intermediate=— &middot; allowed=yes &middot; rationale=<code>no accelerated data</code></p>
   
-  <img src="plots/impurity_a_confidence_plot.png" alt="confidence plot for impurity_a" />
+  <p><em>No plot available for this attribute.</em></p>
   <h3>Warnings</h3><ul><li>data_quality[info] duplicate_batch_time_no_replicate: 24 rows share (batch, time, attribute) — no &#x27;replicate&#x27; column</li><li>data_quality summary: 0 error(s), 0 warning(s), 1 info; can_analyze=True</li><li>step1 slopes: F-test on time:C(batch), p=0.08506 (alpha=0.25)</li><li>Influence check: 1 observation(s) have Cook&#x27;s distance &gt; 4.0/n = 0.1667 (row indices [1]). A single observation controls the fit. Consider a sensitivity analysis with and without these points; do not auto-exclude.</li></ul>
 </section>
 
@@ -107,7 +107,7 @@
 
 <h2>Reproducibility</h2>
 <table>
-<tr><th>deliverable_term</th><td><code class='mono'>shelf life</code></td></tr><tr><th>product_type</th><td><code class='mono'>product</code></td></tr><tr><th>n_attributes_total</th><td><code class='mono'>2</code></td></tr><tr><th>n_attributes_limiting</th><td><code class='mono'>2</code></td></tr><tr><th>tie_break</th><td><code class='mono'></code></td></tr><tr><th>tool_version</th><td><code class='mono'>1.0.4</code></td></tr><tr><th>timestamp</th><td><code class='mono'>2024-06-01T00:00:00Z</code></td></tr><tr><th>file_path</th><td><code class='mono'>examples\multi_attribute.csv</code></td></tr><tr><th>file_sha256</th><td><code class='mono'>37e1b34d21da3c87dd1b3656da37d7d11dab3e46226667fd8a137e02a36da8fb</code></td></tr><tr><th>row_count</th><td><code class='mono'>48</code></td></tr><tr><th>column_count</th><td><code class='mono'>8</code></td></tr><tr><th>library_versions</th><td><code class='mono'>{&#x27;python&#x27;: &#x27;3.11.15&#x27;, &#x27;pandas&#x27;: &#x27;3.0.3&#x27;, &#x27;numpy&#x27;: &#x27;2.4.6&#x27;, &#x27;scipy&#x27;: &#x27;1.17.1&#x27;, &#x27;statsmodels&#x27;: &#x27;0.14.6&#x27;, &#x27;openpyxl&#x27;: &#x27;3.1.5&#x27;}</code></td></tr><tr><th>random_seed</th><td><code class='mono'></code></td></tr><tr><th>data_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_path</th><td><code class='mono'>examples\multi_attribute_metadata.csv</code></td></tr>
+<tr><th>deliverable_term</th><td><code class='mono'>shelf life</code></td></tr><tr><th>product_type</th><td><code class='mono'>product</code></td></tr><tr><th>n_attributes_total</th><td><code class='mono'>2</code></td></tr><tr><th>n_attributes_limiting</th><td><code class='mono'>2</code></td></tr><tr><th>tie_break</th><td><code class='mono'></code></td></tr><tr><th>tool_version</th><td><code class='mono'>1.1.0</code></td></tr><tr><th>timestamp</th><td><code class='mono'>2024-06-01T00:00:00Z</code></td></tr><tr><th>file_path</th><td><code class='mono'>examples\multi_attribute.csv</code></td></tr><tr><th>file_sha256</th><td><code class='mono'>37e1b34d21da3c87dd1b3656da37d7d11dab3e46226667fd8a137e02a36da8fb</code></td></tr><tr><th>row_count</th><td><code class='mono'>48</code></td></tr><tr><th>column_count</th><td><code class='mono'>8</code></td></tr><tr><th>library_versions</th><td><code class='mono'>{&#x27;python&#x27;: &#x27;3.11.15&#x27;, &#x27;pandas&#x27;: &#x27;3.0.3&#x27;, &#x27;numpy&#x27;: &#x27;2.4.6&#x27;, &#x27;scipy&#x27;: &#x27;1.17.1&#x27;, &#x27;statsmodels&#x27;: &#x27;0.14.6&#x27;, &#x27;openpyxl&#x27;: &#x27;3.1.5&#x27;}</code></td></tr><tr><th>random_seed</th><td><code class='mono'></code></td></tr><tr><th>data_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_sheet</th><td><code class='mono'></code></td></tr><tr><th>metadata_path</th><td><code class='mono'>examples\multi_attribute_metadata.csv</code></td></tr>
 </table>
 
 <p class="muted">End of report.</p>

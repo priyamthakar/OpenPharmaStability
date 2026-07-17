@@ -1,6 +1,6 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
-> **STATUS: v1.0.4 CURRENT; ANALYTICS + LOCAL UI STABLE; GRAPHITE DARK
+> **STATUS: v1.1.0 CURRENT; ANALYTICS + LOCAL UI STABLE; GRAPHITE DARK
 > PUBLIC SITE MERGED, RELEASED, AND DEPLOYED (2026-07-17).** v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
@@ -56,7 +56,7 @@
 | B | Release checklist (per minor/major) | — |
 
 > **Pre-work reading order for a fresh agent** (sections are numbered
-> §1–§11, but the *execution* order on a fresh checkout at v1.0.4 is):
+> §1–§11, but the *execution* order on a fresh checkout at v1.1.0 is):
 > **§7 → §8 → §10 → §11.** §§1–6 are historical design notes for
 > releases that have already shipped. The env setup and handover
 > protocol must happen before any code change; §11 now records the
@@ -66,16 +66,17 @@
 
 ## Preamble: Status snapshot & module map
 
-**Current version:** `1.0.4` (declared in three places that must stay in
+**Current version:** `1.1.0` (declared in three places that must stay in
 sync — `openpharmastability/__init__.py`,
 `openpharmastability/contracts.py` (`TOOL_VERSION`), and
-`pyproject.toml`). v1.0.4 adds a browser-native Save as PDF button
+`pyproject.toml`). v1.1.0 adds complete guidance-provenance threading and
+release-quality CI; v1.0.4 added a browser-native Save as PDF button
 to the local UI workspace (v1.0.3 was test/toolchain robustness;
 v1.0.0 was the local UI milestone). The default analysis math is
 unchanged from v0.11.0; the UI is a thin client over Python-generated
 reports and artifacts.
 
-**Module map (what exists today at v1.0.4):**
+**Module map (what exists today at v1.1.0):**
 
 ```
 openpharmastability/
@@ -2415,7 +2416,7 @@ When regulatory guidance changes, before editing
 | Save as PDF | local UI + report print CSS | v1.0.4 |
 | Public golden sample PDF | `site-sample/sample-report.pdf` | post-v1 |
 | Public static site | `site/` → https://openpharmastability.pages.dev | post-v1 |
-| Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.0.4 |
+| Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.1.0 |
 | Local UI screenshot | `site-sample/ui-workspace.png` | portfolio |
 | Multi-attribute sample | `site-sample/multi/` (impurity_a limits at **7 mo**; assay **16 mo**) | portfolio |
 | Public multi-attribute link | report specimen → `site-sample/multi/multi-report.html` | portfolio |
