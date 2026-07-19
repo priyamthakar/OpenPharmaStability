@@ -92,9 +92,9 @@ Use this structure on GitHub, LinkedIn, or a portfolio page:
 | Test suite | **483** collected (`pytest --collect-only -q`); decision-support only — not GxP validated |
 | Engine version | **v1.1.0** |
 
-## What To Build Next For This Career Track
+## Evidence and next step for this career track
 
-Done:
+Completed:
 
 1. Short visual case study in the README using the golden assay dataset (plot + 17-month table, governing batch B2, common slope).
 2. "For CMC reviewers" walkthrough: input → poolability → bound/crossing → decision record → report.
@@ -102,18 +102,12 @@ Done:
 4. Multi-attribute limiting-attribute sample story (`site-sample/multi/` + README multi-attribute section; limiting CQA = impurity_a @ 7 months).
 5. Public-site link to the multi-attribute report (`site-sample/multi/multi-report.html`).
 
-Highest-value remaining improvements for job applications:
-
-1. **Public-site anti-slop redesign (active)** — lead with the real plot and
-   decision, remove public design-system/hiring-process language, and make
-   Documentation / Sample report / GitHub the primary paths. See
-   `UI_UX_AUDIT.md` and `DESIGN.md`.
-2. **Sample PDF (optional)** — one compact sample report PDF on the public site
-   after the redesign. Not a release blocker.
-3. Keep the validation/test count visible (**483** collected), but do not
-   overclaim regulatory validation.
-4. Keep the disclaimer boundary explicit: decision-support / educational only;
-   not GxP, not 21 CFR Part 11, not submission-ready.
+The public redesign and linked sample PDF are complete. The next scientific
+milestone is final ICH Q1 review: complete
+`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after the official Step 4 document
+is published. Until then, keep the validation/test count visible (**483**
+collected), preserve the decision-support boundary, and do not portray the
+static site as a hosted analysis service.
 
 The public site should demonstrate the work rather than describe it as a
 portfolio. Recruiter value comes from the real scientific evidence and product

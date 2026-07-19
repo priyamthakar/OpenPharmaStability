@@ -1,5 +1,9 @@
 # Public-site UI/UX audit — 2026-07-17
 
+> **Historical audit.** Its redesign recommendations were implemented and
+> verified in the Graphite Dark public site. For the living implementation
+> contract, read `DESIGN.md`, `design-qa.md`, and `NEXT_STEPS.md` §11.
+
 Surface: https://openpharmastability.pages.dev  
 Evidence folder: `qa-output/`  
 Detailed working report: `qa-output/ui-ux-audit.md`

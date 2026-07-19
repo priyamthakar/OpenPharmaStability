@@ -51,7 +51,7 @@
 | 8 | **AGENT HANDOVER PROTOCOL (pre-work, READ FIRST)** | pre-work |
 | 9 | Test coverage gaps to fill now | v0.1.1 (shipped) |
 | 10 | Regulatory watch + versioning strategy | ongoing |
-| 11 | **UI pass (local workspace + public-site anti-slop redesign)** | local UI shipped; public redesign active |
+| 11 | **UI pass (local workspace + public-site anti-slop redesign)** | completed; preserve the accepted public-site contract |
 | A | Cross-cutting hazards (memorize) | — |
 | B | Release checklist (per minor/major) | — |
 
@@ -2404,13 +2404,11 @@ When regulatory guidance changes, before editing
 
 ## SECTION 11: UI PASS — LOCAL WORKSPACE + PUBLIC-SITE ANTI-SLOP REDESIGN
 
-> **STATUS (2026-07-17):** The local v1 UI and Save as PDF are shipped and
-> stable. The public site is live and technically correct, but a desktop/mobile
-> visual audit found that its portfolio framing, decorative workspace mock,
-> public design-system route, repeated card/label cadence, and excessive mobile
-> length make it look AI-generated. Redesigning the public site is now the
-> highest-priority product task. Read `UI_UX_AUDIT.md` and
-> `SESSION_SUMMARY_2026-07-17.md` before editing.
+> **STATUS (2026-07-19):** The local v1 UI, Save as PDF, Graphite Dark public
+> redesign, public samples, and automated Pages deployment are complete and
+> stable. Preserve `DESIGN.md`, `design-qa.md`, and the site-sync contract when
+> touching the public surface. The active product gate is final ICH Q1, not a
+> further UI redesign.
 
 ### 11.1 What already shipped
 
@@ -2420,7 +2418,7 @@ When regulatory guidance changes, before editing
 | UI service manifest | `ui_service.analyze_for_ui()` | v1.0.0 |
 | Save as PDF | local UI + report print CSS | v1.0.4 |
 | Public golden sample PDF | `site-sample/sample-report.pdf` | post-v1 |
-| Public static site | `site/` → https://openpharmastability.pages.dev | post-v1 |
+| Public static site | `site/` → https://openpharmastability.pages.dev | v1.1.0 verified |
 | Golden sample artifacts | `site-sample/sample-report.*` + confidence plot | refreshed v1.1.0 |
 | Local UI screenshot | `site-sample/ui-workspace.png` | portfolio |
 | Multi-attribute sample | `site-sample/multi/` (impurity_a limits at **7 mo**; assay **16 mo**) | portfolio |

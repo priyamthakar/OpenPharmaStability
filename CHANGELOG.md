@@ -13,6 +13,10 @@ No package version or analysis-math change.
   gating record for controlled constants, terminology, profile provenance,
   independent goldens, and major-release approval. It must remain unfilled
   until ICH publishes the official final Q1 document.
+- Synchronized the living README, handover, roadmap, positioning, and
+  regulatory-spec documentation to v1.1.0, the verified Quality workflow, and
+  the final-guidance gate; preserved dated UI/session reports as historical
+  evidence.
 
 ## [1.1.0] — 2026-07-17 — guidance provenance and release-quality gates
 

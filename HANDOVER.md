@@ -5,7 +5,7 @@
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
 
-## Current takeover state — 2026-07-17
+## Current takeover state — 2026-07-19
 
 The statistics engine and local UI are stable at **v1.1.0**. The Graphite Dark
 public-site redesign is merged, released, and deployed. Automated Cloudflare
@@ -13,16 +13,17 @@ Pages deployment from GitHub Actions is now operational.
 
 | Item | Current state |
 |---|---|
-| Branch / current release commit | `main` / `406b352` (`ci: update setup actions for Node 24`), tagged `v1.1.0` |
+| Current release commit | `v1.1.0` → `406b352` (`ci: update setup actions for Node 24`) |
+| Main after release | Documentation/readiness and CI-maintenance commits only; use `git log -1 --oneline` for the live commit |
 | GitHub release | `v1.1.0`, published 2026-07-17 |
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
-| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `29598840371` green on Python 3.11/3.12 plus CLI/site gates |
+| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `29679774006` green on Python 3.11/3.12 plus CLI/site gates |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. Review the revised ICH Q1 draft expected September 2026 and Step 4 expected November 2026 using `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`; a hosted analysis backend remains a separate product decision |
+| Immediate priority | No release blocker. Review the revised ICH Q1 draft expected September 2026, then complete `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after the Step 4 final expected November 2026; a hosted analysis backend remains a separate product decision |
 
 Before adding or promoting a guidance profile, complete the provenance and gap
 review gates in `NEXT_STEPS.md` §10. Never overwrite a draft profile or make one
@@ -468,13 +469,12 @@ question.
 
 1. **`HANDOVER.md`** (this file) — orientation, env setup, healthy
    state, hard rules, open warnings.
-2. **`CHANGELOG.md`** — every release entry from v0.1.0 through
-   v0.6.0; what each minor/patch added; backward-compatibility notes.
-3. **`NEXT_STEPS.md`** — the forward plan. v1.0.4 is the current
-   release; the local UI pass has shipped (including Save as PDF),
-   and the active UI work is the audited anti-slop redesign of the static
-   public site over the existing Python-owned stats engine. Read §7 (pycache/env integrity) and §8 (agent handover
-   protocol) first, before touching any code.
+2. **`CHANGELOG.md`** — release history through v1.1.0 plus dated
+   regulatory-watch and readiness entries.
+3. **`NEXT_STEPS.md`** — the forward plan. v1.1.0 is current; the public
+   redesign is complete and the only product roadmap gate is final ICH Q1.
+   Read §7 (pycache/env integrity), §8 (agent handover protocol), and §10
+   (regulatory watch) before touching code.
 4. **`AGENTS.md`** — the v0.1 build plan, wave structure, and the
    authoritative math in §5. Read-only reference now.
 5. **`OpenPharmaStability.md`** — the product spec / source of truth
@@ -484,11 +484,10 @@ question.
    every module imports from. Do not edit unilaterally; additive
    only.
 
-If you are picking up **post-v1 UI work** (public-site redesign, hosted
-deployment, browser polish, or workflow hardening), read
-`UI_UX_AUDIT.md`, `SESSION_SUMMARY_2026-07-17.md`, and
-`NEXT_STEPS.md` §11 in full and
-the v1.0.0 / v1.0.4 entries in `CHANGELOG.md` before opening an editor.
+If you are picking up UI or deployment work, read `DESIGN.md`, `design-qa.md`,
+and `NEXT_STEPS.md` §11. `UI_UX_AUDIT.md` and
+`SESSION_SUMMARY_2026-07-17.md` are historical evidence of the completed
+redesign, not active work plans.
 The Python stats engine is the authoritative implementation; the UI is a
 thin client that posts CSV/XLSX to a thin API and renders the HTML
 report inline. Do not reimplement the statistical core in JavaScript /

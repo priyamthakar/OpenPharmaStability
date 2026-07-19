@@ -760,13 +760,13 @@ unless a justified extrapolation basis is provided.
 OpenPharmaStability should primarily target the established ICH Q1E/Q1A(R2)
 framework until the newer consolidated ICH Q1 guideline is finalized.
 
-The consolidated ICH Q1 reached Step 2b in April 2025, and EMA lists the
-public consultation period as closed on 30 July 2025. As of this brief, the
-current public materials still identify it as a draft rather than a Step 4
-final guideline. Once final, it is intended to consolidate and supersede the
-older Q1A-F and Q5C stability guidances. The project should track this draft,
-but must not treat it as final guidance until it reaches Step 4 and regional
-implementation status is clear.
+The consolidated ICH Q1 reached Step 2b in April 2025, and the public
+consultation is closed. As of 19 July 2026, the final Step 4 guideline is not
+published; ICH planning expects a revised draft in September 2026 and Step 4
+in November 2026. The project must not treat the draft as final guidance.
+When the official final text is available, complete
+`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` before adding or promoting a final
+profile; preserve the draft profile for audit history.
 
 ## Suggested Tech Stack
 

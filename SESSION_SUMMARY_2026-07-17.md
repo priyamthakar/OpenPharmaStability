@@ -1,5 +1,9 @@
 # Session summary and takeover plan — 2026-07-17
 
+> **Historical session record.** It captures the v1.0.4 redesign release.
+> For current version, CI, regulatory, and takeover state, use `HANDOVER.md`,
+> `NEXT_STEPS.md`, and `CHANGELOG.md` instead.
+
 ## Outcome so far
 
 This session corrected the public site's scientific claims, published the
