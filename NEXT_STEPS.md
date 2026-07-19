@@ -2338,6 +2338,11 @@ constant and criterion to the Step 4 text, independent golden-value review,
 JSON/HTML provenance surfacing, a CHANGELOG entry, and a deliberate major-release
 decision. Step 4 publication by itself does not switch the default.
 
+Use [`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`](Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md)
+to record the final-document mapping and verification evidence. It is
+intentionally blank until the official Step 4 text is available; completing it
+is the mandatory first implementation artifact for the final-profile release.
+
 ### 10.3 Versioning strategy (SemVer)
 
 - **PATCH (`0.1.x`):** bug fixes, doc/test additions, warning-text

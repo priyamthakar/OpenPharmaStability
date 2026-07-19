@@ -5,6 +5,15 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Guidance-readiness template — 2026-07-19
+
+No package version or analysis-math change.
+
+- Added `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`: a source-traceable, final-Step-4
+  gating record for controlled constants, terminology, profile provenance,
+  independent goldens, and major-release approval. It must remain unfilled
+  until ICH publishes the official final Q1 document.
+
 ## [1.1.0] — 2026-07-17 — guidance provenance and release-quality gates
 
 ### Added
