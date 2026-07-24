@@ -25,7 +25,7 @@ draft; Step 4 remains unpublished and no profile/math change is warranted.
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. Regulatory watch re-checked 2026-07-24 (Step 4 still unpublished; Step 2b constants align with current Q1AE). Next gate: review the September 2026 revised draft, then complete `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after Step 4 (expected November 2026). Hosted analysis backend remains a separate product decision |
+| Immediate priority | No release blocker. Prep artifacts in place: `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` + `tools/q1_watch_checklist.md` (fill when Sept revised draft appears); `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after Step 4 (expected Nov 2026); `HOSTED_ANALYSIS_BACKEND_PLAN.md` awaits product go/no-go (default: stay local-only). UI a11y re-check 2026-07-24: no change required (`design-qa.md`) |
 
 Before adding or promoting a guidance profile, complete the provenance and gap
 review gates in `NEXT_STEPS.md` §10. Never overwrite a draft profile or make one

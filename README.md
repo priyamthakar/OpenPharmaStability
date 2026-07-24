@@ -615,7 +615,10 @@ validation claim is made.
 Out of scope for the current release: hosted/cloud UI, production REST API,
 multi-condition shelf-life selection (the engine reports per
 long-term condition, not the limiting one), and any GxP / 21 CFR
-Part 11 validation claim.
+Part 11 validation claim. A possible hosted analysis API is documented as a
+product decision only in
+[`HOSTED_ANALYSIS_BACKEND_PLAN.md`](HOSTED_ANALYSIS_BACKEND_PLAN.md); it is
+**not** shipped and must not be inferred from the static Cloudflare Pages site.
 
 The consolidated ICH Q1 guideline is not final as of 24 July 2026 (regulatory
 watch re-check). Official ICH Q1 EWG planning still targets a revised draft in
@@ -623,8 +626,10 @@ September and Step 4 in November 2026; a Step 2b spot-check found no controlled-
 constant delta requiring a profile or math change. The default therefore remains
 Q1A(R2)+Q1E and Q1E-inspired until the final text is reviewed through
 [`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`](Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md).
-A hosted analysis backend is not part of this roadmap and remains a separate
-product decision.
+When the September revised draft appears, record deltas in
+[`Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md`](Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md)
+using [`tools/q1_watch_checklist.md`](tools/q1_watch_checklist.md) — that
+worksheet does not authorize profile or default changes.
 
 Every new decision record snapshots the selected guidance profile's name,
 maturity (`effective` or `draft`), and document reference. This provenance is

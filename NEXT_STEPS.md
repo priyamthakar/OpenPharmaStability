@@ -2265,9 +2265,11 @@ Step 4 (final)**. Until Step 4, this toolkit implements
 > constants (α=0.25 batch terms; one-/two-sided 95% mean bounds; 2× / +12 mo
 > RT extrapolation; 5% assay significant change; re-test vs shelf-life terms)
 > found no delta requiring a profile or math change. No profile, analysis
-> constant, default, or claim changes now. Review the September revised text
-> for deltas, then run the migration assessment only after the Step 4 document
-> is published. See `CHANGELOG.md` (Regulatory watch — 2026-07-24).
+> constant, default, or claim changes now. When the September revised text
+> appears, fill `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` using
+> `tools/q1_watch_checklist.md`; run the Step 4 migration assessment only
+> after the final document is published (`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`).
+> See `CHANGELOG.md` (Regulatory watch — 2026-07-24).
 
 **Watch checklist (revisit each quarter / on any ICH news):**
 
@@ -2490,11 +2492,19 @@ The public information architecture should be:
 
 1. **Done:** public sample PDF generated from the canonical golden HTML report,
    structurally validated, visually inspected, and linked from the site.
-2. Hosted analysis backend — out of scope and requires a separate product decision.
+2. Hosted analysis backend — out of scope until product decision. Decision /
+   architecture plan: [`HOSTED_ANALYSIS_BACKEND_PLAN.md`](HOSTED_ANALYSIS_BACKEND_PLAN.md)
+   (default recommendation: stay local-only + static Pages until go/no-go).
 3. ICH Q1 watch — **re-checked 2026-07-24** (Step 4 unpublished; Step 2b
-   constants still align with Q1AE). Next: review the revised draft in
-   September 2026; final profile migration only after Step 4, currently
-   expected November 2026.
+   constants still align with Q1AE). Prep scaffolds:
+   [`Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md`](Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md)
+   and [`tools/q1_watch_checklist.md`](tools/q1_watch_checklist.md). Next: fill
+   the September worksheet when the revised draft appears; final profile
+   migration only after Step 4 via
+   [`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`](Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md)
+   (currently expected November 2026).
+4. **Done (2026-07-24):** public-site + local-UI a11y re-check — no change
+   required; see `design-qa.md`.
 
 ### 11.6 Acceptance when touching UI or site
 

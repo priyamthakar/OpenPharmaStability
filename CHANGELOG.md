@@ -5,6 +5,23 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Docs — three-track prep artifacts — 2026-07-24
+
+No package version, analysis constants, default profile, claims, or engine
+code changed.
+
+- Added `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md`: ready-to-fill September
+  revised-draft delta worksheet (provenance + controlled constants). Not the
+  Step 4 gap assessment; does not authorize profile or default changes.
+- Added `tools/q1_watch_checklist.md`: operational mirror of `NEXT_STEPS.md`
+  §10.1 for quarterly / news-triggered regulatory watches.
+- Added `HOSTED_ANALYSIS_BACKEND_PLAN.md`: product/tech decision plan for a
+  possible FastAPI wrap of `ui_service` / `api` on a separate compute origin;
+  Cloudflare Pages remains static-only. No service implemented; decision
+  record left blank pending go/no-go.
+- `design-qa.md`: 2026-07-24 a11y re-check — no change required (focus-visible,
+  landmarks, reduced-motion already present on site + local UI).
+
 ## Regulatory watch — 2026-07-24
 
 No package version, analysis constants, default profile, claims, or code
@@ -30,9 +47,10 @@ and the still-current Step 2b draft
 - **Action:** none for implementation. Keep `DEFAULT_PROFILE = Q1AE`. Do not
   fill `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` or add/promote a final
   consolidated profile until the official Step 4 document is published.
-  Re-check when the September 2026 revised draft appears; run the gap
-  assessment only after Step 4. A hosted analysis backend remains a separate
-  product decision.
+  Re-check when the September 2026 revised draft appears (use
+  `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` + `tools/q1_watch_checklist.md`);
+  run the gap assessment only after Step 4. A hosted analysis backend remains
+  a separate product decision — see `HOSTED_ANALYSIS_BACKEND_PLAN.md`.
 - **Local health gates (this date):** `python tools/regen_expected.py --check`
   passed; full `pytest` green (4 host-dependent PDF skips without weasyprint/
   pdfkit).
