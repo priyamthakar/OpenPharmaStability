@@ -5,11 +5,13 @@
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
 
-## Current takeover state — 2026-07-19
+## Current takeover state — 2026-07-24
 
 The statistics engine and local UI are stable at **v1.1.0**. The Graphite Dark
 public-site redesign is merged, released, and deployed. Automated Cloudflare
-Pages deployment from GitHub Actions is now operational.
+Pages deployment from GitHub Actions is now operational. Regulatory watch was
+re-checked on this date against the official ICH Q1 EWG work plan and Step 2b
+draft; Step 4 remains unpublished and no profile/math change is warranted.
 
 | Item | Current state |
 |---|---|
@@ -23,7 +25,7 @@ Pages deployment from GitHub Actions is now operational.
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. Review the revised ICH Q1 draft expected September 2026, then complete `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after the Step 4 final expected November 2026; a hosted analysis backend remains a separate product decision |
+| Immediate priority | No release blocker. Regulatory watch re-checked 2026-07-24 (Step 4 still unpublished; Step 2b constants align with current Q1AE). Next gate: review the September 2026 revised draft, then complete `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after Step 4 (expected November 2026). Hosted analysis backend remains a separate product decision |
 
 Before adding or promoting a guidance profile, complete the provenance and gap
 review gates in `NEXT_STEPS.md` §10. Never overwrite a draft profile or make one

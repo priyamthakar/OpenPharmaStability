@@ -2258,11 +2258,16 @@ consolidated **ICH Q1** reached **Step 2b in April 2025**; the
 Step 4 (final)**. Until Step 4, this toolkit implements
 **Q1A(R2) + Q1E** and labels everything "Q1E-inspired."
 
-> **Re-checked 2026-07-17:** the guideline is still not final. Official ICH
-> planning expects the revised draft in September 2026 and Step 4 in November
-> 2026. No profile, analysis constant, default, or claim changes now. Review
-> the September text for deltas, then run the migration assessment only after
-> the Step 4 document is published. See `CHANGELOG.md`.
+> **Re-checked 2026-07-24:** the guideline is still not final. Official ICH Q1
+> EWG work plan (11 Feb 2026) still targets September 2026 PWP engagement /
+> revised text ahead of Step 3 sign-off and November 2026 Step 3/Step 4
+> adoption. Spot-check of the April 2025 Step 2b draft against controlled
+> constants (α=0.25 batch terms; one-/two-sided 95% mean bounds; 2× / +12 mo
+> RT extrapolation; 5% assay significant change; re-test vs shelf-life terms)
+> found no delta requiring a profile or math change. No profile, analysis
+> constant, default, or claim changes now. Review the September revised text
+> for deltas, then run the migration assessment only after the Step 4 document
+> is published. See `CHANGELOG.md` (Regulatory watch — 2026-07-24).
 
 **Watch checklist (revisit each quarter / on any ICH news):**
 
@@ -2486,8 +2491,10 @@ The public information architecture should be:
 1. **Done:** public sample PDF generated from the canonical golden HTML report,
    structurally validated, visually inspected, and linked from the site.
 2. Hosted analysis backend — out of scope and requires a separate product decision.
-3. ICH Q1 watch — review the revised draft in September 2026 and the final
-   profile migration only after Step 4, currently expected November 2026.
+3. ICH Q1 watch — **re-checked 2026-07-24** (Step 4 unpublished; Step 2b
+   constants still align with Q1AE). Next: review the revised draft in
+   September 2026; final profile migration only after Step 4, currently
+   expected November 2026.
 
 ### 11.6 Acceptance when touching UI or site
 

@@ -5,6 +5,38 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Regulatory watch — 2026-07-24
+
+No package version, analysis constants, default profile, claims, or code
+changed. Performed the `NEXT_STEPS.md` §10.1 watch checklist against the
+official ICH Q1 EWG work plan dated 11 February 2026
+([ICH52_Q1_EWG_WorkPlan_2026_0318.pdf](https://database.ich.org/sites/default/files/ICH52_Q1_EWG_WorkPlan_2026_0318.pdf))
+and the still-current Step 2b draft
+([ICH Q1EWG Step 2 Draft Guideline, 11 April 2025](https://database.ich.org/sites/default/files/ICH%5FQ1EWG%5FStep2%5FDraft%5FGuideline%5F2025%5F0411.pdf)).
+
+- **Step 4 status:** not published. Public consultation is closed; the EWG is
+  still resolving consultation comments. Anticipated milestones remain
+  **September 2026** (Plenary Working Party engagement / revised text ahead of
+  Step 3 sign-off) and **November 2026** (Step 3 sign-off / Step 4 adoption).
+- **Controlled-constant spot-check vs Step 2b draft (not final):** poolability
+  α **0.25** for batch-related terms (Annex 2 / §13.3), one-sided **95%**
+  mean-response confidence limit for single-sided attributes (§13.2.1),
+  two-sided **95%** for dual-sided attributes (§13.2.1), RT extrapolation up
+  to **twice** but **not more than 12 months** beyond long-term data when
+  statistical analysis is performed (§13.2.6.4), assay significant-change
+  threshold still expressed as a **5%** change from initial, and
+  re-test period vs shelf-life terminology retained. No toolkit constant
+  change is warranted from this non-final text.
+- **Action:** none for implementation. Keep `DEFAULT_PROFILE = Q1AE`. Do not
+  fill `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` or add/promote a final
+  consolidated profile until the official Step 4 document is published.
+  Re-check when the September 2026 revised draft appears; run the gap
+  assessment only after Step 4. A hosted analysis backend remains a separate
+  product decision.
+- **Local health gates (this date):** `python tools/regen_expected.py --check`
+  passed; full `pytest` green (4 host-dependent PDF skips without weasyprint/
+  pdfkit).
+
 ## Guidance-readiness template — 2026-07-19
 
 No package version or analysis-math change.

@@ -617,10 +617,12 @@ multi-condition shelf-life selection (the engine reports per
 long-term condition, not the limiting one), and any GxP / 21 CFR
 Part 11 validation claim.
 
-The consolidated ICH Q1 guideline is not final as of 19 July 2026. Official
-ICH planning expects a revised draft in September and Step 4 in November 2026;
-the default therefore remains Q1A(R2)+Q1E and Q1E-inspired until the final text
-is reviewed through [`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`](Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md).
+The consolidated ICH Q1 guideline is not final as of 24 July 2026 (regulatory
+watch re-check). Official ICH Q1 EWG planning still targets a revised draft in
+September and Step 4 in November 2026; a Step 2b spot-check found no controlled-
+constant delta requiring a profile or math change. The default therefore remains
+Q1A(R2)+Q1E and Q1E-inspired until the final text is reviewed through
+[`Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md`](Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md).
 A hosted analysis backend is not part of this roadmap and remains a separate
 product decision.
 
