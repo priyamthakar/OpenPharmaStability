@@ -2492,9 +2492,11 @@ The public information architecture should be:
 
 1. **Done:** public sample PDF generated from the canonical golden HTML report,
    structurally validated, visually inspected, and linked from the site.
-2. Hosted analysis backend — out of scope until product decision. Decision /
-   architecture plan: [`HOSTED_ANALYSIS_BACKEND_PLAN.md`](HOSTED_ANALYSIS_BACKEND_PLAN.md)
-   (default recommendation: stay local-only + static Pages until go/no-go).
+2. **Deferred (2026-07-25):** hosted analysis backend. Remain local-only +
+   static Pages unless a concrete remote-analysis need and an operations owner
+   meet the reopen trigger in
+   [`HOSTED_ANALYSIS_BACKEND_PLAN.md`](HOSTED_ANALYSIS_BACKEND_PLAN.md), followed
+   by a fresh go/no-go review.
 3. ICH Q1 watch — **re-checked 2026-07-24** (Step 4 unpublished; Step 2b
    constants still align with Q1AE). Prep scaffolds:
    [`Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md`](Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md)

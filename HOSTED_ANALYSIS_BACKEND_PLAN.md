@@ -1,9 +1,10 @@
 # HOSTED_ANALYSIS_BACKEND_PLAN.md
 
-> **Status:** Product / tech decision plan only.  
+> **Status:** `DEFER` recorded 2026-07-25; remain local-only + static Pages.
 > **Scope of this document:** decide whether to ship a hosted analysis API, and if so how.  
 > **Out of scope here:** implementing FastAPI, Workers, Cloud Run services, or any production code.  
-> **Do not treat this file as permission to build** until a go/no-go decision is recorded below.
+> **Do not treat this file as permission to build.** Reopen only when the
+> trigger recorded below is met and a new `GO` decision clears §6.
 
 **Related seams (read-only references):**
 - `openpharmastability/ui_service.py` — `analyze_for_ui()`, `UIAnalysisOptions`, `UIAnalysisManifest`
@@ -31,14 +32,15 @@
 
 **Default recommendation:** stay on **Option A** until Option B clears the §6 go/no-go checklist. If the checklist passes and there is a clear demo/partner need, ship **Option B** as a thin FastAPI wrap of existing seams — not a rewrite.
 
-**Decision record (fill when decided):**
+**Decision record:**
 
 | Field | Value |
 |---|---|
-| Decision | `GO` / `NO-GO` / `DEFER` |
-| Date | |
-| Owner | |
-| Rationale (1–3 lines) | |
+| Decision | `DEFER` |
+| Date | 2026-07-25 |
+| Owner | OpenPharmaStability project owner |
+| Rationale (1–3 lines) | The released local UI and static Pages site satisfy the current product scope without adding an upload, abuse, retention, or regulatory-positioning surface. |
+| Reopen trigger | A concrete partner/demo requirement for remote analysis, with an owner for hosting and security operations, followed by a fresh §6 go/no-go review. |
 
 ---
 

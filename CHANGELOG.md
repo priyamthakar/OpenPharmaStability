@@ -5,6 +5,20 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Docs — completion audit and hosted decision — 2026-07-25
+
+No package version, analysis constants, default profile, claims, or engine
+code changed.
+
+- Recorded the hosted-analysis decision as `DEFER`: the released local UI and
+  static Pages site remain the product boundary until a concrete
+  remote-analysis need and an operations owner trigger a fresh go/no-go review.
+- Corrected current-facing `HANDOVER.md` version and pytest-count wording so
+  the health gate consistently describes v1.1.0 and 483 total collected tests
+  rather than implying 483 passes plus additional skips.
+- Added `graphify-out/` to `.gitignore`; the completion-audit graph is a local
+  orientation artifact, not a release deliverable.
+
 ## Docs — three-track prep artifacts — 2026-07-24
 
 No package version, analysis constants, default profile, claims, or engine
