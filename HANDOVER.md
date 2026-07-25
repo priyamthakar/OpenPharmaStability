@@ -188,13 +188,13 @@ pytest -q
 
 ## 4. Healthy state verification
 
-A healthy v0.5.1 install is fully characterised by these four
+A healthy v1.1.0 install is fully characterised by these four
 commands. All four must succeed.
 
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-483 passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
+<483-N> passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
 ```
 
 Pass criteria:
@@ -336,7 +336,7 @@ code review check. Do not relax any of them.
 
 ---
 
-## 6. Open warnings (v0.10.0 status)
+## 6. Open warnings (v1.1.0 status)
 
 All v0.1.1, v0.3.1, and v0.5.1 known-open items are now **resolved**
 (documented below under "Recent releases" history).
