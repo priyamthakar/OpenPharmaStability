@@ -5,6 +5,21 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Docs — living-state synchronization — 2026-07-26
+
+No package version, analysis constants, default profile, claims, or engine
+code changed.
+
+- Synchronized `README.md`, `HANDOVER.md`, and `NEXT_STEPS.md` to the verified
+  v1.1.0 completion state at `40466b0`.
+- Recorded GitHub Quality run `30166941425` as green on Python 3.11/3.12,
+  including CLI smoke, static-site synchronization, and frozen-golden gates.
+- Made the single next gate explicit: wait for the revised/final ICH Q1
+  publication before profile work; hosted analysis remains `DEFER` unless its
+  documented reopen trigger is met.
+- Preserved dated session, UI-audit, regulatory-watch, and archived v0.1 build
+  documents as historical evidence rather than rewriting them as current plans.
+
 ## Docs — completion audit and hosted decision — 2026-07-25
 
 No package version, analysis constants, default profile, claims, or engine

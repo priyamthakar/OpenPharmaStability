@@ -26,6 +26,22 @@ engine; it does not reimplement shelf-life statistics in JavaScript.
 > tool, not submission-ready, and not a validated GxP / 21 CFR Part 11 system.
 > See `DISCLAIMER` in `openpharmastability/contracts.py`.
 
+## Current project state
+
+The v1.1.0 product scope is complete and the release gates are green. The
+verified pre-sync baseline is commit `40466b0`; GitHub Quality run
+`30166941425` passed on Python 3.11 and 3.12, including the CLI smoke, static
+site synchronization, and frozen-golden checks. Use `git log -1 --oneline` for
+the live documentation commit.
+
+There is no active implementation milestone. Hosted analysis is formally
+`DEFER` as of 2026-07-25, so the supported product boundary remains the local
+Python/UI workflow plus the static Pages site. The next executable project gate
+is external: assess the revised ICH Q1 draft when published, then perform the
+final profile gap assessment only after Step 4. See
+[`HANDOVER.md`](HANDOVER.md), [`NEXT_STEPS.md`](NEXT_STEPS.md), and
+[`HOSTED_ANALYSIS_BACKEND_PLAN.md`](HOSTED_ANALYSIS_BACKEND_PLAN.md).
+
 ## Case study: the golden assay dataset
 
 `examples/assay_3batch.csv` is the toolkit's frozen golden fixture — 3 batches,

@@ -1,7 +1,11 @@
 # OpenPharmaStability — NEXT_STEPS.md
 
 > **STATUS: v1.1.0 CURRENT; ANALYTICS + LOCAL UI STABLE; GRAPHITE DARK
-> PUBLIC SITE MERGED, RELEASED, AND DEPLOYED (2026-07-17).** v1.0.0
+> PUBLIC SITE MERGED, RELEASED, AND DEPLOYED (2026-07-17); CURRENT PRODUCT
+> SCOPE COMPLETE (VERIFIED 2026-07-26).** The verified pre-sync baseline is
+> `40466b0`; GitHub Quality run `30166941425` is green. There is no active
+> implementation milestone: hosted analysis is `DEFER`, and the next project
+> gate is the externally published revised/final ICH Q1 text. v1.0.0
 > adds the `openpharmastability-ui` local workspace and a stable
 > `ui_service.analyze_for_ui()` manifest over the existing Python engine.
 > v0.11.0 completed GuidanceProfile selection/audit; v0.10.0 added the

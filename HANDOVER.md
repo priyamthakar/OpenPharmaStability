@@ -5,27 +5,29 @@
 > If something in here disagrees with the code, the **code** is wrong —
 > but only after you have re-read the relevant contract.
 
-## Current takeover state — 2026-07-24
+## Current takeover state — 2026-07-26
 
 The statistics engine and local UI are stable at **v1.1.0**. The Graphite Dark
 public-site redesign is merged, released, and deployed. Automated Cloudflare
-Pages deployment from GitHub Actions is now operational. Regulatory watch was
-re-checked on this date against the official ICH Q1 EWG work plan and Step 2b
-draft; Step 4 remains unpublished and no profile/math change is warranted.
+Pages deployment from GitHub Actions is operational. The living documentation
+has been synchronized to the completed product state. The last formal
+regulatory re-check was 2026-07-24 against the official ICH Q1 EWG work plan
+and Step 2b draft; Step 4 remains unpublished and no profile/math change is
+warranted.
 
 | Item | Current state |
 |---|---|
 | Current release commit | `v1.1.0` → `406b352` (`ci: update setup actions for Node 24`) |
-| Main after release | Documentation/readiness and CI-maintenance commits only; use `git log -1 --oneline` for the live commit |
+| Verified pre-sync baseline | `40466b0` (`docs: defer hosted analysis decision`); use `git log -1 --oneline` for the live documentation commit |
 | GitHub release | `v1.1.0`, published 2026-07-17 |
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
-| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `29679774006` green on Python 3.11/3.12 plus CLI/site gates |
+| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `30166941425` green on Python 3.11/3.12 plus CLI/site/golden gates |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
-| Immediate priority | No release blocker. Prep artifacts in place: `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` + `tools/q1_watch_checklist.md` (fill when Sept revised draft appears); `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after Step 4 (expected Nov 2026). Hosted analysis is formally `DEFER` as of 2026-07-25; remain local-only unless the reopen trigger in `HOSTED_ANALYSIS_BACKEND_PLAN.md` is met. UI a11y re-check 2026-07-24: no change required (`design-qa.md`) |
+| Immediate priority | No active implementation milestone. Fill `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` when the revised draft appears; use `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after Step 4 (currently expected Nov 2026). Hosted analysis is `DEFER`; reopen only if the trigger in `HOSTED_ANALYSIS_BACKEND_PLAN.md` is met |
 
 Before adding or promoting a guidance profile, complete the provenance and gap
 review gates in `NEXT_STEPS.md` §10. Never overwrite a draft profile or make one
