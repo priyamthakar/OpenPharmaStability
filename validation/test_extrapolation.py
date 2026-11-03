@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import copy
 
-import pytest
 
 from openpharmastability.contracts import (
     CONFIDENCE,
@@ -57,7 +56,6 @@ def _make_result(
     on a 3-batch dataset; the cap logic only inspects the few fields
     we override.
     """
-    import numpy as np
     import pandas as pd
     rows = []
     for batch, b0 in (("B1", 100.0), ("B2", 99.0), ("B3", 101.0)):

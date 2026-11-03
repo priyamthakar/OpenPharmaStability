@@ -17,7 +17,6 @@ footprint. See ``NEXT_STEPS.md`` §5.3 for the spec.
 """
 from __future__ import annotations
 
-import math
 
 import numpy as np
 

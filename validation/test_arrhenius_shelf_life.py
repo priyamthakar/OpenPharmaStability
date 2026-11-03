@@ -22,11 +22,9 @@ import pathlib
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import (
     ArrheniusShelfLife,
-    BQLSummary,
     Direction,
     ValidatedData,
 )
@@ -461,10 +459,6 @@ def test_predict_arrhenius_shelf_life_increasing_degradant_uses_upper_spec(
     assert result.predicted_shelf_life_months is not None
     assert result.predicted_shelf_life_months > 0
     # And the upper-spec used for the crossing is data.upper_spec.
-    # Cross-check the closed-form prediction: at t=shelf_life,
-    # b0 + slope*shelf_life should be close to upper_spec.
-    import math
-    slope = float(result.predicted_k_at_storage)  # +rate for INCREASING
     # We don't have direct access to the helper's b0 estimate, so
     # we verify the structural invariant: predicted_shelf_life is
     # floor of the crossing, and the crossing is between 0 and the

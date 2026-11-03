@@ -7,11 +7,9 @@ hard cases the spec calls out.
 """
 from __future__ import annotations
 
-import math
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import (
     CrossingStatus,
@@ -19,8 +17,7 @@ from openpharmastability.contracts import (
     ModelKind,
     ValidatedData,
 )
-from openpharmastability.data.schema import validate_and_select
-from openpharmastability.stats.bounds import confidence_bound, find_crossing
+from openpharmastability.stats.bounds import find_crossing
 from openpharmastability.stats.poolability import decide_poolability
 from openpharmastability.stats.regression import fit_models
 

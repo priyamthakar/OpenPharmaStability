@@ -11,10 +11,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import pathlib
-import sys
 
 import pandas as pd
-import pytest
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -134,8 +132,6 @@ def test_script_imports_only_expected_modules():
 
 def test_regen_is_idempotent(tmp_path):
     mod = _load_module()
-    # Snapshot the current file.
-    before = EXPECTED.read_text()
     # Regenerate into a temp location (we don't want to mutate the
     # committed file from a test; that's the user's job).
     df = mod._build_dataset()

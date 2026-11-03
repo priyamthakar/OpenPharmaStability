@@ -19,7 +19,7 @@ import html
 import os
 from typing import Any
 
-from openpharmastability.contracts import DISCLAIMER, MultiAttributeResult
+from openpharmastability.contracts import MultiAttributeResult
 from openpharmastability.reports.multi_record import validate_multi_guidance
 
 

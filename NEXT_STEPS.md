@@ -143,7 +143,7 @@ openpharmastability/
     templates/report.html.j2 + multi_report.html.j2
 tools/
   regen_expected.py      # independent numpy/scipy validator (+ --check)
-validation/              # 483 collected pytest tests expected at v1.0.0
+validation/              # 499 collected pytest tests (483 at v1.0.0)
   conftest.py            # v0.5 module hard-require fail-fast (v0.5.1)
 examples/
   assay_3batch.csv             # golden input
@@ -1946,7 +1946,7 @@ python -c "import openpharmastability, sys; print('version', openpharmastability
 pytest -q
 ```
 
-Expected at v1.0.0: `483 collected` and a full green run with host-dependent
+Expected today: `499 collected` (483 at v1.0.0) and a full green run with host-dependent
 PDF skips (see §8.3 for the exact
 expectation and how to treat drift). Earlier releases had different
 counts — v0.1.0 = 173, v0.1.1 = 184, v0.3.0 = 254, v0.4.0 = ~280,
@@ -2009,7 +2009,7 @@ problem. Document it in the README dev section.
 
 **Acceptance criterion for §7:** after running `make fresh` (or the
 PowerShell + recompile + reinstall + pytest sequence), `pytest -q`
-prints the current expected count (`483 collected` at v1.0.0; see §8.3
+prints the current expected count (`499 collected` as of 2026-11-03; see §8.3
 for any drift) and `git status` shows no untracked `__pycache__`
 directories.
 
@@ -2069,9 +2069,9 @@ Python **3.11+** is required (`pyproject.toml`
 pytest -q
 ```
 
-Expected today (v1.0.0): **`483 collected`** and a full green run
+Expected today (2026-11-03): **`499 collected`** and a full green run
 with host-dependent PDF-backend skips. Earlier counts: 173 (v0.1.0) → 184 (v0.1.1) →
-254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 483 (v1.0.0). Then run the end-to-end smoke:
+254 (v0.3.0) → ~280 (v0.4.0) → 341 (v0.5.0) → 447 (v0.9.0) → 466 (v0.11.0) → 483 (v1.0.0) → 498 (v1.1.0) → 499 (2026-11-03 cleanup). Then run the end-to-end smoke:
 
 ```bash
 openpharmastability analyze examples/assay_3batch.csv \
@@ -2515,7 +2515,7 @@ The public information architecture should be:
 ### 11.6 Acceptance when touching UI or site
 
 ```
-[ ] pytest still green (483 collected; PDF skips OK without backends)
+[ ] pytest still green (499 collected; PDF skips OK without backends)
 [ ] python tools/regen_expected.py --check
 [ ] node tools/sync-site.mjs after dc.html / support.js / site-sample changes
 [ ] npx -y -p playwright node tools/website-qa.mjs --base <preview-or-production-url>

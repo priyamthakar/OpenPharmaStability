@@ -33,7 +33,7 @@ This is the kind of work CMC analytics teams need when they convert spreadsheet-
 - Built **OpenPharmaStability**, a Python-first stability analytics toolkit for pharmaceutical development that estimates supported shelf life from ICH Q1E-inspired confidence-bound/specification crossing.
 - Implemented multi-batch stability regression, batch poolability logic, multi-attribute limiting shelf-life selection, data-quality checks, and report-ready HTML/PDF/JSON outputs.
 - Designed the workflow around CMC reviewer needs: assay/degradant trends, OOS/OOT risk flags, shelf-life vs retest-period terminology, reproducibility metadata, and explicit decision-support limitations.
-- Shipped a tested engine (**483** collected tests; decision-support only — not GxP validated) with a golden assay case study (**17 months**, governing batch **B2**, common-slope model) and a public sample site.
+- Shipped a tested engine (**499** collected tests; decision-support only — not GxP validated) with a golden assay case study (**17 months**, governing batch **B2**, common-slope model) and a public sample site.
 
 ## Portfolio Case Study Structure
 
@@ -89,7 +89,7 @@ Use this structure on GitHub, LinkedIn, or a portfolio page:
 | Local UI screenshot | `site-sample/ui-workspace.png` (also linked from README § Local UI) |
 | Multi-attribute sample | `site-sample/multi/` (limiting CQA = impurity_a at **7 months**; assay 16 months) |
 | Public site | https://openpharmastability.pages.dev |
-| Test suite | **483** collected (`pytest --collect-only -q`); decision-support only — not GxP validated |
+| Test suite | **499** collected (`pytest --collect-only -q`); decision-support only — not GxP validated |
 | Engine version | **v1.1.0** |
 
 ## Evidence and next step for this career track
@@ -105,7 +105,7 @@ Completed:
 The public redesign and linked sample PDF are complete. The next scientific
 milestone is final ICH Q1 review: complete
 `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` only after the official Step 4 document
-is published. Until then, keep the validation/test count visible (**483**
+is published. Until then, keep the validation/test count visible (**499**
 collected), preserve the decision-support boundary, and do not portray the
 static site as a hosted analysis service.
 

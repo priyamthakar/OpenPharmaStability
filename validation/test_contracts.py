@@ -1,4 +1,3 @@
-import pytest
 from openpharmastability.contracts import StabilityResult, CrossingResult, \
     PoolabilityResult, FitResult, DiagnosticsResult, Direction, ModelKind, Poolability
 

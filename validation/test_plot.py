@@ -5,14 +5,12 @@ import os
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import (
     CrossingResult,
     CrossingStatus,
     Direction,
     DiagnosticsResult,
-    FitResult,
     ModelKind,
     Poolability,
     PoolabilityResult,

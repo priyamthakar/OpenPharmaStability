@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import json
 import math
-from datetime import datetime, timezone
+from datetime import datetime
 
 import numpy as np
 import pytest
 
 from openpharmastability.contracts import (
-    CONFIDENCE,
     POOLABILITY_ALPHA,
     TOOL_VERSION,
     CrossingResult,

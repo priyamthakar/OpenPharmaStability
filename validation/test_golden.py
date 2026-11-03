@@ -13,13 +13,11 @@ from __future__ import annotations
 
 import json
 import math
-import os
 import pathlib
 
 import pytest
 
 from openpharmastability.contracts import (
-    Direction,
     ModelKind,
 )
 from openpharmastability.data.io import load_csv

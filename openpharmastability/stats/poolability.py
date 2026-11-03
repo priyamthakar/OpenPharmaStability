@@ -35,10 +35,8 @@ does not start with ``def test_``.
 """
 from __future__ import annotations
 
-import dataclasses
-from typing import Iterable, List, Optional
+from typing import List, Optional
 
-import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
 from statsmodels.stats.anova import anova_lm

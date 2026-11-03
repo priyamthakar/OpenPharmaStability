@@ -19,7 +19,6 @@ import pathlib
 import re
 from datetime import datetime, timezone
 
-import pytest
 
 from openpharmastability.shelf_life.engine import analyze
 

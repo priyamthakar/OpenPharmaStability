@@ -563,7 +563,7 @@ known limitations are tracked in `NEXT_STEPS.md`.
 pytest -q
 ```
 
-The full suite is expected to collect **483 tests** after v1.0.0
+The full suite is expected to collect **499 tests** (as of 2026-11-03)
 (plus PDF-backend tests that skip cleanly on hosts without weasyprint/pdfkit).
 Use the project venv on Windows:
 

@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import ReducedDesignReport
 from openpharmastability.regulatory.reduced_design import detect_reduced_design

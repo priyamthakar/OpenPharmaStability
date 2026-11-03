@@ -15,15 +15,12 @@ import math
 
 import numpy as np
 import pandas as pd
-import pytest
 from scipy.optimize import brentq
-from scipy.stats import t as student_t
 
 from openpharmastability.contracts import (
     CrossingStatus,
     Direction,
     ModelKind,
-    ONE_SIDED_T_QUANTILE,
     ValidatedData,
 )
 from openpharmastability.stats.bounds import (

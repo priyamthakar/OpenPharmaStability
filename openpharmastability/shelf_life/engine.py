@@ -37,7 +37,6 @@ from openpharmastability.contracts import (
     ArrheniusResult,
     CrossingStatus,
     Direction,
-    Poolability,
     StabilityResult,
     TOOL_VERSION,
     ValidatedData,

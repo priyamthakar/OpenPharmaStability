@@ -8,7 +8,6 @@ analytically identical results (only the timestamp differs).
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 import re
 import shutil
@@ -498,7 +497,6 @@ def test_cli_accepts_sensitivity_flag(tmp_path):
     """`--sensitivity` is accepted; the CLI exits 0; the JSON
     decision record carries a populated ``sensitivity_report``
     with one row per Cook's-distance influential point."""
-    import csv
     output_html = tmp_path / "report.html"
     cmd = _resolve_cli() + [
         str(CSV), "--condition", "25C/60RH",

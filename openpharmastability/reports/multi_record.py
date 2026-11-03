@@ -74,7 +74,6 @@ def to_multi_decision_record(result: MultiAttributeResult) -> dict[str, Any]:
     - metadata
     - disclaimer (the verbatim text from contracts.DISCLAIMER)
     """
-    from openpharmastability.contracts import DISCLAIMER
 
     validate_multi_guidance(result)
 

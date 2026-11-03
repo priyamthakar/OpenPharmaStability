@@ -25,7 +25,6 @@ import pandas as pd
 import pytest
 
 from openpharmastability.contracts import (
-    AttributeMetadata,
     AttributeRole,
     Direction,
 )
