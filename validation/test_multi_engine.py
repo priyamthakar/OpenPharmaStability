@@ -15,11 +15,9 @@ import tempfile
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import (
     AttributeRole,
-    CrossingStatus,
     MultiAttributeResult,
 )
 from openpharmastability.shelf_life.multi_engine import analyze_many
@@ -377,7 +375,6 @@ def test_no_metadata_override_preserves_v020_behavior() -> None:
     assert multi.limiting_attribute == "impurity_a"
     assert multi.supported_shelf_life_months == 7
 
-    by_name = {a.metadata.attribute: a for a in multi.attributes}
     for ar in multi.attributes:
         # No metadata override -> both spec fields on the result
         # stay at the v0.7.0 default of None. (The data-derived

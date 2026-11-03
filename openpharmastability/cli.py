@@ -853,12 +853,12 @@ def _print_single_summary(
     if out_path:
         print(f"  HTML report:          {out_path}")
     else:
-        print(f"  HTML report:          (skipped)")
+        print("  HTML report:          (skipped)")
     print(f"  JSON decision record: {json_path}")
     if plot_path:
         print(f"  confidence plot PNG:  {plot_path}")
     else:
-        print(f"  confidence plot PNG:  (skipped)")
+        print("  confidence plot PNG:  (skipped)")
     if pdf_path:
         print(f"  PDF report:           {pdf_path}")
     if artifact:
@@ -1022,12 +1022,12 @@ def _print_multi_summary(
     if out_path:
         print(f"  HTML report:          {out_path}")
     else:
-        print(f"  HTML report:          (skipped)")
+        print("  HTML report:          (skipped)")
     print(f"  JSON decision record: {json_path}")
     if plots_dir:
         print(f"  plots directory:      {plots_dir}")
     else:
-        print(f"  plots directory:      (skipped)")
+        print("  plots directory:      (skipped)")
     if pdf_path:
         print(f"  PDF report:           {pdf_path}")
     if artifact:

@@ -6,13 +6,12 @@ import math
 
 import numpy as np
 import pandas as pd
-import pytest
 from dataclasses import asdict
 
 from openpharmastability.contracts import (
-    TransformAssessment, TransformCandidate,
+    TransformAssessment,
 )
-from openpharmastability.stats.transforms import _SUPPORTED, assess_transforms
+from openpharmastability.stats.transforms import assess_transforms
 
 
 def _linear_df(slope=-0.5, intercept=100.0, sd=0.3, seed=20260113):
@@ -72,16 +71,21 @@ def test_log_invalid_for_negative():
     df.loc[mask, "value"] = -1.0
     a = assess_transforms(df, attribute="assay")
     log_cand = next(c for c in a.candidates if c.name == "log")
-    def test_recommendation_is_best_aicc_for_log_growth():
-        df = _log_growth_df()
-        a = assess_transforms(df, attribute="assay")
-        # log should win for multiplicative data
-        valid = [c for c in a.candidates if c.valid and c.aic is not None]
-        assert a.recommendation is not None
-        # The recommendation has the lowest AICc
-        min_aic = min(c.aic for c in valid)
-        rec_cand = next(c for c in a.candidates if c.name == a.recommendation)
-        assert math.isclose(rec_cand.aic, min_aic, rel_tol=1e-9)
+    assert log_cand.valid is False
+    assert log_cand.invalid_reason is not None
+    assert "positive" in log_cand.invalid_reason.lower()
+
+
+def test_recommendation_is_best_aicc_for_log_growth():
+    df = _log_growth_df()
+    a = assess_transforms(df, attribute="assay")
+    # log should win for multiplicative data
+    valid = [c for c in a.candidates if c.valid and c.aic is not None]
+    assert a.recommendation is not None
+    # The recommendation has the lowest AICc
+    min_aic = min(c.aic for c in valid)
+    rec_cand = next(c for c in a.candidates if c.name == a.recommendation)
+    assert math.isclose(rec_cand.aic, min_aic, rel_tol=1e-9)
 
 
 def test_recommendation_none_if_no_valid_candidates():

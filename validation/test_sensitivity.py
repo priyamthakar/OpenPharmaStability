@@ -9,11 +9,9 @@ will fail loudly if the module is missing).
 from __future__ import annotations
 
 import pathlib
-import sys
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import (
     CrossingResult,
@@ -477,9 +475,7 @@ def test_compute_sensitivity_batch_mode_too_few_batches() -> None:
         for t, v in ((0.0, 100.0), (3.0, 99.0), (6.0, 98.0))
     ]
     df = pd.DataFrame(rows)
-    data = validate_and_select(
-        df, attribute="assay", condition="25C/60RH",
-    )
+    validate_and_select(df, attribute="assay", condition="25C/60RH")
     # Use the existing tiny result + data fixtures so we can
     # exercise the same "build report directly" path the row
     # mode tests use. The data here is a 1-batch frame and

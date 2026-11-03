@@ -19,23 +19,12 @@ a healthy-looking "skipped" report) has been removed.
 """
 from __future__ import annotations
 
-import math
 import pathlib
-import tempfile
 
 import numpy as np
 import pandas as pd
-import pytest
 
-from openpharmastability.contracts import (
-    ArrheniusResult,
-    Direction,
-    ReducedDesignReport,
-)
-from openpharmastability.regulatory.reduced_design import detect_reduced_design
 from openpharmastability.shelf_life.engine import analyze
-from openpharmastability.stats.arrhenius import fit_arrhenius
-from openpharmastability.stats.mkt import mean_kinetic_temperature
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]

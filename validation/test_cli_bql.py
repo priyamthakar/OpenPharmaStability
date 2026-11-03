@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from openpharmastability.data.bql import apply_bql_policy
 from openpharmastability.data.schema import validate_and_select
 
 

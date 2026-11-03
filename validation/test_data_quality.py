@@ -5,7 +5,6 @@ import json
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from openpharmastability.contracts import IssueSeverity
 from openpharmastability.data.quality import IssueCode, audit_data_quality
@@ -226,7 +225,6 @@ def test_report_is_json_serializable():
 
 def test_summary_counts_match_issues():
     """Build a frame that triggers 1 ERROR + 2 WARNING + 1 INFO, verify counts."""
-    rng = np.random.default_rng(20260113)
     rows = []
     # 1 ERROR row: empty baseline + no spec
     rows.append({

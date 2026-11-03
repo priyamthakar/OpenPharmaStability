@@ -228,7 +228,7 @@ def test_make_artifact_html_is_portable(tmp_path: pathlib.Path) -> None:
     _render_single_plot(result, "assay", "25C/60RH", SINGLE_CSV, plot)
 
     # Build in tmp_path/src.
-    artifact = make_report_artifact(
+    make_report_artifact(
         result, str(tmp_path / "src"),
         plot_paths=[str(plot)],
     )

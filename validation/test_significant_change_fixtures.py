@@ -55,7 +55,6 @@ from __future__ import annotations
 import pathlib
 
 import pandas as pd
-import pytest
 
 from openpharmastability.shelf_life.engine import analyze
 

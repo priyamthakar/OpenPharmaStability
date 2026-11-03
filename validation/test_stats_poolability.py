@@ -15,9 +15,7 @@ double-check the per-step p-values for sanity.
 """
 from __future__ import annotations
 
-import math
 
-import numpy as np
 import pandas as pd
 import pytest
 

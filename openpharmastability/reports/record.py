@@ -13,7 +13,6 @@ Only depends on :mod:`openpharmastability.contracts`.
 """
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import asdict, is_dataclass
 from typing import Any, Union
 

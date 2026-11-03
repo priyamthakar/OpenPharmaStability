@@ -56,7 +56,6 @@ from openpharmastability.contracts import (
 from openpharmastability.data.conditions import parse_condition
 from openpharmastability.data.io import load_table
 from openpharmastability.data.metadata import (
-    load_attribute_metadata_csv,
     load_attribute_metadata_from_dataframe,
 )
 from openpharmastability.data.xlsx import load_xlsx_sheet

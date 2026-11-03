@@ -150,7 +150,6 @@ def validate_and_select(
 
     bql_rows_before = count_bql_rows(working)
     working, bql_summary = apply_bql_policy(working, policy=bql_policy)
-    bql_rows_after_exclusion = bql_rows_before - count_bql_rows(working)
 
     if bql_rows_before > 0:
         warnings.append(

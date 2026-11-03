@@ -9,15 +9,7 @@ import pathlib
 import pytest
 
 from openpharmastability.contracts import (
-    AttributeMetadata,
-    AttributeResult,
-    AttributeRole,
-    Direction,
-    ModelKind,
     MultiAttributeResult,
-    Poolability,
-    PoolabilityResult,
-    StabilityResult,
 )
 from openpharmastability.reports.multi_html import render_multi_html
 from openpharmastability.reports.multi_record import to_multi_decision_record
@@ -140,7 +132,7 @@ def test_html_render_writes_file(tmp_path):
     assert "file://" not in html
     # Per-attribute sections.
     for ar in result.attributes:
-        assert f"id=\"attr-" in html or ar.metadata.attribute in html
+        assert "id=\"attr-" in html or ar.metadata.attribute in html
     # Disclaimer verbatim.
     from openpharmastability.contracts import DISCLAIMER
     assert DISCLAIMER in html

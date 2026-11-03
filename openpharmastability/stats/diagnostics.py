@@ -37,10 +37,9 @@ cases (tiny data, all-zero design, etc.) each check resolves to
 """
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
-import pandas as pd
 from scipy import stats
 import statsmodels.formula.api as smf
 from statsmodels.stats.diagnostic import het_breuschpagan
@@ -180,15 +179,8 @@ def _lack_of_fit_test(
 
     p = len(fit.params)  # number of fitted parameters
     sse = float(((sub["value"] - yhat) ** 2).sum())
-    group_stats = sub.groupby("_group").agg(
-        n=("_resid", "size"),
-        ybar=("value", "mean"),
-        yhat=("value", lambda v: float(np.mean(v - sub.loc[v.index, "_resid"].values))),
-    )
-    # Note: the yhat aggregator above is just a placeholder; the
-    # group-level fitted value is the mean of yhat at the group rows
-    # (since the line is deterministic in (batch, time)).  Re-derive
-    # correctly:
+    # The group-level fitted value is the mean of yhat at the group
+    # rows (the line is deterministic in (batch, time)).
     sub["_yhat"] = yhat
     group_yhat = sub.groupby("_group")["_yhat"].mean()
     group_ybar = sub.groupby("_group")["value"].mean()
@@ -685,11 +677,9 @@ def run_diagnostics(fit: FitResult, data: ValidatedData) -> DiagnosticsResult:
     # fails, return a non-throwing DiagnosticsResult.
     try:
         resid, used_index = _compute_residuals(fit, data)
-        t, yhat, used_index2 = _yhat_values(fit, data)
-        # The two index arrays must agree; if not, the data layer is
-        # in a strange state.  Prefer the residual computation.
-        if not np.array_equal(used_index, used_index2):
-            used_index = used_index
+        # If the two index arrays disagree, the residual computation's
+        # ``used_index`` is authoritative.
+        t, yhat, _ = _yhat_values(fit, data)
     except Exception as exc:  # pragma: no cover - defensive
         notes.append(f"Diagnostics could not compute residuals: {exc!r}.")
         return DiagnosticsResult(

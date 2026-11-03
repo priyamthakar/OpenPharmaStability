@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import math
 import pathlib
-import platform
 
 import pandas as pd
 import pytest
@@ -350,7 +349,6 @@ def test_engine_handles_single_time_point(tmp_path):
     rather than propagating a divide-by-zero or NaN error.
     """
     import pandas as pd
-    import pytest
 
     rows = [
         {"batch": b, "time_months": 0.0, "value": 100.0,
@@ -386,7 +384,6 @@ def test_engine_handles_nan_value(tmp_path):
     The engine should surface the missing-value issue explicitly rather
     than allowing NaN to propagate silently into the regression.
     """
-    import math
     import pandas as pd
 
     rows = []

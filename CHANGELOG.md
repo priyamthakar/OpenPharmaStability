@@ -5,6 +5,23 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Maintenance — code cleanup — 2026-11-03
+
+No package version, analysis constants, default profile, numerical output, or
+public API changed. `pytest` 495 passed / 4 host-dependent PDF skips;
+`tools/regen_expected.py --check` passes.
+
+- Removed unused imports, unused locals, and placeholder-less f-strings across
+  the package and test suite (`ruff --select F` is now clean).
+- `stats/diagnostics.py`: removed a dead placeholder `groupby().agg()` in the
+  lack-of-fit test and a no-op self-assignment in `run_diagnostics`.
+- `validation/test_transforms.py`: `test_recommendation_is_best_aicc_for_log_growth`
+  had been indented inside `test_log_invalid_for_negative` and never ran; it is
+  restored as a top-level test, and the negative-value test regains its
+  missing assertions. Both pass.
+- Replaced the unrelated `CLAUDE-FABLE-5.md` agent prompt with a project
+  `CLAUDE.md` that points at `HANDOVER.md` / `NEXT_STEPS.md` / `AGENTS.md`.
+
 ## Regulatory watch — 2026-11-03 (limited; official source not reachable)
 
 No package version, analysis constants, default profile, claims, or code

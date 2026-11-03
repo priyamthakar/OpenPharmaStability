@@ -9,7 +9,6 @@ the tests stay focused on that rule.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from openpharmastability.contracts import (
     AttributeMetadata,

@@ -35,9 +35,7 @@ can still pass.
 """
 from __future__ import annotations
 
-import json
 import pathlib
-import tempfile
 
 import pandas as pd
 import pytest
@@ -62,11 +60,6 @@ needs_regulatory = pytest.mark.skipif(
 )
 
 
-from openpharmastability.contracts import (
-    CrossingStatus,
-    ModelKind,
-    Poolability,
-)
 from openpharmastability.shelf_life.engine import analyze
 
 
@@ -110,7 +103,6 @@ def _write_three_batch_two_condition_csv(
                 "direction": "decreasing",
             })
         # Accelerated rows: t=0 baseline, then drop by acc_drop_pct% at t=1
-        base_vals = []
         for t in acc_months:
             if t == 0.0:
                 v = b0
