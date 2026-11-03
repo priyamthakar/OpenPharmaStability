@@ -23,7 +23,7 @@ warranted.
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
-| Test state | 483 collected; local full run green with 4 host-dependent PDF skips; GitHub Quality run `30166941425` green on Python 3.11/3.12 plus CLI/site/golden gates |
+| Test state | 499 collected; local full run 2026-11-03: 495 passed + 4 host-dependent PDF skips, golden check passed. Last recorded CI: GitHub Quality run `30166941425` green on Python 3.11/3.12 plus CLI/site/golden gates (at 483 tests, before the 2026-11-03 cleanup) |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
@@ -112,7 +112,7 @@ verbatim in every HTML report.
 | Golden CSV | `examples/assay_3batch.csv` (42 rows, 3 batches, 7 time points) |
 | Golden expected | `examples/assay_3batch.expected.json` |
 | Regeneration script | `tools/regen_expected.py` (pure numpy + scipy.stats.t + brentq; no statsmodels, no project imports) |
-| Test count | **483 collected tests** (confirm via `pytest --collect-only -q`); expect ~479 passed + 4 host-dependent PDF skips without weasyprint/pdfkit |
+| Test count | **499 collected tests** (confirm via `pytest --collect-only -q`); expect 495 passed + 4 host-dependent PDF skips without weasyprint/pdfkit |
 | Reported shelf life on the golden dataset | **17 months** (statistical crossing 17.955 mo, B2, COMMON_SLOPE) |
 | Frozen contracts | `openpharmastability/contracts.py` (read-only after release) |
 | Python API | `openpharmastability.api` — `analyze_csv`, `analyze_xlsx`, `analyze_path`, `analyze_multi`, `make_artifact`, `analyze_and_artifact`, `compute_sensitivity_for`, `predict_arrhenius_shelf_life_for`; v1 adds `openpharmastability.ui_service.analyze_for_ui` |
@@ -196,13 +196,13 @@ commands. All four must succeed.
 ### 4.1 `pytest -q` — exact expected output
 
 ```text
-<483-N> passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
+<499-N> passed, <N> skipped in <Xs>  (PDF-backend skips are host-dependent)
 ```
 
 Pass criteria:
 
-- The expected collection count is **483** after v1.0.0 (the per-file collection map is in
-  the `pytest --collect-only -q` output; ~33 test files under
+- The expected collection count is **499** as of 2026-11-03 (483 at v1.0.0; the per-file collection map is in
+  the `pytest --collect-only -q` output; 42 test files under
   `validation/`).
 - `validation/conftest.py` must import cleanly. If any of the v0.5
   modules (`stats.arrhenius`, `stats.mkt`,
