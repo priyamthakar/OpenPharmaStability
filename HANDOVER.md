@@ -23,7 +23,7 @@ warranted.
 | Production site | https://openpharmastability.pages.dev |
 | Latest verified Pages deployment | GitHub Actions run `29590938841`; preview `https://8fdcfa96.openpharmastability.pages.dev`; production branch `main` |
 | Production verification | Canonical and preview URLs return HTTP 200; canonical HTML SHA-256 `9348cc241acb58234f570df4ec9ac87b12a8af5c37f0423e776da0adb32b1232` matches LF-normalized `site/index.html` |
-| Test state | 499 collected; local full run 2026-11-03: 495 passed + 4 host-dependent PDF skips, golden check passed. Last recorded CI: GitHub Quality run `30166941425` green on Python 3.11/3.12 plus CLI/site/golden gates (at 483 tests, before the 2026-11-03 cleanup) |
+| Test state | 499 collected; local full run 2026-11-03: 495 passed + 4 host-dependent PDF skips, golden check passed. Last recorded CI: GitHub Quality run `30166941425` green on Python 3.11/3.12 plus CLI/site/golden gates (before the 2026-11-03 cleanup) |
 | Golden validation | `python tools/regen_expected.py --check` passed |
 | Site interaction QA | Graphite Dark redesign passed desktop/mobile layout, copy, CTA, console, and sample-artifact checks |
 | Visual audit | Side-by-side reference comparison passed; see `design-qa.md` and `qa-output/design-comparison-desktop.png` |
