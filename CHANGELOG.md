@@ -5,6 +5,25 @@ Versions follow [SemVer](https://semver.org/). v1.x releases keep the
 Python statistics engine authoritative and treat UI/API additions as thin
 surfaces over generated artifacts.
 
+## Regulatory watch — 2026-11-03 (limited; official source not reachable)
+
+No package version, analysis constants, default profile, claims, or code
+changed. This is a **limited** watch: `ich.org` and `database.ich.org` were not
+reachable from the review environment, so no official PDF was downloaded or
+hashed and the §10.1 checklist could not be completed against primary sources.
+
+- **Secondary-source finding only:** public web search found no report of the
+  September 2026 revised consolidated Q1 draft or of Step 3 sign-off / Step 4
+  adoption. Trackers still describe Q1 as at Step 2b (11 April 2025) with
+  Step 4 targeted for November 2026
+  ([CASRAI](https://casrai.org/dictionary/term/ich-q1-stability-testing)).
+  Absence of search results is not evidence that publication has not occurred.
+- **Action:** none for implementation. Keep `DEFAULT_PROFILE = Q1AE`. Leave
+  `Q1_SEPTEMBER_2026_REVISED_DRAFT_DELTA.md` and
+  `Q1_FINAL_GAP_ASSESSMENT_TEMPLATE.md` unfilled. Repeat this watch from an
+  environment with `ich.org` access, and again after the November 2026 ICH
+  Assembly outcome is published.
+
 ## Docs — living-state synchronization — 2026-07-26
 
 No package version, analysis constants, default profile, claims, or engine
